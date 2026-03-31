@@ -96,19 +96,7 @@
           }
         }
       }
-    },
-    "dynamicConfigurations": [
-      {
-        "name": "apiKey",
-        "defaultValue": "YOUR_API_KEY_HERE",
-        "portalSetting": "portalSettings.apiKey"
-      }
-    ],
-    "contextPlugins": [
-      {
-        "pluginFile": "src/static/scripts/context-plugin.js"
-      }
-    ]
+    }
   },
   "recipes": {
     "workflows": [

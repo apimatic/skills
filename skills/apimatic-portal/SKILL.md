@@ -411,11 +411,7 @@ APIMaticDevPortal.ready(({ setConfig }) =>
 }
 ```
 
-**Build-time (for `dynamicConfigurations` and `contextPlugins` schema injection):**
-
-Add `dynamicConfigurations` and `contextPlugins` to `generatePortal` in `APIMATIC-BUILD.json`.
-
-Read `references/dynamic-configurations.md` for the full schema, context plugin authoring guide, and a complete consolidated example.
+Read `references/dynamic-configurations.md` for the full `setConfig` callback reference, discovering available properties, and a complete consolidated example.
 
 ### Header and Footer Customization
 
@@ -492,12 +488,6 @@ Read `references/versioned-portals.md` for the full directory structure, outer b
 
 ### API Recipes
 
-To scaffold a recipe:
-
-```
-apimatic portal recipe new
-```
-
 The CLI provides an interactive wizard for creating API Recipes. Skip the wizard and create recipes manually.
 
 When creating a recipe manually (without the CLI wizard), four things are required:
@@ -534,7 +524,7 @@ Read `references/recipes.md` for the full registration schema, all step types, a
 - `references/copilot-and-ai.md` — API Copilot CLI wizard walkthrough, the written APIMATIC-BUILD.json copilot block, LLMs.txt `llmsContextGeneration` configuration, and production `baseUrl` warning.
 - `references/seo-and-discovery.md` — SEO mode configuration (`indexable`, `baseUrl`), generated file list, and when to use SEO vs SPA mode.
 - `references/navigation-and-content.md` — toc.yml format with all entry types, `apimatic portal toc new` usage, custom markdown page workflow, and custom UI component syntax.
-- `references/dynamic-configurations.md` — `dynamicConfigurations` array schema, `contextPlugins` array schema, context plugin file authoring, and a complete consolidated example.
+- `references/dynamic-configurations.md` — Dynamic portal configurations using `APIMaticDevPortal.ready` with `setConfig`, discovering available properties via browser dev tools, `tailIncludes` script injection, and a complete consolidated example.
 - `references/recipes.md` — Recipe registration schema (`recipes.workflows` in `APIMATIC-BUILD.json`), `.js` file authoring guide covering all step types (`showContent`, `showEndpoint`, `stepState`, `portal.setConfig`, `showConfettiAnimation`, `nextRecipe`), and a complete consolidated example.
 - `examples/` — Comprehensive working examples: `comprehensive-build.json` (all configuration sections in one file), `toc.yml` (all navigation patterns), `complete-recipe.js` (all recipe step types in a real-world scenario), and `components/header.html` + `components/footer.html` (header/footer injection). Use these files as authoritative reference when writing portal configuration.
 

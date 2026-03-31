@@ -1,97 +1,99 @@
 # Dynamic Configurations Reference
 
-This file covers `dynamicConfigurations` and `contextPlugins` in `APIMATIC-BUILD.json`, which inject runtime values such as API keys into the portal API playground.
+This file covers dynamic portal configurations using the `APIMaticDevPortal.ready` function and `tailIncludes` in `APIMATIC-BUILD.json`, which inject runtime values such as auth credentials into the portal at load time.
 
 ## Contents
 
 - [What Are Dynamic Configurations](#what-are-dynamic-configurations)
-- [dynamicConfigurations Schema](#dynamicconfigurations-schema) — field explanations
-- [contextPlugins Schema](#contextplugins-schema) — field explanations
-- [Writing a Context Plugin File](#writing-a-context-plugin-file)
+- [Discovering Available Properties](#discovering-available-properties) — inspecting the portal's `config` object via browser dev tools
+- [The Ready Function](#the-ready-function) — `APIMaticDevPortal.ready`, `setConfig` callback, property overrides
+- [Injecting the Script via tailIncludes](#injecting-the-script-via-tailincludes) — loading the config file in `APIMATIC-BUILD.json`
 - [Complete Configuration Example](#complete-configuration-example)
 
 ---
 
 ## What Are Dynamic Configurations
 
-Dynamic configurations let the portal substitute runtime values — such as API keys or auth tokens — into the API playground at build time. Instead of showing placeholder credentials, the playground displays real values so developers can test the API immediately.
+The API developer portal contains client configurations that are loaded through the spec file and can be updated manually from the portal. Dynamic configurations allow programmatic access to these settings, enabling updates at the time of portal load.
 
-Values are sourced from a context plugin (a JavaScript file that runs at build time) or fall back to a `defaultValue` when no plugin is present.
+Values are set using a JavaScript file that calls `APIMaticDevPortal.ready` with a `setConfig` callback. The file is injected into the portal via the `tailIncludes` property in `APIMATIC-BUILD.json`.
 
 ---
 
-## dynamicConfigurations Schema
+## Discovering Available Properties
 
-The `dynamicConfigurations` array lives inside `generatePortal` in `APIMATIC-BUILD.json`:
+To find out which properties are available for dynamic configuration:
+
+1. Open the APIMatic DX Portal in a browser and open the developer console
+2. Navigate to the **Network** tab
+3. Refresh the page
+4. Find the network call named `docsgen?template=...` and click on it
+5. Select the **Preview** tab to view the response JSON object
+6. In the response, locate the nested path **Data Model** > **config** — this `config` object contains all properties that can be updated dynamically
+
+Property names used in the `setConfig` callback must match the keys found in this `config` object exactly.
+
+---
+
+## The Ready Function
+
+Create a JavaScript file in `src/static/scripts/`. The file calls `APIMaticDevPortal.ready` with a `setConfig` callback that receives the current configuration and returns the updated configuration:
+
+```javascript
+// src/static/scripts/config.js
+APIMaticDevPortal.ready(({ setConfig }) =>
+  setConfig((defaultConfig) => {
+    return {
+      ...defaultConfig,
+      showFullCode: false,
+      auth: {
+        oauth_2_0: {
+          OAuthClientId: "OAuthClientId",
+          OAuthClientSecret: "OAuthClientSecret",
+          OAuthRedirectUri: "OAuthRedirectUri",
+          OAuthToken: "",
+          OAuthScopes: ["album"],
+        },
+      },
+    };
+  })
+);
+```
+
+**Field explanations:**
+
+- `setConfig` — accepts a callback that receives `defaultConfig` (the portal's current configuration object) and returns the updated configuration
+- `defaultConfig` — always spread this to preserve existing settings; override only the properties you want to change
+- `auth` — authentication configuration object; keys correspond to auth scheme names defined in the API spec (for example, `oauth_2_0`, `bearerAuth`)
+- Properties inside each auth scheme match the authentication parameters for that scheme (for example, `OAuthClientId`, `OAuthClientSecret`, `OAuthRedirectUri`, `OAuthToken`, `OAuthScopes`)
+
+**Important:** If the additional property flag is false and a new property is added that is not present in the data model schema, the console will throw an error indicating that the new property cannot be added.
+
+---
+
+## Injecting the Script via tailIncludes
+
+Add the JavaScript file to the portal using the `tailIncludes` property inside `generatePortal` in `APIMATIC-BUILD.json`:
 
 ```json
 {
   "generatePortal": {
-    "dynamicConfigurations": [
-      {
-        "name": "apiKey",
-        "defaultValue": "YOUR_API_KEY",
-        "portalSetting": "portalSettings.apiKey"
-      }
-    ]
+    "tailIncludes": "<script defer src='static/scripts/config.js'></script>"
   }
 }
 ```
 
 **Field explanations:**
 
-- `name` — identifier for this dynamic value; used as the key when the context plugin returns its map of values; must be unique within the array
-- `defaultValue` — value used in the portal when no context plugin provides a value; useful for showing example placeholders to developers
-- `portalSetting` — dot-notation path to the `APIMATIC-BUILD.json` field this value overrides at build time; must match the portal setting key exactly
+- `tailIncludes` — HTML string injected at the bottom of the generated portal page; use a `<script defer>` tag to load the config file
 
----
-
-## contextPlugins Schema
-
-The `contextPlugins` array lives inside `generatePortal` alongside `dynamicConfigurations`:
-
-```json
-{
-  "generatePortal": {
-    "contextPlugins": [
-      {
-        "pluginFile": "src/static/scripts/context-plugin.js"
-      }
-    ]
-  }
-}
-```
-
-**Field explanation:**
-
-- `pluginFile` — relative path from the project root to the context plugin JavaScript file; the file must export a default async function; place plugins in `src/static/scripts/` alongside recipe files
-
----
-
-## Writing a Context Plugin File
-
-Context plugins are JavaScript files placed in `src/static/scripts/`. Each plugin exports a default async function:
-
-```javascript
-export default async function contextPlugin(context) {
-  return {
-    apiKey: "live-api-key-from-env-or-service"
-  };
-}
-```
-
-**Behavior notes:**
-
-- The exported function receives a `context` object (portal build context — API spec, config, and environment)
-- Return value must be a plain object where each key matches a `name` in `dynamicConfigurations`
-- The portal calls the plugin during build; returned values override `defaultValue` for matching names
-- Plugins run at build time (not in the browser) — use `process.env` to read environment variables safely
+Once the script is injected into the build file, generate a new build to reflect the changes. The script will be included in the generated `index.html` file.
 
 ---
 
 ## Complete Configuration Example
 
-A minimal `APIMATIC-BUILD.json` combining `dynamicConfigurations` and `contextPlugins`:
+A minimal `APIMATIC-BUILD.json` with dynamic configuration injection:
 
 ```json
 {
@@ -102,37 +104,30 @@ A minimal `APIMATIC-BUILD.json` combining `dynamicConfigurations` and `contextPl
     "languageConfig": {
       "http": {}
     },
-    "dynamicConfigurations": [
-      {
-        "name": "apiKey",
-        "defaultValue": "YOUR_API_KEY_HERE",
-        "portalSetting": "portalSettings.apiKey"
-      }
-    ],
-    "contextPlugins": [
-      {
-        "pluginFile": "src/static/scripts/context-plugin.js"
-      }
-    ]
+    "tailIncludes": "<script defer src='static/scripts/config.js'></script>"
   }
 }
 ```
 
-The matching `src/static/scripts/context-plugin.js`:
+The matching `src/static/scripts/config.js`:
 
 ```javascript
-export default async function contextPlugin(context) {
-  return {
-    apiKey: process.env.PORTAL_API_KEY || "YOUR_API_KEY_HERE"
-  };
-}
+APIMaticDevPortal.ready(({ setConfig }) =>
+  setConfig((defaultConfig) => {
+    return {
+      ...defaultConfig,
+      auth: {
+        oauth_2_0: {
+          OAuthClientId: "my-client-id",
+          OAuthClientSecret: "my-client-secret",
+          OAuthRedirectUri: "https://example.com/callback",
+          OAuthToken: "",
+          OAuthScopes: ["album"],
+        },
+      },
+    };
+  })
+);
 ```
 
-**Field explanations:**
-
-- `apiSpecs` — list of spec identifiers matching filenames in `src/spec/` (without extension)
-- `languageConfig` — which code snippet languages appear in the portal; `"http": {}` produces HTTP request snippets only
-- `dynamicConfigurations` — array of values to inject into the portal at build time; each entry requires `name`, `defaultValue`, and `portalSetting`
-- `contextPlugins` — array of plugin file references; each entry requires `pluginFile` pointing to an async function that returns a key-value map
-
-After adding these settings, run `apimatic portal serve` to preview the result. The portal API playground will display the injected API key value in place of the default placeholder.
+After updating the build file, run `apimatic portal generate` or rebuild the portal to apply the changes.
