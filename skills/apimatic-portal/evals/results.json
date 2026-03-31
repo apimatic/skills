@@ -1,0 +1,1004 @@
+{
+  "total_passed": 156,
+  "total_assertions": 156,
+  "pass_rate": 1.0,
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I need to log in to APIMatic CLI so I can build my developer portal. Can you wal",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-auth-login",
+          "passed": true,
+          "evidence": "Found 'apimatic auth login'"
+        },
+        {
+          "id": "browser-window-notification",
+          "passed": true,
+          "evidence": "Found: ['browser window', 'browser-based', 'A browser']"
+        },
+        {
+          "id": "waits-for-user-confirmation",
+          "passed": true,
+          "evidence": "Found: ['confirm', 'let me know when', 'once you', 'when done', 'after you']"
+        },
+        {
+          "id": "runs-auth-status",
+          "passed": true,
+          "evidence": "Found 'apimatic auth status'"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I have my OpenAPI spec at ~/projects/petstore.yaml and I've never set up an APIM",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-quickstart-command",
+          "passed": true,
+          "evidence": "Found 'apimatic quickstart'"
+        },
+        {
+          "id": "steps-aside-for-wizard",
+          "passed": true,
+          "evidence": "Found: ['step aside', 'wizard will', 'CLI handles', 'wizard handles', 'wizard prompts']"
+        },
+        {
+          "id": "does-not-pre-fill-spec-path",
+          "passed": true,
+          "evidence": "Correctly absent: '--spec'"
+        },
+        {
+          "id": "does-not-answer-wizard-prompts",
+          "passed": true,
+          "evidence": "Correctly absent"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My APIMatic portal project lives at ~/my-portal/ and it has a src/ folder inside",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-portal-serve",
+          "passed": true,
+          "evidence": "Found 'apimatic portal serve'"
+        },
+        {
+          "id": "correct-directory",
+          "passed": true,
+          "evidence": "Found: ['~/my-portal', 'my-portal/', 'project root']"
+        },
+        {
+          "id": "not-from-src-dir",
+          "passed": true,
+          "evidence": "Correctly absent: 'cd src'"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm configuring a GitHub Actions CI pipeline to build and deploy my APIMatic por",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-portal-generate",
+          "passed": true,
+          "evidence": "Found 'apimatic portal generate'"
+        },
+        {
+          "id": "uses-auth-key-flag",
+          "passed": true,
+          "evidence": "Found '--auth-key'"
+        },
+        {
+          "id": "recommends-for-ci",
+          "passed": true,
+          "evidence": "Found: ['CI environment', 'no browser']"
+        },
+        {
+          "id": "no-browser-login-for-ci",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I want to add an API recipe to my APIMatic portal. How do I scaffold one using t",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-recipe-new-command",
+          "passed": true,
+          "evidence": "Found 'apimatic portal recipe new'"
+        },
+        {
+          "id": "steps-aside-for-wizard",
+          "passed": true,
+          "evidence": "Found: ['step aside', 'wizard handles', 'let the wizard', 'wizard prompts']"
+        },
+        {
+          "id": "from-project-root",
+          "passed": true,
+          "evidence": "Found: ['project root']"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I need to create an API recipe manually (without the wizard). What files do I ne",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "md-page-required",
+          "passed": true,
+          "evidence": "Found: ['src/content/recipes', 'content/recipes', 'markdown page']"
+        },
+        {
+          "id": "toc-entry-required",
+          "passed": true,
+          "evidence": "Found: ['toc.yml', 'page:recipes']"
+        },
+        {
+          "id": "recipes-workflows-top-level",
+          "passed": true,
+          "evidence": "Found: ['recipes.workflows', 'top-level']"
+        },
+        {
+          "id": "js-script-required",
+          "passed": true,
+          "evidence": "Found: ['src/static/scripts/recipes', 'static/scripts/recipes', 'recipe script']"
+        },
+        {
+          "id": "not-nested-in-generatePortal",
+          "passed": true,
+          "evidence": "Correctly absent: 'generatePortal.recipes'"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I'm writing the JavaScript file for my APIMatic recipe. How should the function ",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "correct-export-syntax",
+          "passed": true,
+          "evidence": "Found: ['export default function', 'export default function RecipeName']"
+        },
+        {
+          "id": "not-async-export",
+          "passed": true,
+          "evidence": "Correctly absent: 'export default async function'"
+        },
+        {
+          "id": "optional-chaining-for-stepstate",
+          "passed": true,
+          "evidence": "Found: ['?.[', '?.data', 'optional chaining', 'stepState?.']"
+        },
+        {
+          "id": "workflowctx-and-portal-params",
+          "passed": true,
+          "evidence": "Found: ['workflowCtx', 'workflowCtx, portal']"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I'm completely new to APIMatic and want to build my first developer portal from ",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-node-version",
+          "passed": true,
+          "evidence": "Found 'node --version'"
+        },
+        {
+          "id": "asks-install-permission",
+          "passed": true,
+          "evidence": "Found: ['OK to run', 'ok to run', 'go ahead']"
+        },
+        {
+          "id": "runs-auth-login",
+          "passed": true,
+          "evidence": "Found 'apimatic auth login'"
+        },
+        {
+          "id": "waits-for-browser-confirmation",
+          "passed": true,
+          "evidence": "Found: ['browser window', 'complete sign-in', 'come back here', 'confirm']"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I ran npm install -g @apimatic/cli but when I run apimatic --version it still sa",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "suggests-sudo-install",
+          "passed": true,
+          "evidence": "Found 'sudo npm install -g @apimatic/cli'"
+        },
+        {
+          "id": "does-not-proceed-to-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "does-not-proceed-to-quickstart",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic quickstart'"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "I completed browser sign-in for APIMatic but when I run apimatic auth status it ",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "offers-api-key-fallback",
+          "passed": true,
+          "evidence": "Found '--auth-key'"
+        },
+        {
+          "id": "mentions-api-keys-location",
+          "passed": true,
+          "evidence": "Found: ['API Keys', 'app.apimatic.io']"
+        },
+        {
+          "id": "does-not-proceed-to-quickstart",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic quickstart'"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Add a custom markdown page called overview.md to my APIMatic portal guides.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "creates-md-file",
+          "passed": true,
+          "evidence": "Found: ['src/content/guides/overview.md', 'content/guides/overview.md', 'guides/overview.md']"
+        },
+        {
+          "id": "uses-page-key",
+          "passed": true,
+          "evidence": "Found 'page: overview'"
+        },
+        {
+          "id": "uses-file-key",
+          "passed": true,
+          "evidence": "Found 'file: guides/overview.md'"
+        },
+        {
+          "id": "not-generate-key",
+          "passed": true,
+          "evidence": "Correctly absent: 'generate: overview'"
+        },
+        {
+          "id": "not-from-guides-key",
+          "passed": true,
+          "evidence": "Correctly absent: 'from: guides/overview'"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "I want to add SDK download links and disable the download button for all languag",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-python-generic-lib",
+          "passed": true,
+          "evidence": "Found 'python_generic_lib'"
+        },
+        {
+          "id": "uses-ts-generic-lib",
+          "passed": true,
+          "evidence": "Found 'ts_generic_lib'"
+        },
+        {
+          "id": "not-raw-language-name-python",
+          "passed": true,
+          "evidence": "Correctly absent: '\"python\":'"
+        },
+        {
+          "id": "not-raw-language-name-typescript",
+          "passed": true,
+          "evidence": "Correctly absent"
+        },
+        {
+          "id": "uses-php-generic-lib-v2",
+          "passed": true,
+          "evidence": "Found 'php_generic_lib_v2'"
+        },
+        {
+          "id": "not-raw-language-name-php",
+          "passed": true,
+          "evidence": "Correctly absent"
+        },
+        {
+          "id": "uses-java-eclipse-jre-lib",
+          "passed": true,
+          "evidence": "Found 'java_eclipse_jre_lib'"
+        },
+        {
+          "id": "not-raw-language-name-java",
+          "passed": true,
+          "evidence": "Correctly absent: '\"java\":'"
+        },
+        {
+          "id": "uses-ruby-generic-lib",
+          "passed": true,
+          "evidence": "Found 'ruby_generic_lib'"
+        },
+        {
+          "id": "not-raw-language-name-ruby",
+          "passed": true,
+          "evidence": "Correctly absent: '\"ruby\":'"
+        },
+        {
+          "id": "uses-cs-net-standard-lib",
+          "passed": true,
+          "evidence": "Found 'cs_net_standard_lib'"
+        },
+        {
+          "id": "not-raw-language-name-csharp",
+          "passed": true,
+          "evidence": "Correctly absent: '\"csharp\":'"
+        },
+        {
+          "id": "uses-go-generic-lib",
+          "passed": true,
+          "evidence": "Found 'go_generic_lib'"
+        },
+        {
+          "id": "not-raw-language-name-go",
+          "passed": true,
+          "evidence": "Correctly absent: '\"go\":'"
+        },
+        {
+          "id": "includes-sdk-download-link",
+          "passed": true,
+          "evidence": "Found 'sdkDownloadLink'"
+        },
+        {
+          "id": "includes-disable-sdk-download",
+          "passed": true,
+          "evidence": "Found 'disableSdkDownload'"
+        },
+        {
+          "id": "nested-under-portal-settings",
+          "passed": true,
+          "evidence": "Found 'portalSettings'"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "The portal server is running. How do I stop it?",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "runs-serve-stop",
+          "passed": true,
+          "evidence": "Found 'serve.mjs stop'"
+        },
+        {
+          "id": "does-not-ask-user-to-stop",
+          "passed": true,
+          "evidence": "Correctly absent"
+        },
+        {
+          "id": "confirms-stop",
+          "passed": true,
+          "evidence": "Found: ['stopped', 'port']"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "prompt": "I have multiple api specs, I want to create a versioned portal.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-generate-versioned-portal",
+          "passed": true,
+          "evidence": "Found 'generateVersionedPortal'"
+        },
+        {
+          "id": "uses-versions-array",
+          "passed": true,
+          "evidence": "Found '\"versions\"'"
+        },
+        {
+          "id": "versions-have-label",
+          "passed": true,
+          "evidence": "Found '\"label\"'"
+        },
+        {
+          "id": "versions-have-version",
+          "passed": true,
+          "evidence": "Found '\"version\"'"
+        },
+        {
+          "id": "creates-separate-version-directories",
+          "passed": true,
+          "evidence": "Found: ['version-1', 'version-2', 'versioned_docs']"
+        },
+        {
+          "id": "each-version-has-own-build-file",
+          "passed": true,
+          "evidence": "Found 'APIMATIC-BUILD.json'"
+        },
+        {
+          "id": "not-generate-portal-in-outer-file",
+          "passed": true,
+          "evidence": "Correctly absent: '\"generatePortal\": {\n    \"apiSpecs\"'"
+        },
+        {
+          "id": "asks-for-spec-paths-or-version-labels",
+          "passed": true,
+          "evidence": "Found: ['spec', 'version label', 'paths', 'where are', 'provide']"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "prompt": "I want to set portal theme programmatically.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-set-theme-mode",
+          "passed": true,
+          "evidence": "Found 'setThemeMode'"
+        },
+        {
+          "id": "uses-apimatic-dev-portal-global",
+          "passed": true,
+          "evidence": "Found: ['window.APIMaticDevPortal', 'APIMaticDevPortal.setThemeMode']"
+        },
+        {
+          "id": "checks-availability-before-calling",
+          "passed": true,
+          "evidence": "Found: ['window.APIMaticDevPortal &&', 'APIMaticDevPortal &&', 'if (window.APIMaticDevPortal']"
+        },
+        {
+          "id": "mentions-light-and-dark-values",
+          "passed": true,
+          "evidence": "Found: [\"'light'\", \"'dark'\", '\"light\"', '\"dark\"']"
+        },
+        {
+          "id": "not-set-config-approach",
+          "passed": true,
+          "evidence": "Correctly absent: 'APIMaticDevPortal.ready'"
+        },
+        {
+          "id": "not-theme-override",
+          "passed": true,
+          "evidence": "Correctly absent: 'themeOverride'"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "prompt": "I want to enable code sample api.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-code-sample-api",
+          "passed": true,
+          "evidence": "Found 'codeSampleApi'"
+        },
+        {
+          "id": "is-enabled-true",
+          "passed": true,
+          "evidence": "Found '\"isEnabled\": true'"
+        },
+        {
+          "id": "not-nested-in-generate-portal",
+          "passed": true,
+          "evidence": "Correctly absent: 'generatePortal.codeSampleApi'"
+        },
+        {
+          "id": "not-nested-in-portal-settings",
+          "passed": true,
+          "evidence": "Correctly absent: 'portalSettings.codeSampleApi'"
+        },
+        {
+          "id": "not-is-enabled-false",
+          "passed": true,
+          "evidence": "Correctly absent: '\"isEnabled\": false'"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "I want that my authentication section is focused when try it out returns 401 una",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-focus-auth-section",
+          "passed": true,
+          "evidence": "Found '\"focusAuthSectionOnUnauthorizedError\": true'"
+        },
+        {
+          "id": "nested-under-portal-settings",
+          "passed": true,
+          "evidence": "Found 'portalSettings'"
+        },
+        {
+          "id": "not-false",
+          "passed": true,
+          "evidence": "Correctly absent: '\"focusAuthSectionOnUnauthorizedError\": false'"
+        },
+        {
+          "id": "not-under-generate-portal-directly",
+          "passed": true,
+          "evidence": "Correctly absent: 'generatePortal.focusAuthSectionOnUnauthorizedError'"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "I want to disable external API calls to my portal.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-enable-console-calls-false",
+          "passed": true,
+          "evidence": "Found '\"enableConsoleCalls\": false'"
+        },
+        {
+          "id": "nested-under-portal-settings",
+          "passed": true,
+          "evidence": "Found 'portalSettings'"
+        },
+        {
+          "id": "warns-about-use-hosted-portal-script",
+          "passed": true,
+          "evidence": "Found: ['useHostedPortalScript', 'hosted portal script']"
+        },
+        {
+          "id": "warns-about-no-automatic-updates",
+          "passed": true,
+          "evidence": "Found: ['automatic', 'not receive']"
+        },
+        {
+          "id": "warns-about-larger-size",
+          "passed": true,
+          "evidence": "Found: ['larger', 'bundled']"
+        },
+        {
+          "id": "not-enable-console-calls-true",
+          "passed": true,
+          "evidence": "Correctly absent: '\"enableConsoleCalls\": true'"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "prompt": "I want to rename HTTP to REST.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-rename-http-to-rest",
+          "passed": true,
+          "evidence": "Found '\"renameHttpToRest\": true'"
+        },
+        {
+          "id": "nested-under-generate-portal",
+          "passed": true,
+          "evidence": "Found 'generatePortal'"
+        },
+        {
+          "id": "not-under-portal-settings",
+          "passed": true,
+          "evidence": "Correctly absent: 'portalSettings.renameHttpToRest'"
+        },
+        {
+          "id": "not-false",
+          "passed": true,
+          "evidence": "Correctly absent: '\"renameHttpToRest\": false'"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "prompt": "I want to decrease the maxWidth of my content.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-layout-key",
+          "passed": true,
+          "evidence": "Found 'layout'"
+        },
+        {
+          "id": "uses-max-width",
+          "passed": true,
+          "evidence": "Found 'maxWidth'"
+        },
+        {
+          "id": "max-width-is-px-value",
+          "passed": true,
+          "evidence": "Found 'px'"
+        },
+        {
+          "id": "uses-content-key",
+          "passed": true,
+          "evidence": "Found '\"content\"'"
+        },
+        {
+          "id": "uses-align-key",
+          "passed": true,
+          "evidence": "Found 'align'"
+        },
+        {
+          "id": "nested-under-theme",
+          "passed": true,
+          "evidence": "Found 'theme'"
+        },
+        {
+          "id": "not-under-generate-portal-directly",
+          "passed": true,
+          "evidence": "Correctly absent: 'generatePortal.layout'"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "prompt": "I want to add beta tag to a language.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "asks-which-language",
+          "passed": true,
+          "evidence": "Found: ['which language', 'language would you']"
+        },
+        {
+          "id": "uses-stability-level-tag",
+          "passed": true,
+          "evidence": "Found 'stabilityLevelTag'"
+        },
+        {
+          "id": "uses-beta-value",
+          "passed": true,
+          "evidence": "Found '\"beta\"'"
+        },
+        {
+          "id": "nested-under-language-settings",
+          "passed": true,
+          "evidence": "Found 'languageSettings'"
+        },
+        {
+          "id": "uses-template-name-not-raw",
+          "passed": true,
+          "evidence": "Found: ['_lib', 'java_eclipse_jre_lib', 'python_generic_lib', 'cs_net_standard_lib', 'ruby_generic_lib', 'php_generic_lib_v2', 'go_generic_lib']"
+        },
+        {
+          "id": "not-alpha-value",
+          "passed": true,
+          "evidence": "Correctly absent: '\"alpha\"'"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "I want to add proxy for console calls.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-proxy-for-console-calls",
+          "passed": true,
+          "evidence": "Found '\"useProxyForConsoleCalls\": true'"
+        },
+        {
+          "id": "nested-under-portal-settings",
+          "passed": true,
+          "evidence": "Found 'portalSettings'"
+        },
+        {
+          "id": "not-under-generate-portal-directly",
+          "passed": true,
+          "evidence": "Correctly absent: '\"useProxyForConsoleCalls\": true,\n    \"portalSettings\"'"
+        },
+        {
+          "id": "not-false",
+          "passed": true,
+          "evidence": "Correctly absent: '\"useProxyForConsoleCalls\": false'"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "My SDKs are published, I want to add those published SDK information in language",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "asks-for-package-info",
+          "passed": true,
+          "evidence": "Found: ['package', 'PackageName', 'packageRepository', 'published', 'repository']"
+        },
+        {
+          "id": "uses-package-repository",
+          "passed": true,
+          "evidence": "Found 'packageRepository'"
+        },
+        {
+          "id": "uses-package-settings",
+          "passed": true,
+          "evidence": "Found 'packageSettings'"
+        },
+        {
+          "id": "nested-under-language-config",
+          "passed": true,
+          "evidence": "Found 'languageConfig'"
+        },
+        {
+          "id": "not-under-language-settings",
+          "passed": true,
+          "evidence": "Correctly absent: 'languageSettings.packageRepository'"
+        },
+        {
+          "id": "correct-repository-name-for-java",
+          "passed": true,
+          "evidence": "Found: ['Maven']"
+        },
+        {
+          "id": "includes-package-name",
+          "passed": true,
+          "evidence": "Found 'PackageName'"
+        },
+        {
+          "id": "includes-version",
+          "passed": true,
+          "evidence": "Found 'Version'"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "I want to add sdk download link with languages.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "asks-for-initial-platform",
+          "passed": true,
+          "evidence": "Found: ['initialPlatform', 'which language']"
+        },
+        {
+          "id": "uses-initial-platform-key",
+          "passed": true,
+          "evidence": "Found 'initialPlatform'"
+        },
+        {
+          "id": "nested-under-portal-settings",
+          "passed": true,
+          "evidence": "Found 'portalSettings'"
+        },
+        {
+          "id": "includes-sdk-download-link",
+          "passed": true,
+          "evidence": "Found 'sdkDownloadLink'"
+        },
+        {
+          "id": "uses-language-settings",
+          "passed": true,
+          "evidence": "Found 'languageSettings'"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "I want to enable api copilot for my portal.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "asks-for-copilot-key",
+          "passed": true,
+          "evidence": "Found: ['copilot key', 'Copilot key']"
+        },
+        {
+          "id": "uses-api-copilot-config",
+          "passed": true,
+          "evidence": "Found 'apiCopilotConfig'"
+        },
+        {
+          "id": "is-enabled-true",
+          "passed": true,
+          "evidence": "Found '\"isEnabled\": true'"
+        },
+        {
+          "id": "includes-welcome-message",
+          "passed": true,
+          "evidence": "Found 'welcomeMessage'"
+        },
+        {
+          "id": "top-level-not-nested",
+          "passed": true,
+          "evidence": "Correctly absent: 'generatePortal.apiCopilotConfig'"
+        },
+        {
+          "id": "not-inside-portal-settings",
+          "passed": true,
+          "evidence": "Correctly absent: 'portalSettings.apiCopilotConfig'"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "I want to set my auth dynamically.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-apimatic-dev-portal-ready",
+          "passed": true,
+          "evidence": "Found 'APIMaticDevPortal.ready'"
+        },
+        {
+          "id": "uses-set-config",
+          "passed": true,
+          "evidence": "Found 'setConfig'"
+        },
+        {
+          "id": "includes-auth-block",
+          "passed": true,
+          "evidence": "Found 'auth:'"
+        },
+        {
+          "id": "references-script-in-tail-includes",
+          "passed": true,
+          "evidence": "Found 'tailIncludes'"
+        },
+        {
+          "id": "uses-script-defer-tag",
+          "passed": true,
+          "evidence": "Found 'script'"
+        },
+        {
+          "id": "not-head-includes",
+          "passed": true,
+          "evidence": "Correctly absent: 'headIncludes'"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "I want debug report in my portal to see if any warnings/errors got generated.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-publish-report",
+          "passed": true,
+          "evidence": "Found '\"publishReport\": true'"
+        },
+        {
+          "id": "uses-dump-imported-api",
+          "passed": true,
+          "evidence": "Found '\"dumpImportedApi\": true'"
+        },
+        {
+          "id": "uses-debug-key",
+          "passed": true,
+          "evidence": "Found '\"debug\"'"
+        },
+        {
+          "id": "nested-under-generate-portal",
+          "passed": true,
+          "evidence": "Found 'generatePortal'"
+        },
+        {
+          "id": "not-top-level-debug",
+          "passed": true,
+          "evidence": "Correctly absent: '\"buildFileVersion\": \"1\",\n  \"debug\"'"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "I want to enable the theme switch toggle.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-disable-switch-false",
+          "passed": true,
+          "evidence": "Found '\"disableSwitch\": false'"
+        },
+        {
+          "id": "not-disable-switch-true",
+          "passed": true,
+          "evidence": "Correctly absent: '\"disableSwitch\": true'"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "I want my one custom content page to not have Table of Contents.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-frontmatter",
+          "passed": true,
+          "evidence": "Found '---'"
+        },
+        {
+          "id": "uses-page-mode-custom",
+          "passed": true,
+          "evidence": "Found 'pageMode: custom'"
+        },
+        {
+          "id": "not-build-json-change",
+          "passed": true,
+          "evidence": "Correctly absent: 'APIMATIC-BUILD.json'"
+        },
+        {
+          "id": "not-global-page-meta-data",
+          "passed": true,
+          "evidence": "Correctly absent: 'globalPageMetaData'"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "I want my toc to be a floater.",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-global-page-meta-data",
+          "passed": true,
+          "evidence": "Found 'globalPageMetaData'"
+        },
+        {
+          "id": "uses-page-mode-wide",
+          "passed": true,
+          "evidence": "Found '\"pageMode\": \"wide\"'"
+        },
+        {
+          "id": "nested-under-portal-settings",
+          "passed": true,
+          "evidence": "Found 'portalSettings'"
+        },
+        {
+          "id": "not-toc-yml-change",
+          "passed": true,
+          "evidence": "Correctly absent: 'toc.yml'"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Add Custom Components to my portal overview page. Include a Card that links to m",
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "id": "uses-card-component",
+          "passed": true,
+          "evidence": "Found: ['<Card', '<CardGroup']"
+        },
+        {
+          "id": "uses-page-prefix-for-internal-url",
+          "passed": true,
+          "evidence": "Found 'page:'"
+        },
+        {
+          "id": "not-absolute-path-url",
+          "passed": true,
+          "evidence": "Correctly absent: 'url=\"/'"
+        },
+        {
+          "id": "not-https-url",
+          "passed": true,
+          "evidence": "Correctly absent: 'url=\"https://'"
+        }
+      ]
+    }
+  ]
+}

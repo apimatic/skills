@@ -1,0 +1,123 @@
+{
+  "$schema": "https://titan.apimatic.io/api/build/schema",
+  "buildFileVersion": "1",
+  "generatePortal": {
+    "apiSpecs": ["my-api"],
+    "languageConfig": {
+      "http": {},
+      "python": {},
+      "typescript": {},
+      "csharp": {
+        "packageRepository": "NuGet",
+        "packageSettings": {
+          "PackageName": "MyCompany.ApiClient",
+          "Version": "1.0.0"
+        }
+      }
+    },
+    "pageTitle": "My Company Developer Portal",
+    "navTitle": "My Company Docs",
+    "logoUrl": "./static/images/logo.png",
+    "logoUrlDark": "./static/images/logo-dark.png",
+    "logoLink": "https://www.yourcompany.com",
+    "faviconUrl": "./static/favicon.ico",
+    "baseUrl": "https://developers.yourcompany.com",
+    "indexable": {},
+    "llmsContextGeneration": {
+      "enable": true
+    },
+    "headIncludes": "<link rel=\"stylesheet\" href=\"./static/custom-header.css\"><link rel=\"stylesheet\" href=\"./static/custom-footer.css\">",
+    "tailIncludes": "<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX\"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>",
+    "portalSettings": {
+      "enableConsoleCalls": true,
+      "theme": {
+        "colors": {
+          "primaryColor": {
+            "light": "#1A56DB",
+            "dark": "#6EA8FE"
+          },
+          "secondaryColor": {
+            "light": "#0F9B8E",
+            "dark": "#34D399"
+          },
+          "linkColor": {
+            "light": "#1E40AF",
+            "dark": "#93C5FD"
+          }
+        },
+        "baseTheme": "cosmos",
+        "defaultMode": "light",
+        "disableModeSelector": true,
+        "typography": {
+          "headings": {
+            "fontFamily": "Roboto"
+          },
+          "body": {
+            "fontFamily": "Roboto"
+          },
+          "code": {
+            "fontFamily": "Fira Code"
+          }
+        }
+      },
+      "copilot": {
+        "id": "YOUR_COPILOT_ID_HERE",
+        "isEnabled": true
+      },
+      "languageSettings": {
+        "python_generic_lib": {
+          "sdkDownloadLink": "",
+          "disableSdkDownload": false,
+          "aiIntegration": {
+            "cursor": {
+              "isEnabled": true
+            },
+            "vscode": {
+              "isEnabled": true
+            },
+            "claudeCode": {
+              "isEnabled": true
+            }
+          }
+        },
+        "typescript_generic_lib": {
+          "sdkDownloadLink": "",
+          "disableSdkDownload": false,
+          "aiIntegration": {
+            "cursor": {
+              "isEnabled": true
+            },
+            "vscode": {
+              "isEnabled": true
+            },
+            "claudeCode": {
+              "isEnabled": true
+            }
+          }
+        }
+      }
+    },
+    "dynamicConfigurations": [
+      {
+        "name": "apiKey",
+        "defaultValue": "YOUR_API_KEY_HERE",
+        "portalSetting": "portalSettings.apiKey"
+      }
+    ],
+    "contextPlugins": [
+      {
+        "pluginFile": "src/static/scripts/context-plugin.js"
+      }
+    ]
+  },
+  "recipes": {
+    "workflows": [
+      {
+        "name": "Create and Track an Order",
+        "permalink": "page:recipes/CreateAndTrackAnOrder",
+        "functionName": "CreateAndTrackAnOrder",
+        "scriptPath": "./static/scripts/recipes/CreateAndTrackAnOrder.js"
+      }
+    ]
+  }
+}
