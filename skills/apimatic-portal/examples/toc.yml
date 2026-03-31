@@ -1,0 +1,113 @@
+toc:
+  - group: Quick Start
+    items:
+      - page: Introduction to the API
+        file: getting-started/overview.md
+      - page: Authentication Guide
+        file: getting-started/authentication.md
+      - page: What's New
+        file: getting-started/whats-new.md
+
+  - generate: Setting Up SDKs
+    from: getting-started
+
+  - group: Guides
+    dir: guides
+
+  - group: Walkthroughs
+    items:
+      - page: How to Get an Access Token
+        file: walkthroughs/get-access-token.md
+      - group: Device Management How To's
+        items:
+          - page: Overview
+            file: walkthroughs/device-management.md
+          - group: Guided Walkthroughs
+            items:
+              - group: "Day 0: Onboard"
+                items:
+                  - page: How to Register a Device
+                    file: walkthroughs/day0/register-device.md
+                  - page: How to Activate a Device
+                    file: walkthroughs/day0/activate-device.md
+              - group: "Day 1: Configure"
+                items:
+                  - page: How to Update Device Settings
+                    file: walkthroughs/day1/update-settings.md
+
+  - group: API Reference
+    items:
+      - page: Quick API Reference
+        file: api-reference/quick-reference.md
+
+      - group: Devices
+        items:
+          - generate:
+            from: endpoint-group-overview
+            endpoint-group: Devices
+          - group: Register Device
+            items:
+              - page: API Reference
+                file: api-reference/devices/register-device.md
+              - generate:
+                from: endpoint
+                endpoint-name: RegisterDevice
+                endpoint-group: Devices
+          - group: Deactivate Device
+            items:
+              - page: API Reference
+                file: api-reference/devices/deactivate-device.md
+              - generate:
+                from: endpoint
+                endpoint-name: DeactivateDevice
+                endpoint-group: Devices
+
+      - group: Accounts
+        items:
+          - generate:
+            from: endpoint-group-overview
+            endpoint-group: Accounts
+          - group: Get Account Info
+            items:
+              - generate:
+                from: endpoint
+                endpoint-name: GetAccountInfo
+                endpoint-group: Accounts
+
+      - group: Models
+        items:
+          - group: Structures
+            items:
+              - generate:
+                from: model
+                model-name: Device
+              - generate:
+                from: model
+                model-name: Account
+              - generate:
+                from: model
+                model-name: ErrorResponse
+          - group: Enumerations
+            items:
+              - generate:
+                from: model
+                model-name: DeviceStatus
+          - group: Exceptions
+            items:
+              - generate:
+                from: model
+                model-name: ApiError
+
+  - generate: Models
+    from: models
+
+  - generate: SDK Infrastructure
+    from: sdk-infra
+
+  - group: API Recipes
+    icon: flask
+    items:
+      - page: User Authentication Flow
+        file: recipes/UserAuthenticationFlow.md
+      - page: Generate an SDK from Scratch
+        file: recipes/GenerateSdkFromScratch.md
