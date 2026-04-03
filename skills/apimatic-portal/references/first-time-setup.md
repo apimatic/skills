@@ -91,6 +91,8 @@ On Windows or if `unzip` is unavailable, adapt using `tar`, PowerShell `Expand-A
 - Remove the sample spec: `rm src/spec/openapi.json`
 - Copy the user's spec into `src/spec/`
 
+**DO NOT MAKE ANY OTHER CHANGES TO ANY FILE IN THE SRC FOLDER BEFORE GENERATING THE PORTAL**
+
 If no user spec is available, skip spec replacement — the sample spec works as-is for preview.
 
 Start the server:

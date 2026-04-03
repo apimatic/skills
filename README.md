@@ -45,9 +45,10 @@ I want to install the APIMatic skills from this GitHub repository:
 https://github.com/apimatic/skills
 
 Please do the following:
-1. Clone or download the repository (e.g. `git clone https://github.com/apimatic/skills` or download the zip). If you cannot do this, stop and let me know — I will do this step manually.
+1. Clone or download the repository (e.g. `git clone https://github.com/apimatic/skills` or download the zip) into a temporary directory. If you cannot do this, stop and let me know — I will do this step manually.
 2. Copy each skill folder into the correct skills directory
 3. Confirm which skills were installed and where.
+4. Clean up the temporary directory
 ```
 
 ## Usage
