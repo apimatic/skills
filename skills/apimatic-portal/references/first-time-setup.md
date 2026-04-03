@@ -54,7 +54,7 @@ options:
 
 ---
 
-## Step A4: Create the project and start the portal
+## Step A4: Scaffold the project and start the portal
 
 First check whether a server is already running to avoid stale port conflicts:
 
@@ -66,17 +66,34 @@ Where `{skill_dir}` is the absolute path to the directory containing this skill 
 
 If a running process is detected in the output, ask the user whether to reuse it or stop and restart — do not blindly start a second instance.
 
-If no server is running, create the project directory and run the quickstart wizard:
+If no server is running, create the project directory and scaffold it from the sample portal:
 
 ```
 mkdir my-portal
 cd my-portal
-apimatic quickstart
 ```
 
-Replace `my-portal` with the user's preferred project name. `apimatic quickstart` is an interactive wizard — **step aside once it starts**. The CLI handles all prompts directly with the user. Do not intercept or answer the wizard prompts on the user's behalf. The wizard will scaffold `src/` with `APIMATIC-BUILD.json`, `spec/`, `content/`, and `static/`, then generate the portal.
+Replace `my-portal` with the user's preferred project name.
 
-After the wizard completes, start the server:
+Download the sample portal repository and extract the `src/` directory:
+
+```
+curl -L -o /tmp/sample-portal.zip https://github.com/apimatic/sample-docs-as-code-portal/archive/refs/heads/master.zip
+unzip -o /tmp/sample-portal.zip "sample-docs-as-code-portal-master/src/*" -d /tmp/sample-portal-extracted
+cp -r /tmp/sample-portal-extracted/sample-docs-as-code-portal-master/src ./src
+rm -rf /tmp/sample-portal.zip /tmp/sample-portal-extracted
+```
+
+On Windows or if `unzip` is unavailable, adapt using `tar`, PowerShell `Expand-Archive`, or a Node.js/Python script to extract the zip.
+
+**Spec replacement (conditional):** If the user provided a spec path in Step 2, or if a spec file is available in the current working directory (look for `*.json`, `*.yaml`, `*.yml` files that appear to be OpenAPI, Swagger, or Postman specs):
+
+- Remove the sample spec: `rm src/spec/openapi.json`
+- Copy the user's spec into `src/spec/`
+
+If no user spec is available, skip spec replacement — the sample spec works as-is for preview.
+
+Start the server:
 
 ```
 node {skill_dir}/scripts/serve.mjs start --input ./
@@ -84,7 +101,11 @@ node {skill_dir}/scripts/serve.mjs start --input ./
 
 The script streams `apimatic portal serve` output live and exits once the local URL is detected. When a URL appears, output the **server briefing** below verbatim.
 
-**If the script exits with code 1 or times out (120s) without a URL:** prompt the user to run the command manually:
+**If the script exits with code 1 or times out (120s) without a URL:** check for a debug report before prompting the user.
+
+**Debug report check:** Look for `./portal/apimatic-debug/apimatic-report.html`. If this file exists, read it — it contains the errors and failures that occurred during portal generation. Diagnose the issues from the report and attempt to fix them (common causes: malformed spec, invalid `APIMATIC-BUILD.json` fields, missing required files). After fixing, retry `node {skill_dir}/scripts/serve.mjs start --input ./`.
+
+If no debug report exists, or if fixes do not resolve the issue, prompt the user to run the command manually:
 
 "The server manager did not start. Please run `apimatic portal serve` yourself, then tell me what URL appears in the terminal."
 
@@ -123,4 +144,4 @@ At the end of every subsequent response while the server is running, append:
 
 > Portal server is running. It will stop automatically after 30 minutes of inactivity. To stop it now, tell me: **"shut down the portal"**
 
-Read `references/build-directory.md` to understand the directory structure and `APIMATIC-BUILD.json` that quickstart creates.
+Read `references/build-directory.md` to understand the directory structure and `APIMATIC-BUILD.json` that is created during Portal setup.

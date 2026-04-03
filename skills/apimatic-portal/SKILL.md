@@ -112,7 +112,7 @@ If you do not know whether the user is starting from scratch or has an existing 
 
 2. If following Path A, ask: "What is the path to your API specification file? (OpenAPI JSON/YAML, Postman collection, or other supported format)"
 
-Store the spec path. You will need it when the quickstart wizard prompts for it.
+Store the spec path. You will need it to bootstrap the Portal.
 
 ---
 
@@ -228,7 +228,7 @@ Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in 
 
 | Task | Command / Location |
 |------|-------------------|
-| First-time setup | `apimatic quickstart` (wizard) |
+| First-time setup | Download sample portal and scaffold `src/` — see [Path A](#path-a-first-time-setup-guided-onboarding) |
 | Start local dev server | `node {skill_dir}/scripts/serve.mjs start --input ./` |
 | Server status / stop | `node {skill_dir}/scripts/serve.mjs status` / `stop` |
 | Build for CI/production | `apimatic portal generate --auth-key=KEY` |
