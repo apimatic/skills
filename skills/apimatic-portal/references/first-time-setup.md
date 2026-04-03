@@ -26,7 +26,7 @@ options:
 
 - "Yes" → run `npm install -g @apimatic/cli`, then run `apimatic --version`
   - Version string appears in output → proceed to Step A3
-  - Command not found or error → stop and output exactly: "The install did not complete. Try running: `sudo npm install -g @apimatic/cli`. If the error persists, check your npm configuration." Do not proceed.
+  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli`. Verify with `apimatic --version`, then come back here." Do not proceed.
 - "No" → output: "When you're ready, run `npm install -g @apimatic/cli`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
 
 ---
@@ -62,7 +62,7 @@ First check whether a server is already running to avoid stale port conflicts:
 node {skill_dir}/scripts/serve.mjs status
 ```
 
-Where `{skill_dir}` is the absolute path to `.claude/skills/apimatic-portal/` in this repository.
+Where `{skill_dir}` is the absolute path to the directory containing this skill file.
 
 If a running process is detected in the output, ask the user whether to reuse it or stop and restart — do not blindly start a second instance.
 

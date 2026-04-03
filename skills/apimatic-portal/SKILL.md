@@ -55,7 +55,7 @@ Run the auth launcher script from the project directory. It spawns `apimatic aut
 node {skill_dir}/scripts/auth-login.mjs
 ```
 
-Where `{skill_dir}` is the absolute path to `.claude/skills/apimatic-portal/` in this repository.
+Where `{skill_dir}` is the absolute path to the directory containing this skill file.
 
 The script launches the browser OAuth flow and immediately returns. Relay the following message to the user: "A browser window has opened. Complete sign-in in the browser, then confirm here when done."
 
@@ -81,8 +81,15 @@ apimatic auth login --auth-key=YOUR_API_KEY
 
 Option 2 — environment variable (no login command needed):
 
-```
+```bash
+# macOS / Linux / bash / zsh:
 export APIMATIC_API_KEY=YOUR_API_KEY
+
+# Windows PowerShell:
+$env:APIMATIC_API_KEY = "YOUR_API_KEY"
+
+# Windows Command Prompt:
+set APIMATIC_API_KEY=YOUR_API_KEY
 ```
 
 API keys are generated at: APIMatic Dashboard > Account > API Keys.
@@ -143,7 +150,7 @@ If no server is running, start it:
 node {skill_dir}/scripts/serve.mjs start --input ./
 ```
 
-Where `{skill_dir}` is the absolute path to `.claude/skills/apimatic-portal/` in this repository, and `--input` is the project root (the directory containing `src/`).
+Where `{skill_dir}` is the absolute path to the directory containing this skill file, and `--input` is the project root (the directory containing `src/`).
 
 The script spawns `apimatic portal serve` and streams its output live — the user sees build progress (and any errors) in real time. The script exits automatically once the local URL line appears. When the URL appears, surface it to the user and append the shutdown reminder at the end of this response and every subsequent response while the server is running:
 
@@ -227,7 +234,7 @@ Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in 
 | Build for CI/production | `apimatic portal generate --auth-key=KEY` |
 | Regenerate toc.yml | `apimatic portal toc new` |
 | Configure API Copilot | `apimatic portal copilot` (wizard) |
-| Scaffold a recipe | `apimatic portal recipe new` (wizard) |
+| Scaffold a recipe | Follow the [API Recipes](#api-recipes) section below |
 | Theme / colors / fonts | `generatePortal.portalSettings.theme` in `APIMATIC-BUILD.json` |
 | SEO mode | `generatePortal.baseUrl` + `generatePortal.indexable: {}` |
 | LLMs.txt | `generatePortal.baseUrl` + `generatePortal.llmsContextGeneration.enable: true` |
@@ -237,7 +244,6 @@ Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in 
 | Inject CSS into `<head>` | `generatePortal.headIncludes` in `APIMATIC-BUILD.json` |
 | Inject JS before `</body>` | `generatePortal.tailIncludes` in `APIMATIC-BUILD.json` |
 | Dynamic auth (runtime) | `APIMaticDevPortal.ready({ setConfig })` + `generatePortal.tailIncludes` |
-| Dynamic configs (build-time) | `generatePortal.dynamicConfigurations` + `generatePortal.contextPlugins` |
 | Context Plugins (IDE AI) | `portalSettings.languageSettings.<lang>.aiIntegration` |
 
 ---
@@ -488,7 +494,7 @@ Read `references/versioned-portals.md` for the full directory structure, outer b
 
 ### API Recipes
 
-The CLI provides an interactive wizard for creating API Recipes. Skip the wizard and create recipes manually.
+The CLI provides an interactive wizard (`apimatic portal recipe new`) for creating API Recipes. The wizard is interactive — it prompts the user directly, so the agent cannot drive it. Create recipes manually instead.
 
 When creating a recipe manually (without the CLI wizard), four things are required:
 1. Create `src/content/recipes/RecipeName.md` (at least one line of content)
