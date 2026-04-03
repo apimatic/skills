@@ -24,7 +24,6 @@ Guide a user from zero to a running local developer portal. Execute these steps 
 - About to show `"enableConsoleCalls": true` while describing how to disable the playground → the value to show is `false`
 - About to use raw language names (`"python"`, `"typescript"`, `"csharp"`) as `languageSettings` keys → use template name identifiers only (e.g., `python_generic_lib`, `typescript_generic_lib`)
 
-
 ## Prerequisites
 
 Confirm these are in place before starting:
