@@ -23,7 +23,25 @@ Guide a user from zero to a running local developer portal. Execute these steps 
 - About to use an absolute URL (`/guides/...` or `https://...`) in a `<Card>` internal link → use `page:` prefix (e.g., `url="page:guides/getting-started"`)
 - About to show `"enableConsoleCalls": true` while describing how to disable the playground → the value to show is `false`
 - About to use raw language names (`"python"`, `"typescript"`, `"csharp"`) as `languageSettings` keys → use template name identifiers only (e.g., `python_generic_lib`, `typescript_generic_lib`)
+- About to edit, create, or delete any file inside `src/` during first-time setup before the first portal generation → do not modify the scaffolded `src/` directory in any way except replacing the sample spec with the user's spec. Generate the portal first, then make changes if the user asks.
 
+
+## Communication Guidelines
+
+This skill is used by developers of all experience levels. All messages shown to the user must be clear, non-technical, and action-oriented. Follow these rules in every response:
+
+- **Never expose internal details:** Do not mention PIDs, process IDs, exit codes, signal names (SIGTERM, SIGKILL, EPIPE), file paths to skill scripts, PID files, heartbeat files, or log files. These are implementation details the user does not need.
+- **Never forward raw CLI output:** Do not paste or quote terminal output, spinner characters, ANSI escape codes, or build logs. Summarize what happened in plain language.
+- **Translate technical states into plain language:**
+  - Instead of "Process 56078 is no longer running" → "The portal server is not running."
+  - Instead of "Server process exited (code 1) before becoming ready" → "The portal server failed to start."
+  - Instead of "EADDRINUSE" or "port in use" → "The default port is already taken. Trying another one."
+  - Instead of "Cleaning stale PID file" → say nothing; this is an internal cleanup detail.
+- **Use the verbatim blocks provided:** When this skill provides a specific message to show (like the Server Briefing), output it exactly as written. Do not paraphrase or add technical context around it.
+- **Keep error guidance actionable:** When something fails, tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
+- **When in doubt, less is more:** If you are unsure whether a detail is useful to the user, leave it out.
+
+---
 
 ## Prerequisites
 

@@ -194,10 +194,11 @@ function start(port, inputPath, retryCount = 0) {
           console.log("Server will auto-stop after 30 minutes of inactivity.");
           console.log("To stop: node serve.mjs stop\n");
 
-          child.stdout.destroy();
-          child.stderr.destroy();
+          child.stdout.removeAllListeners("data");
+          child.stderr.removeAllListeners("data");
+          child.stdout.pipe(logStream);
+          child.stderr.pipe(logStream);
           child.unref();
-          logStream.end();
 
           // Spawn watchdog to auto-stop the server after 30 min of inactivity
           const watchdog = spawn(
@@ -283,12 +284,12 @@ function status() {
   }
   if (isRunning(pid)) {
     console.log(`Running (PID ${pid}).`);
+    console.log("\nRecent log output:");
+    printLogTail(15);
   } else {
     console.log(`Process ${pid} is no longer running. Cleaning stale PID file.`);
     safeUnlink(PID_FILE);
   }
-  console.log("\nRecent log output:");
-  printLogTail(15);
 }
 
 function stop() {
