@@ -43,6 +43,30 @@ This skill is used by developers of all experience levels. All messages shown to
 
 ---
 
+## After Completing a Change
+
+After completing any configuration change and confirming it works in the portal, ask the user:
+
+"What would you like to work on next?"
+
+Then suggest the next item from this list, cycling forward from whatever was just completed:
+
+| Order | Feature | Recommendation |
+|-------|---------|----------------|
+| 1 | Theme, colors, and fonts | "Customize your portal's look — set brand colors, fonts, and light/dark mode." |
+| 2 | Custom markdown pages | "Create custom documentation pages with guides, tutorials, or any content your developers need." |
+| 3 | API Recipes | "Add interactive step-by-step tutorials that walk developers through real API workflows in the portal." |
+| 4 | API Copilot | "Enable an AI chat assistant in your portal so developers can ask questions about your API." |
+
+**Rules:**
+- Always cycle forward — after item 4, wrap to item 1
+- Use the exact recommendation text from the table above
+- If the user asks for something specific, do that instead — the recommendation is just a suggestion
+- Do not recommend the feature that was just completed
+- Only apply after configuration changes, not during first-time setup
+
+---
+
 ## Prerequisites
 
 Confirm these are in place before starting:
