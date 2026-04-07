@@ -49,47 +49,47 @@
     {
       "id": 1,
       "prompt": "I have my OpenAPI spec at ~/projects/petstore.yaml and I've never set up an APIMatic portal before. Help me create one from scratch.",
-      "expected_output": "The agent runs `apimatic quickstart` and then steps aside, telling the user the CLI wizard will handle all prompts. It does NOT answer the wizard prompts itself (e.g., does not pre-fill spec path, select languages, etc.).",
+      "expected_output": "The agent downloads the sample portal repo as a zip, extracts src/ into the project directory, replaces the sample spec with the user's petstore.yaml, and starts the dev server. It does NOT run `apimatic quickstart`.",
       "files": [],
       "assertions": [
         {
-          "id": "runs-quickstart-command",
-          "description": "Response includes the command `apimatic quickstart`",
-          "type": "contains",
-          "value": "apimatic quickstart"
-        },
-        {
-          "id": "steps-aside-for-wizard",
-          "description": "Response says the wizard/CLI handles prompts and agent steps aside",
+          "id": "downloads-sample-portal",
+          "description": "Response includes downloading the sample portal zip from GitHub",
           "type": "contains_any",
           "value": [
-            "step aside",
-            "steps aside",
-            "wizard will",
-            "CLI handles",
-            "wizard handles",
-            "let the wizard",
-            "wizard prompts"
+            "sample-docs-as-code-portal",
+            "sample portal",
+            "download",
+            "zip"
           ]
         },
         {
-          "id": "does-not-pre-fill-spec-path",
-          "description": "Response does NOT pre-fill the spec path as a CLI argument (e.g., --spec flag)",
-          "type": "not_contains",
-          "value": "--spec"
-        },
-        {
-          "id": "does-not-answer-wizard-prompts",
-          "description": "Response does NOT instruct the user to type specific answers for the wizard (e.g., 'type 1 to select' or pre-selecting SDK languages)",
-          "type": "not_contains_any",
+          "id": "extracts-src-directory",
+          "description": "Response mentions extracting or copying the src/ directory",
+          "type": "contains_any",
           "value": [
-            "type 1",
-            "type 2",
-            "type 3",
-            "enter 1",
-            "enter 2",
-            "petstore.yaml when prompted"
+            "src/",
+            "extract",
+            "unzip",
+            "copy"
           ]
+        },
+        {
+          "id": "replaces-sample-spec",
+          "description": "Response replaces the sample spec with the user's petstore.yaml",
+          "type": "contains_any",
+          "value": [
+            "petstore",
+            "replace",
+            "spec",
+            "openapi"
+          ]
+        },
+        {
+          "id": "does-not-run-quickstart",
+          "description": "Response does NOT run apimatic quickstart",
+          "type": "not_contains",
+          "value": "apimatic quickstart"
         }
       ]
     },
@@ -167,39 +167,45 @@
     {
       "id": 4,
       "prompt": "I want to add an API recipe to my APIMatic portal. How do I scaffold one using the CLI?",
-      "expected_output": "The agent runs `apimatic portal recipe new` from the project root and steps aside, letting the wizard handle all prompts. It does NOT pre-fill the recipe name or endpoint selection as CLI arguments.",
+      "expected_output": "The agent explains that the CLI wizard (`apimatic portal recipe new`) is interactive and cannot be driven by the agent, so it creates the recipe manually instead — creating the four required files: .md page, toc.yml entry, recipes.workflows registration, and .js script.",
       "files": [],
       "assertions": [
         {
-          "id": "runs-recipe-new-command",
-          "description": "Response includes the command `apimatic portal recipe new`",
-          "type": "contains",
-          "value": "apimatic portal recipe new"
-        },
-        {
-          "id": "steps-aside-for-wizard",
-          "description": "Response says the wizard handles prompts and the agent steps aside",
+          "id": "mentions-wizard-is-interactive",
+          "description": "Response mentions the wizard is interactive or that the agent cannot drive it",
           "type": "contains_any",
           "value": [
-            "step aside",
-            "steps aside",
-            "wizard will",
-            "wizard handles",
-            "let the wizard",
-            "wizard prompts",
-            "CLI handles"
+            "interactive",
+            "cannot drive",
+            "can't drive",
+            "prompts the user",
+            "manually",
+            "create manually",
+            "apimatic portal recipe new"
+          ]
+        },
+        {
+          "id": "creates-recipe-files",
+          "description": "Response describes creating the recipe files (markdown, toc, build registration, JS script)",
+          "type": "contains_any",
+          "value": [
+            "content/recipes",
+            "toc.yml",
+            "recipes.workflows",
+            "static/scripts/recipes"
           ]
         },
         {
           "id": "from-project-root",
-          "description": "Response instructs running the command from the project root (not inside src/)",
+          "description": "Response instructs running from the project root (not inside src/)",
           "type": "contains_any",
           "value": [
             "project root",
             "directory containing src",
             "contains the src",
             "outside src",
-            "not inside src"
+            "not inside src",
+            "src/"
           ]
         }
       ]
