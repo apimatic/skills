@@ -323,6 +323,32 @@ Controls the left navigation sidebar's structure and behavior:
 
 ---
 
+## debug Settings
+
+The `debug` object inside `generatePortal` controls diagnostic output during portal generation:
+
+```json
+{
+  "generatePortal": {
+    "debug": {
+      "publishReport": true,
+      "dumpImportedApi": true
+    }
+  }
+}
+```
+
+**Field explanations:**
+
+- `publishReport` — generates an HTML report containing validation messages from imported API specs and any merge-related issues. Default: `false`.
+- `dumpImportedApi` — exports the imported API spec(s) in APIMatic Format to the output. Useful for debugging API Merging issues. Default: `false`.
+- `reportPath` — path where the HTML report is published. Default: `"./apimatic-debug/apimatic-report.html"`.
+- `importedApiDumpPath` — path where the API dump is published. Default: `"./apimatic-debug/imported-api-dump.json"`.
+
+After generating or serving the portal with `publishReport: true`, the report is available at `portal/apimatic-debug/apimatic-report.html` (relative to the project root). Read this file to diagnose spec validation errors, merge failures, or other generation issues.
+
+---
+
 ## Where Commands Run
 
 All portal commands must run from the project root — the directory containing `src/`:

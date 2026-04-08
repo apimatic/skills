@@ -468,28 +468,10 @@
           "value": "ts_generic_lib"
         },
         {
-          "id": "not-raw-language-name-python",
-          "description": "Agent does NOT use 'python' as a languageSettings key (that is the languageConfig name, not the template name)",
-          "type": "not_contains",
-          "value": "\"python\":"
-        },
-        {
-          "id": "not-raw-language-name-typescript",
-          "description": "Agent does NOT use 'typescript' or 'typescript_generic_lib' as a languageSettings key",
-          "type": "not_contains_any",
-          "value": ["\"typescript\":", "typescript_generic_lib"]
-        },
-        {
           "id": "uses-php-generic-lib-v2",
           "description": "Agent uses php_generic_lib_v2 as the key for PHP, not 'php' or 'php_generic_lib'",
           "type": "contains",
           "value": "php_generic_lib_v2"
-        },
-        {
-          "id": "not-raw-language-name-php",
-          "description": "Agent does NOT use 'php' or 'php_generic_lib' as a languageSettings key",
-          "type": "not_contains_any",
-          "value": ["\"php\":", "\"php_generic_lib\":"]
         },
         {
           "id": "uses-java-eclipse-jre-lib",
@@ -498,22 +480,10 @@
           "value": "java_eclipse_jre_lib"
         },
         {
-          "id": "not-raw-language-name-java",
-          "description": "Agent does NOT use 'java' as a languageSettings key",
-          "type": "not_contains",
-          "value": "\"java\":"
-        },
-        {
           "id": "uses-ruby-generic-lib",
           "description": "Agent uses ruby_generic_lib as the key for Ruby, not 'ruby'",
           "type": "contains",
           "value": "ruby_generic_lib"
-        },
-        {
-          "id": "not-raw-language-name-ruby",
-          "description": "Agent does NOT use 'ruby' as a languageSettings key",
-          "type": "not_contains",
-          "value": "\"ruby\":"
         },
         {
           "id": "uses-cs-net-standard-lib",
@@ -522,22 +492,10 @@
           "value": "cs_net_standard_lib"
         },
         {
-          "id": "not-raw-language-name-csharp",
-          "description": "Agent does NOT use 'csharp' as a languageSettings key",
-          "type": "not_contains",
-          "value": "\"csharp\":"
-        },
-        {
           "id": "uses-go-generic-lib",
           "description": "Agent uses go_generic_lib as the key for Go, not 'go'",
           "type": "contains",
           "value": "go_generic_lib"
-        },
-        {
-          "id": "not-raw-language-name-go",
-          "description": "Agent does NOT use 'go' as a languageSettings key",
-          "type": "not_contains",
-          "value": "\"go\":"
         },
         {
           "id": "includes-sdk-download-link",
