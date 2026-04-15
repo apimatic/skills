@@ -24,17 +24,11 @@ npm install -g @apimatic/cli
 
 ## Installation
 
-### Option 1 — Manual copy
+### Option 1 — Install via [skills.sh](https://skills.sh)
 
-Download or clone this repository, then copy the skill folder(s) you want into the skills directory for your agent:
-
-| Agent         | Skills Location |
-|---------------|-----------------------|
-| Claude Code   | `.claude/skills/`   |
-| ChatGPT Codex | `.agents/skills/`    | 
-| Cursor        | `.agents/skills/`   |
-
-For example, to install `apimatic-portal`, copy the `skills/apimatic-portal` folder into the appropriate directory above.
+```bash
+npx skills add apimatic/skills --skill apimatic-portal
+```
 
 ### Option 2 — Prompt your agent to install it
 
@@ -51,6 +45,18 @@ Please do the following:
 4. Clean up the temporary directory
 ```
 
+### Option 3 — Manual copy
+
+Download or clone this repository, then copy the skill folder(s) you want into the skills directory for your agent:
+
+| Agent         | Skills Location   |
+|---------------|-------------------|
+| Claude Code   | `.claude/skills/` |
+| ChatGPT Codex | `.agents/skills/` |
+| Cursor        | `.agents/skills/` |
+
+For example, to install `apimatic-portal`, copy the `skills/apimatic-portal` folder into the appropriate directory above.
+
 ## Usage
 
 Once installed, the agent automatically selects the appropriate skill based on what you're working on. No special invocation is needed — just describe your task naturally.
@@ -61,10 +67,8 @@ For example:
 
 The agent will invoke the right skill and guide you through the workflow step by step.
 
-
 ## Resources
 
 - [APIMatic cli](https://www.npmjs.com/package/@apimatic/cli)
 - [APIMatic documentation](https://docs.apimatic.io)
 - [APIMatic app](https://app.apimatic.io)
-
