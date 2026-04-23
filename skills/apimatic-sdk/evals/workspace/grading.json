@@ -1,0 +1,569 @@
+{
+  "total_assertions": 86,
+  "total_passed": 86,
+  "evals": [
+    {
+      "eval_id": 0,
+      "status": "PASS",
+      "score": "6/6",
+      "results": [
+        {
+          "id": "checks-auth-status",
+          "passed": true,
+          "evidence": "Found 'apimatic auth status'"
+        },
+        {
+          "id": "runs-auth-login",
+          "passed": true,
+          "evidence": "Found 'apimatic auth login'"
+        },
+        {
+          "id": "waits-for-user-confirmation",
+          "passed": true,
+          "evidence": "Found: ['confirm', 'let me know', \"when you're done\", 'when done', 'after you']"
+        },
+        {
+          "id": "generates-python-sdk",
+          "passed": true,
+          "evidence": "Found '--language=python'"
+        },
+        {
+          "id": "does-not-add-zip-unprompted",
+          "passed": true,
+          "evidence": "Correctly absent: '--zip'"
+        },
+        {
+          "id": "asks-about-destination",
+          "passed": true,
+          "evidence": "Found: ['destination', 'default location']"
+        }
+      ]
+    },
+    {
+      "eval_id": 1,
+      "status": "PASS",
+      "score": "6/6",
+      "results": [
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "uses-correct-directory",
+          "passed": true,
+          "evidence": "Found: ['payments-api', 'D:\\\\work\\\\payments-api']"
+        },
+        {
+          "id": "generates-typescript-sdk",
+          "passed": true,
+          "evidence": "Found '--language=typescript'"
+        },
+        {
+          "id": "includes-zip-flag",
+          "passed": true,
+          "evidence": "Found '--zip'"
+        },
+        {
+          "id": "uses-custom-destination",
+          "passed": true,
+          "evidence": "Found: ['--destination', 'D:\\\\output\\\\ts-sdk']"
+        },
+        {
+          "id": "runs-from-project-root",
+          "passed": true,
+          "evidence": "Correctly absent: 'cd src'"
+        }
+      ]
+    },
+    {
+      "eval_id": 2,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "mentions-src-directory",
+          "passed": true,
+          "evidence": "Found: ['src/', 'src\\\\']"
+        },
+        {
+          "id": "mentions-spec-in-src-spec",
+          "passed": true,
+          "evidence": "Found: ['src/spec', 'src\\\\spec', 'spec/']"
+        },
+        {
+          "id": "does-not-generate-directly",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic sdk generate --input=./openapi.yaml'"
+        },
+        {
+          "id": "mentions-go-language",
+          "passed": true,
+          "evidence": "Found: ['go', 'Go', '--language=go']"
+        },
+        {
+          "id": "does-not-mention-portal-skill",
+          "passed": true,
+          "evidence": "Correctly absent"
+        }
+      ]
+    },
+    {
+      "eval_id": 3,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "generates-csharp-sdk",
+          "passed": true,
+          "evidence": "Found '--language=csharp'"
+        },
+        {
+          "id": "uses-force-flag",
+          "passed": true,
+          "evidence": "Found '--force'"
+        },
+        {
+          "id": "references-project-dir",
+          "passed": true,
+          "evidence": "Found: ['my-api', './my-api']"
+        },
+        {
+          "id": "does-not-add-zip-unprompted",
+          "passed": true,
+          "evidence": "Correctly absent: '--zip'"
+        }
+      ]
+    },
+    {
+      "eval_id": 4,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "generates-ruby-sdk",
+          "passed": true,
+          "evidence": "Found '--language=ruby'"
+        },
+        {
+          "id": "no-destination-flag",
+          "passed": true,
+          "evidence": "Correctly absent: '--destination'"
+        },
+        {
+          "id": "no-zip-flag",
+          "passed": true,
+          "evidence": "Correctly absent: '--zip'"
+        },
+        {
+          "id": "references-project-dir",
+          "passed": true,
+          "evidence": "Found: ['ruby-project', '~/ruby-project']"
+        }
+      ]
+    },
+    {
+      "eval_id": 5,
+      "status": "PASS",
+      "score": "3/3",
+      "results": [
+        {
+          "id": "offers-api-key-fallback",
+          "passed": true,
+          "evidence": "Found '--auth-key'"
+        },
+        {
+          "id": "mentions-api-keys-location",
+          "passed": true,
+          "evidence": "Found: ['API Keys', 'Account > API Keys', 'APIMatic Dashboard']"
+        },
+        {
+          "id": "does-not-proceed-to-generate",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic sdk generate'"
+        }
+      ]
+    },
+    {
+      "eval_id": 6,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "generates-java-sdk",
+          "passed": true,
+          "evidence": "Found '--language=java'"
+        },
+        {
+          "id": "uses-track-changes",
+          "passed": true,
+          "evidence": "Found '--track-changes'"
+        },
+        {
+          "id": "references-project-dir",
+          "passed": true,
+          "evidence": "Found: ['my-java-api', './my-java-api']"
+        }
+      ]
+    },
+    {
+      "eval_id": 7,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "runs-sdk-generate",
+          "passed": true,
+          "evidence": "Found 'apimatic sdk generate'"
+        },
+        {
+          "id": "uses-auth-key-flag",
+          "passed": true,
+          "evidence": "Found '--auth-key'"
+        },
+        {
+          "id": "generates-php-sdk",
+          "passed": true,
+          "evidence": "Found '--language=php'"
+        },
+        {
+          "id": "recommends-for-ci",
+          "passed": true,
+          "evidence": "Found: ['CI', 'non-interactive', 'GitHub Actions']"
+        },
+        {
+          "id": "no-browser-login-for-ci",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login\n'"
+        }
+      ]
+    },
+    {
+      "eval_id": 8,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "suggests-reinstall",
+          "passed": true,
+          "evidence": "Found 'npm install -g @apimatic/cli'"
+        },
+        {
+          "id": "does-not-proceed-to-generate",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic sdk generate'"
+        },
+        {
+          "id": "does-not-proceed-to-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "mentions-version-check",
+          "passed": true,
+          "evidence": "Found 'apimatic --version'"
+        }
+      ]
+    },
+    {
+      "eval_id": 9,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "does-not-regenerate",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic sdk generate'"
+        },
+        {
+          "id": "runs-save-changes",
+          "passed": true,
+          "evidence": "Found 'apimatic sdk save-changes'"
+        },
+        {
+          "id": "uses-typescript-language",
+          "passed": true,
+          "evidence": "Found '--language=typescript'"
+        },
+        {
+          "id": "references-project-dir",
+          "passed": true,
+          "evidence": "Found: ['ts-api', './ts-api']"
+        }
+      ]
+    },
+    {
+      "eval_id": 10,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "generates-with-track-changes",
+          "passed": true,
+          "evidence": "Found '--track-changes'"
+        },
+        {
+          "id": "generates-python-sdk",
+          "passed": true,
+          "evidence": "Found '--language=python'"
+        },
+        {
+          "id": "prompts-user-to-customize",
+          "passed": true,
+          "evidence": "Found: ['make your customizations', 'add your changes', 'let me know when', \"when you're done\"]"
+        },
+        {
+          "id": "runs-save-changes",
+          "passed": true,
+          "evidence": "Found 'apimatic sdk save-changes'"
+        }
+      ]
+    },
+    {
+      "eval_id": 11,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "scaffolds-src-structure",
+          "passed": true,
+          "evidence": "Found: ['src/spec', 'mkdir']"
+        },
+        {
+          "id": "generates-with-track-changes",
+          "passed": true,
+          "evidence": "Found '--track-changes'"
+        },
+        {
+          "id": "prompts-user-to-customize",
+          "passed": true,
+          "evidence": "Found: ['make your customizations', 'let me know when', \"when you're ready\"]"
+        },
+        {
+          "id": "runs-save-changes",
+          "passed": true,
+          "evidence": "Found 'apimatic sdk save-changes'"
+        }
+      ]
+    },
+    {
+      "eval_id": 12,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "generates-java-sdk",
+          "passed": true,
+          "evidence": "Found '--language=java'"
+        },
+        {
+          "id": "uses-skip-changes-flag",
+          "passed": true,
+          "evidence": "Found '--skip-changes'"
+        },
+        {
+          "id": "non-destructive-explanation",
+          "passed": true,
+          "evidence": "Found: ['not removed', 'still be applied']"
+        },
+        {
+          "id": "does-not-delete-sdk-source-tree",
+          "passed": true,
+          "evidence": "Correctly absent: 'delete'"
+        }
+      ]
+    },
+    {
+      "eval_id": 13,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "generates-go-sdk",
+          "passed": true,
+          "evidence": "Found '--language=go'"
+        },
+        {
+          "id": "uses-api-version-flag",
+          "passed": true,
+          "evidence": "Found '--api-version=v2'"
+        },
+        {
+          "id": "references-project-dir",
+          "passed": true,
+          "evidence": "Found: ['multi-version-api', './multi-version-api']"
+        },
+        {
+          "id": "does-not-add-zip-unprompted",
+          "passed": true,
+          "evidence": "Correctly absent: '--zip'"
+        }
+      ]
+    },
+    {
+      "eval_id": 15,
+      "status": "PASS",
+      "score": "6/6",
+      "results": [
+        {
+          "id": "uses-short-copyright-notice-setting",
+          "passed": true,
+          "evidence": "Found 'ShortCopyrightNotice'"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "passed": true,
+          "evidence": "Found 'APIMATIC-META.json'"
+        },
+        {
+          "id": "generates-python-sdk",
+          "passed": true,
+          "evidence": "Found '--language=python'"
+        },
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "does-not-manually-inject-copyright",
+          "passed": true,
+          "evidence": "Correctly absent"
+        },
+        {
+          "id": "references-project-dir",
+          "passed": true,
+          "evidence": "Found: ['payments-api', './payments-api']"
+        }
+      ]
+    },
+    {
+      "eval_id": 14,
+      "status": "PASS",
+      "score": "4/4",
+      "results": [
+        {
+          "id": "recommends-env-var",
+          "passed": true,
+          "evidence": "Found 'APIMATIC_API_KEY'"
+        },
+        {
+          "id": "shows-env-var-syntax",
+          "passed": true,
+          "evidence": "Found: ['export APIMATIC_API_KEY', '$env:APIMATIC_API_KEY']"
+        },
+        {
+          "id": "does-not-recommend-browser-login",
+          "passed": true,
+          "evidence": "Correctly absent: 'auth-login.mjs'"
+        },
+        {
+          "id": "mentions-no-login-command-needed",
+          "passed": true,
+          "evidence": "Found: ['no login', 'no login command']"
+        }
+      ]
+    },
+    {
+      "eval_id": 16,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "uses-disable-docs-setting",
+          "passed": true,
+          "evidence": "Found 'DisableDocs'"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "passed": true,
+          "evidence": "Found 'APIMATIC-META.json'"
+        },
+        {
+          "id": "generates-typescript-sdk",
+          "passed": true,
+          "evidence": "Found '--language=typescript'"
+        },
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        },
+        {
+          "id": "does-not-manually-delete-docs",
+          "passed": true,
+          "evidence": "Correctly absent"
+        }
+      ]
+    },
+    {
+      "eval_id": 19,
+      "status": "PASS",
+      "score": "5/5",
+      "results": [
+        {
+          "id": "uses-project-name-setting",
+          "passed": true,
+          "evidence": "Found 'ProjectName'"
+        },
+        {
+          "id": "uses-correct-name",
+          "passed": true,
+          "evidence": "Found 'PaymentsSDK'"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "passed": true,
+          "evidence": "Found 'APIMATIC-META.json'"
+        },
+        {
+          "id": "generates-java-sdk",
+          "passed": true,
+          "evidence": "Found '--language=java'"
+        },
+        {
+          "id": "skips-auth",
+          "passed": true,
+          "evidence": "Correctly absent: 'apimatic auth login'"
+        }
+      ]
+    },
+    {
+      "eval_id": 30,
+      "status": "PASS",
+      "score": "2/2",
+      "results": [
+        {
+          "id": "mentions-ruby-only",
+          "passed": true,
+          "evidence": "Found: ['Ruby', 'ruby', 'Ruby only', 'ForceKeywordArgsInRuby']"
+        },
+        {
+          "id": "does-not-blindly-apply",
+          "passed": true,
+          "evidence": "Correctly absent: '\"ForceKeywordArgsInRuby\": true'"
+        }
+      ]
+    }
+  ]
+}
