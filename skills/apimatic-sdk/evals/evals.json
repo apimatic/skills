@@ -1,0 +1,1423 @@
+{
+  "skill_name": "apimatic-sdk",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I need to generate a Python SDK for my API. I haven't used the APIMatic CLI before. My project is at ~/my-api-project/ and it has a src/ folder with my spec in src/spec/. Can you help?",
+      "expected_output": "The agent checks auth status, walks through the login flow (browser-based primary, API key fallback), waits for user confirmation, asks about destination preference, then runs `apimatic sdk generate --language=python` from the project root. Does NOT add --zip unless the user asked for it.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "checks-auth-status",
+          "description": "Response includes checking auth status before login",
+          "type": "contains",
+          "value": "apimatic auth status"
+        },
+        {
+          "id": "runs-auth-login",
+          "description": "Response includes the auth login command",
+          "type": "contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "waits-for-user-confirmation",
+          "description": "Response pauses and asks the user to confirm sign-in before proceeding",
+          "type": "contains_any",
+          "value": [
+            "confirm",
+            "let me know",
+            "once you",
+            "when you're done",
+            "when done",
+            "after you"
+          ]
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response includes the SDK generate command with python language",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "does-not-add-zip-unprompted",
+          "description": "Response does NOT add --zip flag since the user did not request it",
+          "type": "not_contains",
+          "value": "--zip"
+        },
+        {
+          "id": "asks-about-destination",
+          "description": "Response asks the user about the SDK output destination",
+          "type": "contains_any",
+          "value": [
+            "destination",
+            "where you want the SDK",
+            "output path",
+            "default location",
+            "specific path"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I already have APIMatic CLI set up and authenticated. Generate a TypeScript SDK for the project at D:\\work\\payments-api\\ — it has the src/ directory with the spec. Give me a zip. Put it in D:\\output\\ts-sdk.",
+      "expected_output": "The agent skips auth, navigates to or uses --input with the parent directory containing src/, and runs apimatic sdk generate --language=typescript --zip --destination=D:\\output\\ts-sdk.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user said they are already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "uses-correct-directory",
+          "description": "Response references the user's project directory path",
+          "type": "contains_any",
+          "value": [
+            "payments-api",
+            "D:\\work\\payments-api",
+            "D:/work/payments-api"
+          ]
+        },
+        {
+          "id": "generates-typescript-sdk",
+          "description": "Response includes the SDK generate command with typescript language",
+          "type": "contains",
+          "value": "--language=typescript"
+        },
+        {
+          "id": "includes-zip-flag",
+          "description": "Response includes --zip flag as requested by the user",
+          "type": "contains",
+          "value": "--zip"
+        },
+        {
+          "id": "uses-custom-destination",
+          "description": "Response uses the --destination flag with the user's specified path",
+          "type": "contains_any",
+          "value": [
+            "--destination",
+            "D:\\output\\ts-sdk",
+            "D:/output/ts-sdk"
+          ]
+        },
+        {
+          "id": "runs-from-project-root",
+          "description": "Response runs from the project root (parent of src/), not from inside src/",
+          "type": "not_contains",
+          "value": "cd src"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I want to create a Go SDK for my REST API. I have my OpenAPI spec at ./openapi.yaml but no project directory set up yet. What do I do?",
+      "expected_output": "The agent tells the user they need to create a project directory with a src/ folder and place the spec inside src/spec/ before generating. Does NOT run apimatic sdk generate against a raw spec file.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "mentions-src-directory",
+          "description": "Response tells user to create src/ directory structure",
+          "type": "contains_any",
+          "value": [
+            "src/",
+            "src\\",
+            "src folder",
+            "src directory"
+          ]
+        },
+        {
+          "id": "mentions-spec-in-src-spec",
+          "description": "Response tells user to place the spec in src/spec/",
+          "type": "contains_any",
+          "value": [
+            "src/spec",
+            "src\\spec",
+            "spec/"
+          ]
+        },
+        {
+          "id": "does-not-generate-directly",
+          "description": "Response does NOT directly run sdk generate against the raw spec file without setup",
+          "type": "not_contains",
+          "value": "apimatic sdk generate --input=./openapi.yaml"
+        },
+        {
+          "id": "mentions-go-language",
+          "description": "Response acknowledges the Go language choice",
+          "type": "contains_any",
+          "value": [
+            "go",
+            "Go",
+            "--language=go"
+          ]
+        },
+        {
+          "id": "does-not-mention-portal-skill",
+          "description": "Response does NOT direct user to the portal skill — tells them to set up manually",
+          "type": "not_contains_any",
+          "value": [
+            "portal skill",
+            "apimatic-portal",
+            "apimatic portal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I already generated a C# SDK yesterday but I need to regenerate it with some spec changes. The project is at ./my-api/ and I'm already logged in. Just overwrite the old one.",
+      "expected_output": "The agent skips auth, runs apimatic sdk generate --language=csharp --force from the project directory to overwrite the existing SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user said they are logged in",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "generates-csharp-sdk",
+          "description": "Response includes the SDK generate command with csharp language",
+          "type": "contains",
+          "value": "--language=csharp"
+        },
+        {
+          "id": "uses-force-flag",
+          "description": "Response includes --force flag to overwrite the existing SDK",
+          "type": "contains",
+          "value": "--force"
+        },
+        {
+          "id": "references-project-dir",
+          "description": "Response references the user's project directory",
+          "type": "contains_any",
+          "value": [
+            "my-api",
+            "./my-api"
+          ]
+        },
+        {
+          "id": "does-not-add-zip-unprompted",
+          "description": "Response does NOT add --zip since user did not request it",
+          "type": "not_contains",
+          "value": "--zip"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Generate a Ruby SDK for my API project at ~/ruby-project/. I'm authenticated. Use the default output location, no zip needed.",
+      "expected_output": "The agent skips auth, runs apimatic sdk generate --language=ruby without --destination or --zip flags.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "generates-ruby-sdk",
+          "description": "Response includes the SDK generate command with ruby language",
+          "type": "contains",
+          "value": "--language=ruby"
+        },
+        {
+          "id": "no-destination-flag",
+          "description": "Response does NOT include --destination since user wants default",
+          "type": "not_contains",
+          "value": "--destination"
+        },
+        {
+          "id": "no-zip-flag",
+          "description": "Response does NOT include --zip since user explicitly said no zip",
+          "type": "not_contains",
+          "value": "--zip"
+        },
+        {
+          "id": "references-project-dir",
+          "description": "Response references the user's project directory",
+          "type": "contains_any",
+          "value": [
+            "ruby-project",
+            "~/ruby-project"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I completed browser sign-in for APIMatic but apimatic auth status doesn't show my email. How do I fix this?",
+      "expected_output": "The agent offers the API key fallback (apimatic auth login --auth-key=YOUR_API_KEY), tells the user where to find API keys, and does NOT proceed to SDK generation until auth is confirmed.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "offers-api-key-fallback",
+          "description": "Response offers the --auth-key fallback",
+          "type": "contains",
+          "value": "--auth-key"
+        },
+        {
+          "id": "mentions-api-keys-location",
+          "description": "Response tells user where to find their API key",
+          "type": "contains_any",
+          "value": [
+            "API Keys",
+            "Account > API Keys",
+            "APIMatic Dashboard",
+            "app.apimatic.io"
+          ]
+        },
+        {
+          "id": "does-not-proceed-to-generate",
+          "description": "Response does NOT proceed to SDK generation while auth is unconfirmed",
+          "type": "not_contains",
+          "value": "apimatic sdk generate"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I want to generate a Java SDK and I plan to customize the generated code afterwards. My project is at ./my-java-api/ and I'm authenticated.",
+      "expected_output": "The agent adds the --track-changes flag to enable change tracking so customizations are preserved across regenerations.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "generates-java-sdk",
+          "description": "Response includes the SDK generate command with java language",
+          "type": "contains",
+          "value": "--language=java"
+        },
+        {
+          "id": "uses-track-changes",
+          "description": "Response includes --track-changes flag since user wants to customize",
+          "type": "contains",
+          "value": "--track-changes"
+        },
+        {
+          "id": "references-project-dir",
+          "description": "Response references the user's project directory",
+          "type": "contains_any",
+          "value": [
+            "my-java-api",
+            "./my-java-api"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I'm setting up a CI/CD pipeline with GitHub Actions to generate a PHP SDK on every push. I have an API key stored as a secret. How do I run the SDK generation non-interactively?",
+      "expected_output": "The agent recommends apimatic sdk generate --language=php --auth-key=YOUR_API_KEY as the CI-appropriate pattern. Does NOT suggest browser-based login.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-sdk-generate",
+          "description": "Response includes apimatic sdk generate",
+          "type": "contains",
+          "value": "apimatic sdk generate"
+        },
+        {
+          "id": "uses-auth-key-flag",
+          "description": "Response includes the --auth-key flag",
+          "type": "contains",
+          "value": "--auth-key"
+        },
+        {
+          "id": "generates-php-sdk",
+          "description": "Response includes --language=php",
+          "type": "contains",
+          "value": "--language=php"
+        },
+        {
+          "id": "recommends-for-ci",
+          "description": "Response frames --auth-key as appropriate for CI environments",
+          "type": "contains_any",
+          "value": [
+            "CI",
+            "non-interactive",
+            "without browser",
+            "pipeline",
+            "GitHub Actions"
+          ]
+        },
+        {
+          "id": "no-browser-login-for-ci",
+          "description": "Response does NOT recommend browser-based login for CI",
+          "type": "not_contains",
+          "value": "apimatic auth login\n"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I ran npm install -g @apimatic/cli but apimatic --version says command not found. I need to generate a Python SDK.",
+      "expected_output": "The agent troubleshoots the CLI installation issue and does NOT proceed to SDK generation until the CLI is verified.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "suggests-reinstall",
+          "description": "Response suggests reinstalling the CLI",
+          "type": "contains",
+          "value": "npm install -g @apimatic/cli"
+        },
+        {
+          "id": "does-not-proceed-to-generate",
+          "description": "Response does NOT proceed to SDK generation while CLI is missing",
+          "type": "not_contains",
+          "value": "apimatic sdk generate"
+        },
+        {
+          "id": "does-not-proceed-to-auth",
+          "description": "Response does NOT proceed to authentication while CLI is missing",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "mentions-version-check",
+          "description": "Response mentions verifying with apimatic --version",
+          "type": "contains",
+          "value": "apimatic --version"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "I already have a TypeScript SDK that I've customized with some extra helper methods. I want to save those changes so they're preserved when I regenerate later. I'm authenticated. My project is at ./ts-api/.",
+      "expected_output": "The agent recognizes the user already has a customized SDK, skips SDK generation entirely, and runs apimatic sdk save-changes --language=typescript.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "does-not-regenerate",
+          "description": "Response does NOT run sdk generate since user already has their SDK customized",
+          "type": "not_contains",
+          "value": "apimatic sdk generate"
+        },
+        {
+          "id": "runs-save-changes",
+          "description": "Response runs the sdk save-changes command",
+          "type": "contains",
+          "value": "apimatic sdk save-changes"
+        },
+        {
+          "id": "uses-typescript-language",
+          "description": "Response uses --language=typescript",
+          "type": "contains",
+          "value": "--language=typescript"
+        },
+        {
+          "id": "references-project-dir",
+          "description": "Response references the user's project directory",
+          "type": "contains_any",
+          "value": [
+            "ts-api",
+            "./ts-api"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "I want to generate a Python SDK for my API project at ./python-api/ and then add some custom utility functions to it. I'm authenticated and have the src/ folder set up already.",
+      "expected_output": "The agent generates the SDK with --track-changes enabled, then prompts the user to make their customizations, and runs apimatic sdk save-changes --language=python once the user confirms they are done.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "generates-with-track-changes",
+          "description": "Response generates the SDK with --track-changes flag",
+          "type": "contains",
+          "value": "--track-changes"
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response uses --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "prompts-user-to-customize",
+          "description": "Response asks the user to make their customizations before saving",
+          "type": "contains_any",
+          "value": [
+            "make your customizations",
+            "add your customizations",
+            "make your changes",
+            "add your changes",
+            "let me know when",
+            "once you've made",
+            "when you're ready",
+            "when you're done"
+          ]
+        },
+        {
+          "id": "runs-save-changes",
+          "description": "Response includes the sdk save-changes command for the next step",
+          "type": "contains",
+          "value": "apimatic sdk save-changes"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I have no SDK yet and I want to generate one from scratch and customize it. I don't have a project directory set up. My API spec is at ~/specs/payments.yaml. I'm authenticated.",
+      "expected_output": "The agent scaffolds the project directory (src/spec/ structure), generates the SDK with --track-changes, prompts the user to make customizations, then runs apimatic sdk save-changes.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "scaffolds-src-structure",
+          "description": "Response creates the src/spec/ directory structure before generating",
+          "type": "contains_any",
+          "value": [
+            "src/spec",
+            "src\\spec",
+            "mkdir",
+            "New-Item"
+          ]
+        },
+        {
+          "id": "generates-with-track-changes",
+          "description": "Response generates the SDK with --track-changes flag",
+          "type": "contains",
+          "value": "--track-changes"
+        },
+        {
+          "id": "prompts-user-to-customize",
+          "description": "Response asks the user to add their customizations before saving",
+          "type": "contains_any",
+          "value": [
+            "make your customizations",
+            "add your customizations",
+            "make your changes",
+            "add your changes",
+            "let me know when",
+            "once you've made",
+            "when you're ready",
+            "when you're done"
+          ]
+        },
+        {
+          "id": "runs-save-changes",
+          "description": "Response includes the sdk save-changes command for the next step",
+          "type": "contains",
+          "value": "apimatic sdk save-changes"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "I have change tracking enabled for my Java SDK but I want to see what the SDK looks like without my customizations applied. I'm authenticated, project is at ./java-api/.",
+      "expected_output": "The agent runs apimatic sdk generate --language=java --skip-changes and explains this is non-destructive — saved customizations are not removed.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "generates-java-sdk",
+          "description": "Response uses --language=java",
+          "type": "contains",
+          "value": "--language=java"
+        },
+        {
+          "id": "uses-skip-changes-flag",
+          "description": "Response includes the --skip-changes flag",
+          "type": "contains",
+          "value": "--skip-changes"
+        },
+        {
+          "id": "non-destructive-explanation",
+          "description": "Response clarifies that saved customizations are not removed",
+          "type": "contains_any",
+          "value": [
+            "not modified",
+            "not removed",
+            "still applied",
+            "still be applied",
+            "won't be removed",
+            "are not modified",
+            "are preserved",
+            "untouched",
+            "non-destructive"
+          ]
+        },
+        {
+          "id": "does-not-delete-sdk-source-tree",
+          "description": "Response does NOT tell user to delete the sdk-source-tree to preview",
+          "type": "not_contains",
+          "value": "delete"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "I need to generate a Go SDK for version v2 of my API. My project is at ./multi-version-api/ and it has a src/ folder set up. I'm already authenticated.",
+      "expected_output": "The agent includes --api-version=v2 in the generate command to target the specific API version, along with --language=go.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user said they are authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "generates-go-sdk",
+          "description": "Response includes the SDK generate command with go language",
+          "type": "contains",
+          "value": "--language=go"
+        },
+        {
+          "id": "uses-api-version-flag",
+          "description": "Response includes --api-version=v2 to target the specific API version",
+          "type": "contains",
+          "value": "--api-version=v2"
+        },
+        {
+          "id": "references-project-dir",
+          "description": "Response references the user's project directory",
+          "type": "contains_any",
+          "value": [
+            "multi-version-api",
+            "./multi-version-api"
+          ]
+        },
+        {
+          "id": "does-not-add-zip-unprompted",
+          "description": "Response does NOT add --zip since user did not request it",
+          "type": "not_contains",
+          "value": "--zip"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "I want to generate a Python SDK for my API project at ./payments-api/ and make sure every generated file has a copyright notice in it. I'm already authenticated and the src/ folder is set up.",
+      "expected_output": "The agent recognizes that adding a copyright notice to every file is covered by the ShortCopyrightNotice CodeGen setting. It updates APIMATIC-META.json with ShortCopyrightNotice set to the copyright text, then generates the SDK. It does NOT manually edit generated files or inject copyright via custom code.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-short-copyright-notice-setting",
+          "description": "Response uses the ShortCopyrightNotice CodeGen setting in APIMATIC-META.json",
+          "type": "contains",
+          "value": "ShortCopyrightNotice"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json with the copyright setting",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response generates the SDK with --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "does-not-manually-inject-copyright",
+          "description": "Response does NOT manually edit generated files or add copyright as custom code injection",
+          "type": "not_contains_any",
+          "value": [
+            "sdk-source-tree",
+            "custom code injection",
+            "inject the copyright",
+            "manually add",
+            "manually edit"
+          ]
+        },
+        {
+          "id": "references-project-dir",
+          "description": "Response references the user's project directory",
+          "type": "contains_any",
+          "value": [
+            "payments-api",
+            "./payments-api"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "I'm running SDK generation in Docker and can't run apimatic auth login interactively. I don't want the API key to appear in my shell history. What's the cleanest way to authenticate?",
+      "expected_output": "The agent recommends setting the APIMATIC_API_KEY environment variable (no login command needed) as the cleanest approach that avoids the key appearing in command history. It also mentions the --auth-key flag as an alternative.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "recommends-env-var",
+          "description": "Response recommends the APIMATIC_API_KEY environment variable",
+          "type": "contains",
+          "value": "APIMATIC_API_KEY"
+        },
+        {
+          "id": "shows-env-var-syntax",
+          "description": "Response shows how to set the environment variable",
+          "type": "contains_any",
+          "value": [
+            "export APIMATIC_API_KEY",
+            "$env:APIMATIC_API_KEY",
+            "set APIMATIC_API_KEY"
+          ]
+        },
+        {
+          "id": "does-not-recommend-browser-login",
+          "description": "Response does NOT recommend browser-based auth for Docker/CI",
+          "type": "not_contains",
+          "value": "auth-login.mjs"
+        },
+        {
+          "id": "mentions-no-login-command-needed",
+          "description": "Response notes that the env var approach requires no login command",
+          "type": "contains_any",
+          "value": [
+            "no login",
+            "without login",
+            "no auth login",
+            "without running",
+            "no login command",
+            "without the login",
+            "no interactive"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "I want to generate a TypeScript SDK without any documentation files. My project is at ./my-api/ and I'm already authenticated with the src/ folder set up.",
+      "expected_output": "The agent recognizes that disabling docs is covered by the DisableDocs CodeGen setting. It updates APIMATIC-META.json with DisableDocs set to true, then generates the SDK. It does NOT manually delete the docs folder or README.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-disable-docs-setting",
+          "description": "Response uses the DisableDocs CodeGen setting",
+          "type": "contains",
+          "value": "DisableDocs"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-typescript-sdk",
+          "description": "Response generates the SDK with --language=typescript",
+          "type": "contains",
+          "value": "--language=typescript"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "does-not-manually-delete-docs",
+          "description": "Response does NOT manually delete docs folder or use file deletion commands",
+          "type": "not_contains_any",
+          "value": [
+            "rm ",
+            "del ",
+            "Remove-Item",
+            "rmdir",
+            "manually delete",
+            "delete the docs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Disable linting in my PHP SDK. My project is at ./php-project/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that disabling linting is covered by the DisableLinting CodeGen setting. It updates APIMATIC-META.json with DisableLinting set to true, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-disable-linting-setting",
+          "description": "Response uses the DisableLinting CodeGen setting",
+          "type": "contains",
+          "value": "DisableLinting"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-php-sdk",
+          "description": "Response generates the SDK with --language=php",
+          "type": "contains",
+          "value": "--language=php"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Set the timeout to 60 seconds and enable retry with 3 attempts for my C# SDK. My project is at ./csharp-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that timeout and retry settings are covered by the Timeout, RetryOnTimeout, and Retries CodeGen settings. It updates APIMATIC-META.json with all relevant settings, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-timeout-setting",
+          "description": "Response uses the Timeout CodeGen setting",
+          "type": "contains",
+          "value": "Timeout"
+        },
+        {
+          "id": "uses-retries-setting",
+          "description": "Response uses the Retries CodeGen setting",
+          "type": "contains",
+          "value": "Retries"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-csharp-sdk",
+          "description": "Response generates the SDK with --language=csharp",
+          "type": "contains",
+          "value": "--language=csharp"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "Set the SDK project name to 'PaymentsSDK' for my Java SDK. My project is at ./payments/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that setting the project name is covered by the ProjectName CodeGen setting. It updates APIMATIC-META.json with ProjectName set to PaymentsSDK, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-project-name-setting",
+          "description": "Response uses the ProjectName CodeGen setting",
+          "type": "contains",
+          "value": "ProjectName"
+        },
+        {
+          "id": "uses-correct-name",
+          "description": "Response includes the user's requested project name",
+          "type": "contains",
+          "value": "PaymentsSDK"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-java-sdk",
+          "description": "Response generates the SDK with --language=java",
+          "type": "contains",
+          "value": "--language=java"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "Enable logging in my Python SDK. My project is at ./py-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that enabling logging is covered by the EnableLogging CodeGen setting. It updates APIMATIC-META.json with EnableLogging set to true, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-enable-logging-setting",
+          "description": "Response uses the EnableLogging CodeGen setting",
+          "type": "contains",
+          "value": "EnableLogging"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response generates the SDK with --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "Set a custom user agent string for my Ruby SDK that includes the language and version. My project is at ./ruby-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that setting a custom user agent is covered by the UserAgent CodeGen setting with placeholders. It updates APIMATIC-META.json with UserAgent set to a string containing {language} and {version} placeholders, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-user-agent-setting",
+          "description": "Response uses the UserAgent CodeGen setting",
+          "type": "contains",
+          "value": "UserAgent"
+        },
+        {
+          "id": "includes-placeholders",
+          "description": "Response includes the {language} and/or {version} placeholders",
+          "type": "contains_any",
+          "value": [
+            "{language}",
+            "{version}"
+          ]
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-ruby-sdk",
+          "description": "Response generates the SDK with --language=ruby",
+          "type": "contains",
+          "value": "--language=ruby"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "Change array serialization to CSV format for my TypeScript SDK. My project is at ./ts-project/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that array serialization format is covered by the ArraySerialization CodeGen setting. It updates APIMATIC-META.json with ArraySerialization set to CSV, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-array-serialization-setting",
+          "description": "Response uses the ArraySerialization CodeGen setting",
+          "type": "contains",
+          "value": "ArraySerialization"
+        },
+        {
+          "id": "sets-csv-format",
+          "description": "Response sets the value to CSV",
+          "type": "contains",
+          "value": "CSV"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-typescript-sdk",
+          "description": "Response generates the SDK with --language=typescript",
+          "type": "contains",
+          "value": "--language=typescript"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "Make my C# SDK return null instead of throwing an exception on 404 responses. My project is at ./csharp-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that returning null on 404 is covered by the Nullify404 CodeGen setting. It updates APIMATIC-META.json with Nullify404 set to true, then regenerates the SDK. It does NOT add custom exception handling code.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-nullify404-setting",
+          "description": "Response uses the Nullify404 CodeGen setting",
+          "type": "contains",
+          "value": "Nullify404"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-csharp-sdk",
+          "description": "Response generates the SDK with --language=csharp",
+          "type": "contains",
+          "value": "--language=csharp"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "does-not-add-custom-exception-handling",
+          "description": "Response does NOT add manual exception handling or try-catch code",
+          "type": "not_contains_any",
+          "value": [
+            "try {",
+            "catch (",
+            "try:",
+            "except ",
+            "custom exception handling"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "prompt": "Add our company name 'Acme Corp' to all generated file headers in my Go SDK. My project is at ./acme-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that adding a company name to file headers is covered by the BrandLabel CodeGen setting. It updates APIMATIC-META.json with BrandLabel set to Acme Corp, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-brand-label-setting",
+          "description": "Response uses the BrandLabel CodeGen setting",
+          "type": "contains",
+          "value": "BrandLabel"
+        },
+        {
+          "id": "includes-company-name",
+          "description": "Response includes the user's company name",
+          "type": "contains",
+          "value": "Acme Corp"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-go-sdk",
+          "description": "Response generates the SDK with --language=go",
+          "type": "contains",
+          "value": "--language=go"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "prompt": "Add 'Model' postfix to all model class names in my Java SDK to avoid naming conflicts. My project is at ./java-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that adding a Model postfix is covered by the UseModelPrefix CodeGen setting. It updates APIMATIC-META.json with UseModelPrefix set to true, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-model-prefix-setting",
+          "description": "Response uses the UseModelPrefix CodeGen setting",
+          "type": "contains",
+          "value": "UseModelPrefix"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-java-sdk",
+          "description": "Response generates the SDK with --language=java",
+          "type": "contains",
+          "value": "--language=java"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "prompt": "Disable native enum types in my Python SDK and use plain strings instead. My project is at ./py-project/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that disabling native enums is covered by the GenerateEnums CodeGen setting. It updates APIMATIC-META.json with GenerateEnums set to false, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-generate-enums-setting",
+          "description": "Response uses the GenerateEnums CodeGen setting",
+          "type": "contains",
+          "value": "GenerateEnums"
+        },
+        {
+          "id": "sets-to-false",
+          "description": "Response sets GenerateEnums to false",
+          "type": "contains",
+          "value": "false"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response generates the SDK with --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "Set custom error messages for 401 and 5XX responses in my TypeScript SDK. For 401 use 'Authorization failed, code: {$statusCode}' and for 5XX use 'Server error, code: {$statusCode}'. My project is at ./ts-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that custom error messages are covered by the ErrorTemplates CodeGen setting. It updates APIMATIC-META.json with ErrorTemplates containing entries for 401 and 5XX with the user's specified messages, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-error-templates-setting",
+          "description": "Response uses the ErrorTemplates CodeGen setting",
+          "type": "contains",
+          "value": "ErrorTemplates"
+        },
+        {
+          "id": "includes-401-code",
+          "description": "Response includes the 401 error code",
+          "type": "contains",
+          "value": "401"
+        },
+        {
+          "id": "includes-5xx-code",
+          "description": "Response includes the 5XX error code",
+          "type": "contains",
+          "value": "5XX"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-typescript-sdk",
+          "description": "Response generates the SDK with --language=typescript",
+          "type": "contains",
+          "value": "--language=typescript"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "Generate my C# SDK with synchronous methods instead of async. My project is at ./sync-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that switching to synchronous methods is covered by the SynchronyMode CodeGen setting. It updates APIMATIC-META.json with SynchronyMode set to Synchronous, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-synchrony-mode-setting",
+          "description": "Response uses the SynchronyMode CodeGen setting",
+          "type": "contains",
+          "value": "SynchronyMode"
+        },
+        {
+          "id": "sets-synchronous-value",
+          "description": "Response sets the value to Synchronous",
+          "type": "contains",
+          "value": "Synchronous"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-csharp-sdk",
+          "description": "Response generates the SDK with --language=csharp",
+          "type": "contains",
+          "value": "--language=csharp"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "prompt": "Remove the docs folder from my generated Python SDK. My project is at ./my-sdk/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that removing docs is covered by the DisableDocs CodeGen setting. It updates APIMATIC-META.json with DisableDocs set to true, then regenerates the SDK. It does NOT manually delete files, use rm commands, or treat this as a custom code injection.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-disable-docs-setting",
+          "description": "Response uses the DisableDocs CodeGen setting instead of manual deletion",
+          "type": "contains",
+          "value": "DisableDocs"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "does-not-manually-delete",
+          "description": "Response does NOT use file deletion commands",
+          "type": "not_contains_any",
+          "value": [
+            "rm ",
+            "del ",
+            "Remove-Item",
+            "rmdir",
+            "sdk-source-tree",
+            "custom code injection",
+            "manually delete"
+          ]
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response generates the SDK with --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "prompt": "Enable keyword arguments in my TypeScript SDK. My project is at ./ts-project/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that ForceKeywordArgsInRuby is a Ruby-only setting and informs the user that keyword arguments are not available for TypeScript. It does NOT blindly apply the setting.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "mentions-ruby-only",
+          "description": "Response mentions that keyword arguments are only available for Ruby",
+          "type": "contains_any",
+          "value": [
+            "Ruby",
+            "ruby",
+            "not supported",
+            "not available",
+            "only available",
+            "Ruby only",
+            "ForceKeywordArgsInRuby",
+            "doesn't support",
+            "does not support",
+            "isn't available",
+            "is not available"
+          ]
+        },
+        {
+          "id": "does-not-blindly-apply",
+          "description": "Response does NOT apply ForceKeywordArgsInRuby for TypeScript",
+          "type": "not_contains",
+          "value": "\"ForceKeywordArgsInRuby\": true"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "prompt": "For my Java SDK at ./java-api/: set the project name to 'OrdersSDK', disable docs generation, and enable logging. I'm already authenticated.",
+      "expected_output": "The agent recognizes all three changes map to CodeGen settings: ProjectName, DisableDocs, and EnableLogging. It updates APIMATIC-META.json with all three settings in a single CodeGenSettings block, then regenerates the SDK once.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-project-name-setting",
+          "description": "Response uses the ProjectName CodeGen setting",
+          "type": "contains",
+          "value": "ProjectName"
+        },
+        {
+          "id": "uses-disable-docs-setting",
+          "description": "Response uses the DisableDocs CodeGen setting",
+          "type": "contains",
+          "value": "DisableDocs"
+        },
+        {
+          "id": "uses-enable-logging-setting",
+          "description": "Response uses the EnableLogging CodeGen setting",
+          "type": "contains",
+          "value": "EnableLogging"
+        },
+        {
+          "id": "includes-orders-sdk-name",
+          "description": "Response includes the requested project name",
+          "type": "contains",
+          "value": "OrdersSDK"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-java-sdk",
+          "description": "Response generates the SDK with --language=java",
+          "type": "contains",
+          "value": "--language=java"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "prompt": "Add an option to skip SSL certificate verification in my Python SDK for development environments. My project is at ./dev-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that adding SSL skip is covered by the AllowSkippingSSLCertVerification CodeGen setting. It updates APIMATIC-META.json with AllowSkippingSSLCertVerification set to true, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-ssl-skip-setting",
+          "description": "Response uses the AllowSkippingSSLCertVerification CodeGen setting",
+          "type": "contains",
+          "value": "AllowSkippingSSLCertVerification"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-python-sdk",
+          "description": "Response generates the SDK with --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "prompt": "Change the controller suffix from 'Controller' to 'Api' in my C# SDK. My project is at ./api-project/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that changing the controller suffix is covered by the ControllerPostfix CodeGen setting. It updates APIMATIC-META.json with ControllerPostfix set to Api, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-controller-postfix-setting",
+          "description": "Response uses the ControllerPostfix CodeGen setting",
+          "type": "contains",
+          "value": "ControllerPostfix"
+        },
+        {
+          "id": "sets-api-value",
+          "description": "Response sets the postfix to Api",
+          "type": "contains",
+          "value": "Api"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-csharp-sdk",
+          "description": "Response generates the SDK with --language=csharp",
+          "type": "contains",
+          "value": "--language=csharp"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "prompt": "I want my PHP SDK to return full HTTP responses including headers and status codes, not just the response body. My project is at ./php-api/ and I'm already authenticated.",
+      "expected_output": "The agent recognizes that returning full HTTP responses is covered by the ReturnCompleteHttpResponse CodeGen setting. It updates APIMATIC-META.json with ReturnCompleteHttpResponse set to true, then regenerates the SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-return-complete-response-setting",
+          "description": "Response uses the ReturnCompleteHttpResponse CodeGen setting",
+          "type": "contains",
+          "value": "ReturnCompleteHttpResponse"
+        },
+        {
+          "id": "updates-apimatic-meta",
+          "description": "Response updates APIMATIC-META.json",
+          "type": "contains",
+          "value": "APIMATIC-META.json"
+        },
+        {
+          "id": "generates-php-sdk",
+          "description": "Response generates the SDK with --language=php",
+          "type": "contains",
+          "value": "--language=php"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    }
+  ]
+}
