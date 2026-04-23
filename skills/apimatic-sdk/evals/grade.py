@@ -62,37 +62,47 @@ for eval_item in evals_data["evals"]:
             "passed": passed,
             "evidence": evidence
         })
-        if passed:
-            eval_passed += 1
         total_assertions += 1
+        if passed:
+            total_passed += 1
+            eval_passed += 1
 
-    total_passed += eval_passed
-    score = f"{eval_passed}/{len(assertions)}"
-    status = "PASS" if eval_passed == len(assertions) else "FAIL"
-    print(f"\n=== EVAL {eval_id} === {status} ({score})")
-    print(f"Prompt: {eval_item['prompt'][:80]}...")
-    for r in results:
-        mark = "PASS" if r["passed"] else "FAIL"
-        print(f"  [{mark}] {r['id']}: {r['evidence']}")
-
+    pass_rate = eval_passed / len(assertions) if assertions else 1.0
     results_by_eval.append({
-        "eval_id": eval_id,
-        "status": status,
-        "score": score,
+        "id": eval_id,
+        "prompt": eval_item["prompt"][:80],
+        "pass_rate": pass_rate,
         "results": results
     })
 
-print(f"\n{'='*50}")
-print(f"TOTAL: {total_passed}/{total_assertions} assertions passed")
-if failed_evals:
-    print(f"MISSING: evals {failed_evals} had no response file")
+    status = "✓" if pass_rate == 1.0 else ("~" if pass_rate >= 0.5 else "✗")
+    print(f"\n{status} EVAL {eval_id}: {eval_item['prompt'][:60]}...")
+    for r in results:
+        sym = "✓" if r["passed"] else "✗"
+        print(f"   {sym} {r['id']}: {r['evidence']}")
+    print(f"   Pass rate: {pass_rate:.0%} ({eval_passed}/{len(assertions)})")
 
-# Save grading results
-grading_output = os.path.join(WORKSPACE, "grading.json")
-with open(grading_output, "w") as f:
-    json.dump({
-        "total_assertions": total_assertions,
-        "total_passed": total_passed,
-        "evals": results_by_eval
-    }, f, indent=2)
-print(f"\nResults saved to {grading_output}")
+print(f"\n{'='*60}")
+print(f"OVERALL: {total_passed}/{total_assertions} assertions passed ({total_passed/total_assertions:.0%})")
+
+# Summary of failing evals
+failing = [e for e in results_by_eval if e["pass_rate"] < 1.0]
+if failing:
+    print(f"\nFAILING EVALS ({len(failing)}):")
+    for e in failing:
+        failing_assertions = [r for r in e["results"] if not r["passed"]]
+        print(f"  Eval {e['id']}: {e['pass_rate']:.0%} — failing: {[r['id'] for r in failing_assertions]}")
+else:
+    print("\nAll evals passed!")
+
+# Write results JSON
+results_out = {
+    "total_passed": total_passed,
+    "total_assertions": total_assertions,
+    "pass_rate": total_passed / total_assertions if total_assertions else 0,
+    "evals": results_by_eval
+}
+out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results.json")
+with open(out_path, "w") as f:
+    json.dump(results_out, f, indent=2)
+print(f"\nDetailed results written to: {out_path}")
