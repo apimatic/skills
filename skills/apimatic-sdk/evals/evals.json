@@ -1418,6 +1418,249 @@
           "value": "apimatic auth login"
         }
       ]
+    },
+    {
+      "id": 35,
+      "prompt": "Publish my Java SDK version 2.0.0 to the package registry. My profile ID is b2c3d4e5f6a1b2c3d4e5f6a1. My project is at ./java-api/ and I'm already authenticated.",
+      "expected_output": "The agent runs apimatic sdk publish in non-interactive mode with all four required flags: --profile-id, --language, --version, and --publish-type=package. It does NOT add --publish-type=sourcecode since the user only asked for the package registry.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-sdk-publish",
+          "description": "Response includes the sdk publish command",
+          "type": "contains",
+          "value": "apimatic sdk publish"
+        },
+        {
+          "id": "uses-profile-id",
+          "description": "Response includes the user's profile ID",
+          "type": "contains",
+          "value": "--profile-id=b2c3d4e5f6a1b2c3d4e5f6a1"
+        },
+        {
+          "id": "uses-java-language",
+          "description": "Response includes --language=java",
+          "type": "contains",
+          "value": "--language=java"
+        },
+        {
+          "id": "uses-version",
+          "description": "Response includes --version=2.0.0",
+          "type": "contains",
+          "value": "--version=2.0.0"
+        },
+        {
+          "id": "uses-package-publish-type",
+          "description": "Response includes --publish-type=package",
+          "type": "contains",
+          "value": "--publish-type=package"
+        },
+        {
+          "id": "does-not-add-sourcecode-unprompted",
+          "description": "Response does NOT add --publish-type=sourcecode since user only asked for package registry",
+          "type": "not_contains",
+          "value": "--publish-type=sourcecode"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "prompt": "Publish my TypeScript SDK version 1.0.0 to both npm and GitHub. My profile ID is a1b2c3d4e5f6a1b2c3d4e5f6. My project is at ./ts-api/ and I'm already authenticated.",
+      "expected_output": "The agent runs apimatic sdk publish with --publish-type=package and --publish-type=sourcecode both present, targeting both the package registry and the source repository.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-sdk-publish",
+          "description": "Response includes the sdk publish command",
+          "type": "contains",
+          "value": "apimatic sdk publish"
+        },
+        {
+          "id": "uses-profile-id",
+          "description": "Response includes the user's profile ID",
+          "type": "contains",
+          "value": "--profile-id=a1b2c3d4e5f6a1b2c3d4e5f6"
+        },
+        {
+          "id": "uses-typescript-language",
+          "description": "Response includes --language=typescript",
+          "type": "contains",
+          "value": "--language=typescript"
+        },
+        {
+          "id": "uses-version",
+          "description": "Response includes --version=1.0.0",
+          "type": "contains",
+          "value": "--version=1.0.0"
+        },
+        {
+          "id": "uses-package-publish-type",
+          "description": "Response includes --publish-type=package",
+          "type": "contains",
+          "value": "--publish-type=package"
+        },
+        {
+          "id": "uses-sourcecode-publish-type",
+          "description": "Response includes --publish-type=sourcecode",
+          "type": "contains",
+          "value": "--publish-type=sourcecode"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "prompt": "I want to test publishing my Python SDK before actually pushing it live. My profile ID is c3d4e5f6a1b2c3d4e5f6a1b2, version is 1.0.0, publish to package registry. I'm authenticated, project at ./py-api/.",
+      "expected_output": "The agent uses --dry-run so the SDK is generated locally for review without publishing. All other required flags are still included.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-sdk-publish",
+          "description": "Response includes the sdk publish command",
+          "type": "contains",
+          "value": "apimatic sdk publish"
+        },
+        {
+          "id": "uses-dry-run",
+          "description": "Response includes the --dry-run flag",
+          "type": "contains",
+          "value": "--dry-run"
+        },
+        {
+          "id": "uses-profile-id",
+          "description": "Response includes the user's profile ID",
+          "type": "contains",
+          "value": "--profile-id=c3d4e5f6a1b2c3d4e5f6a1b2"
+        },
+        {
+          "id": "uses-python-language",
+          "description": "Response includes --language=python",
+          "type": "contains",
+          "value": "--language=python"
+        },
+        {
+          "id": "uses-version",
+          "description": "Response includes --version=1.0.0",
+          "type": "contains",
+          "value": "--version=1.0.0"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "prompt": "Show me all my publishing profiles and their IDs. I'm already authenticated.",
+      "expected_output": "The agent runs apimatic publishing profile list and presents the available profiles in plain language. It does NOT forward the raw CLI table output verbatim.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-profile-list",
+          "description": "Response includes the publishing profile list command",
+          "type": "contains",
+          "value": "apimatic publishing profile list"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        },
+        {
+          "id": "does-not-run-sdk-generate",
+          "description": "Response does NOT run sdk generate or sdk publish — the user only asked to list profiles",
+          "type": "not_contains_any",
+          "value": [
+            "apimatic sdk generate",
+            "apimatic sdk publish"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "prompt": "I want to publish my C# SDK version 3.0.0 to the package registry but I don't know my profile ID. I'm authenticated, project at ./csharp-api/.",
+      "expected_output": "The agent runs apimatic publishing profile list first to help the user find their profile ID. It does NOT run apimatic sdk publish with a made-up or placeholder profile ID before the user provides their real one.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "lists-profiles-first",
+          "description": "Response runs publishing profile list to find the profile ID",
+          "type": "contains",
+          "value": "apimatic publishing profile list"
+        },
+        {
+          "id": "does-not-fabricate-profile-id",
+          "description": "Response does NOT run sdk publish with a made-up profile ID before the user provides one",
+          "type": "not_contains",
+          "value": "--profile-id=a1b2c3d4"
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "prompt": "I want to publish my Ruby SDK using a CI pipeline. My profile ID is d4e5f6a1b2c3d4e5f6a1b2c3, version is 0.9.0, publish to package registry. Store the API key as an env variable, no browser login.",
+      "expected_output": "The agent uses the APIMATIC_API_KEY environment variable for auth (no browser login, no apimatic auth login command) and runs apimatic sdk publish with all required flags non-interactively.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-sdk-publish",
+          "description": "Response includes the sdk publish command",
+          "type": "contains",
+          "value": "apimatic sdk publish"
+        },
+        {
+          "id": "uses-profile-id",
+          "description": "Response includes the user's profile ID",
+          "type": "contains",
+          "value": "--profile-id=d4e5f6a1b2c3d4e5f6a1b2c3"
+        },
+        {
+          "id": "uses-ruby-language",
+          "description": "Response includes --language=ruby",
+          "type": "contains",
+          "value": "--language=ruby"
+        },
+        {
+          "id": "uses-version",
+          "description": "Response includes --version=0.9.0",
+          "type": "contains",
+          "value": "--version=0.9.0"
+        },
+        {
+          "id": "uses-env-var-for-auth",
+          "description": "Response recommends setting the APIMATIC_API_KEY environment variable",
+          "type": "contains",
+          "value": "APIMATIC_API_KEY"
+        },
+        {
+          "id": "does-not-use-browser-login",
+          "description": "Response does NOT recommend browser-based login for CI",
+          "type": "not_contains",
+          "value": "auth-login.mjs"
+        }
+      ]
     }
   ]
 }

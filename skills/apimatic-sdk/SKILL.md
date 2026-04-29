@@ -1,6 +1,6 @@
 ---
 name: apimatic-sdk
-description: Use when a user wants to generate, create, customize, or download an SDK using the APIMatic CLI. Also use when the user has already customized a generated SDK and wants to save those changes, when the user wants to make a specific change to an SDK (e.g. "change the analyzer", "switch the linter"), or when the user asks about CodeGen settings, SDK configuration, or APIMATIC-META.json (e.g. "enable retry on timeout", "disable linting", "set the project name").
+description: Use for any task involving APIMatic's SDK generation toolchain. Use when a user wants to generate, create, customize, download, or publish an SDK using the APIMatic CLI. Also use when the user has already customized a generated SDK and wants to save those changes, when the user wants to make a specific change to an SDK (e.g. "change the analyzer", "switch the linter"), when the user asks about CodeGen settings, SDK configuration, or APIMATIC-META.json (e.g. "enable retry on timeout", "disable linting", "set the project name"), or when the user wants to publish an SDK to a package registry or source repository, or wants to list publishing profiles.
 ---
 
 # APIMatic SDK
@@ -15,6 +15,9 @@ Generate SDKs for your APIs in multiple languages using the APIMatic CLI.
 - User says they have already customized a generated SDK and want to save or commit those changes
 - User asks to customize an SDK in a specific way (e.g. "change the analyzer", "switch the linter", "update the formatter in the PHP SDK")
 - User asks to change a CodeGen setting (e.g. "enable retry on timeout", "set the project name", "disable linting", "change the timeout", "enable HTTP cache") — these can be applied via `APIMATIC-META.json` and a regeneration
+- User wants to publish an SDK to a package registry (npm, PyPI, NuGet) or source code repository (GitHub)
+- User wants to list publishing profiles or find a profile ID for publishing
+- User mentions `sdk publish` or `publishing profile list`
 
 ## Red Flags — STOP and re-read the relevant section
 
@@ -31,6 +34,9 @@ Generate SDKs for your APIs in multiple languages using the APIMatic CLI.
 - About to manually delete or remove a generated folder or file (e.g., `docs/`, `README.md`) as a customization → check codegen settings first; (e.g., removing docs maps to `DisableDocs: true` in `APIMATIC-META.json`) — set this before generating, not after via file deletion or custom code injection
 - About to open, read, or edit the `.<language>` files inside `sdk-source-tree/` (e.g., `.typescript`, `.python`) → these files are managed exclusively by the CLI; never touch them directly under any circumstance
 - About to manually compare or inspect customizations by reading `sdk-source-tree/` → if the user wants to see what changed between a plain generation and their customized one, regenerate using `--skip-changes` to produce a clean copy, then compare that against the customized SDK; do not manipulate or read the source tree files
+- About to run `sdk publish` because the user said "for publishing", "to publish", "for npm", or similar contextual phrases → these describe the user's **goal**, not a publish instruction; only run `sdk publish` if the user explicitly asks to publish (e.g., "publish the SDK", "run sdk publish", "push to npm using apimatic", "push to GitHub using apimatic"); for any other phrasing, stop at SDK generation
+- About to run `sdk publish` without a `--profile-id` and the user hasn't provided one → run `apimatic publishing profile list` first and present the available profiles so the user can choose
+- About to pass a `--publish-type` value other than `package` or `sourcecode` → see the [Publish Types](#publish-types) section for valid values
 
 ## Communication Guidelines
 
@@ -335,6 +341,77 @@ apimatic sdk generate --input=path/to/parent-of-src --language=<language> --auth
 - `--zip` : Download the generated SDK as a .zip archive instead of a directory.
 - `--track-changes` : Enable change tracking to preserve manual customizations across regenerations. Must be used during the initial generation to set up the source tree. See `references/save-changes.md` for how to save changes after generation.
 - `--skip-changes` : Generate the SDK without reapplying saved customizations, even if change tracking is enabled. Use when the user wants to preview the plain generated output. Saved customizations are not modified and will still be applied in future runs unless explicitly removed.
+
+## SDK Publish
+
+> **Only follow this section when the user explicitly requests publishing** (e.g., "publish the SDK", "push to npm", "push to GitHub", "run sdk publish"). Phrases like "generate an SDK for publishing" or "generate for npm" express intent but are not publish instructions — stop at SDK generation in those cases.
+
+Publish an SDK to a package registry (npm, PyPI, NuGet) or source code repository (GitHub) using a publishing profile configured in the APIMatic App.
+
+### Step 1: Authenticate with APIMatic
+
+Follow [Step 1: Authenticate with APIMatic](#step-1-authenticate-with-apimatic) above.
+
+### Step 2: Find the Publishing Profile ID
+
+If the user does not already know their profile ID, run:
+
+```
+apimatic publishing profile list
+```
+
+This lists all publishing profiles with their names, IDs, and enabled languages. Do not forward the raw table output to the user — summarize the available profiles and their IDs in plain language so the user can identify the one they want.
+
+### Step 3: Run SDK Publish
+
+**Non-interactive flow** requires all four of these flags — missing any one will drop the CLI into the interactive prompt:
+
+```
+apimatic sdk publish --profile-id=<profile-id> --language=<language> --version=<version> --publish-type=<type>
+```
+
+#### Flags
+
+| Flag                 | Required (non-interactive) | Description                                                                                                                 |
+| -------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `--profile-id`, `-p` | Yes                        | ID of the publishing profile to use. Run `apimatic publishing profile list` to find your profile ID.                        |
+| `--language`, `-l`   | Yes                        | SDK language to generate and publish.                                                                                       |
+| `--version`, `-v`    | Yes                        | Semantic version of the SDK (e.g. `1.0.0`).                                                                                 |
+| `--publish-type`     | Yes (at least one)         | Publishing target(s): `package` or `sourcecode` only. Can be specified multiple times. See [Publish Types](#publish-types). |
+| `--input`            | No                         | Path to the parent directory containing the `src/` directory. Defaults to `./`.                                             |
+| `--destination`      | No                         | Directory where the generated SDK will be saved locally. Defaults to `<input>/sdk`.                                         |
+| `--dry-run`          | No                         | Generate the SDK locally for review without publishing.                                                                     |
+| `--force`, `-f`      | No                         | Overwrite existing output without prompting.                                                                                |
+
+#### Publish Types
+
+Pass `--publish-type` once or twice to target one or both destinations. The language and publish type(s) must be configured in the publishing profile.
+
+```
+# Publish to package registry only
+apimatic sdk publish --profile-id=<id> --language=java --version=2.0.0 --publish-type=package
+
+# Publish to both package registry and source repository
+apimatic sdk publish --profile-id=<id> --language=typescript --version=1.0.0 --publish-type=package --publish-type=sourcecode
+```
+
+#### Dry Run
+
+Use `--dry-run` to generate the SDK locally and inspect it before publishing:
+
+```
+apimatic sdk publish --dry-run --profile-id=<id> --language=python --version=1.0.0 --publish-type=package
+```
+
+### If SDK Publish Fails
+
+1. **Profile not found or invalid ID:** Run `apimatic publishing profile list` to confirm the correct profile ID.
+2. **Language or publish type not supported by profile:** The language and publish type(s) must be enabled in the publishing profile. Check the profile configuration in the APIMatic App.
+3. **Authentication error:** Re-run `apimatic auth status` and re-authenticate if needed.
+4. **SDK already exists at destination:** Re-run with `--force` to overwrite.
+5. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
+
+---
 
 ## Customization Guidelines
 
