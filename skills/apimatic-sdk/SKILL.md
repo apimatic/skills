@@ -47,6 +47,8 @@ This skill is used by developers of all experience levels. All messages shown to
 - **Keep error guidance actionable:** When something fails, tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
 - **When in doubt, less is more:** If you are unsure whether a detail is useful to the user, leave it out.
 
+## Customize an SDK
+
 ## Fast Path — Already-Customized SDK
 
 If the user's message indicates they have **already made customizations** to a generated SDK and want to save those changes (e.g. "I customized my SDK", "I made changes to the generated SDK", "save my SDK changes", "save changes in it"):
@@ -126,7 +128,19 @@ There is one additional concern depending on context:
 - **Claude is applying the customization (Fast Path — Apply a Specific Customization):**
   No destination conflict — proceed through Steps 2–7 normally with `--track-changes`. After generation, apply the requested customizations to the generated SDK following the [Customization Guidelines](#customization-guidelines) section, then follow `references/save-changes.md`.
 
+## Customization Guidelines
+
+Apply these principles whenever you are making SDK customizations on the user's behalf, and share them as tips when the user is customizing themselves.
+
+1. **Add custom logic in a new file** where possible.
+2. **Avoid editing generated files directly.**
+3. **If you must edit a generated file**, add your changes at the top or bottom to reduce merge conflicts.
+
 ---
+
+## Generate an SDK
+
+> These steps (Prerequisites through Step 7) are also used when initializing change tracking as part of a customization workflow.
 
 ## Prerequisites
 
@@ -285,7 +299,7 @@ If not already known from context, ask: "Would you like to customize the SDK aft
 
   **If the skill applies customizations:**
 
-  Ask the user what changes they want made. Apply them following the [Customization Guidelines](#customization-guidelines) section at the bottom of this file. Once the changes are in place, follow `references/save-changes.md`. See `examples/generate-customize-save.md` for the expected flow of commands — flags and paths will differ based on the user's setup.
+  Ask the user what changes they want made. Apply them following the [Customization Guidelines](#customization-guidelines) section. Once the changes are in place, follow `references/save-changes.md`. See `examples/generate-customize-save.md` for the expected flow of commands — flags and paths will differ based on the user's setup.
 
   **If the user applies customizations:**
 
@@ -342,7 +356,7 @@ apimatic sdk generate --input=path/to/parent-of-src --language=<language> --auth
 - `--track-changes` : Enable change tracking to preserve manual customizations across regenerations. Must be used during the initial generation to set up the source tree. See `references/save-changes.md` for how to save changes after generation.
 - `--skip-changes` : Generate the SDK without reapplying saved customizations, even if change tracking is enabled. Use when the user wants to preview the plain generated output. Saved customizations are not modified and will still be applied in future runs unless explicitly removed.
 
-## SDK Publish
+## Publish an SDK
 
 > **Only follow this section when the user explicitly requests publishing** (e.g., "publish the SDK", "push to npm", "push to GitHub", "run sdk publish"). Phrases like "generate an SDK for publishing" or "generate for npm" express intent but are not publish instructions — stop at SDK generation in those cases.
 
@@ -363,6 +377,8 @@ apimatic publishing profile list
 This lists all publishing profiles with their names, IDs, and enabled languages. Do not forward the raw table output to the user — summarize the available profiles and their IDs in plain language so the user can identify the one they want.
 
 ### Step 3: Run SDK Publish
+
+See `examples/publish-sdk.md` for the expected command and output — flags and paths will differ based on the user's setup.
 
 **Non-interactive flow** requires all four of these flags — missing any one will drop the CLI into the interactive prompt:
 
@@ -410,15 +426,5 @@ apimatic sdk publish --dry-run --profile-id=<id> --language=python --version=1.0
 3. **Authentication error:** Re-run `apimatic auth status` and re-authenticate if needed.
 4. **SDK already exists at destination:** Re-run with `--force` to overwrite.
 5. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
-
----
-
-## Customization Guidelines
-
-Apply these principles whenever you are making SDK customizations on the user's behalf, and share them as tips when the user is customizing themselves.
-
-1. **Add custom logic in a new file** where possible.
-2. **Avoid editing generated files directly.**
-3. **If you must edit a generated file**, add your changes at the top or bottom to reduce merge conflicts.
 
 ---

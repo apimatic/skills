@@ -2,7 +2,7 @@
 
 This example shows how to generate an SDK with change tracking, customize a generated file, save those customizations, and regenerate with them automatically reapplied.
 
-**Flow:** generate (tracking auto-enabled) → customize → save-changes → regenerate
+**Flow:** generate with change tracking → customize → save-changes → regenerate
 
 ---
 
@@ -11,10 +11,28 @@ This example shows how to generate an SDK with change tracking, customize a gene
 Run from the directory that contains `src/`:
 
 ```
-apimatic sdk generate --language=typescript
+apimatic sdk generate --language=typescript --track-changes
 ```
 
-Change tracking is enabled automatically. The `sdk-source-tree` is saved at `src/sdk-source-tree/.typescript` and will be used to reapply your customizations on every future generation.
+Output:
+
+```
+SDK generated successfully.
+|
+•  The generated SDK can be found at '<project-dir>\sdk\typescript'.
+|
+•  Change tracking is enabled for 'typescript'. The 'sdk-source-tree' has been saved to '<project-dir>\src\sdk-source-tree\.typescript'.
+|
+o  Next Steps -------------------------------------------------------------+
+|                                                                          |
+|  Customize your SDK, then run:                                           |
+|  'apimatic sdk save-changes --language=typescript'                       |
+|  This persists your changes so they reapply on every future generation.  |
+|                                                                          |
++--------------------------------------------------------------------------+
+|
+—  Succeeded
+```
 
 ---
 
@@ -36,7 +54,25 @@ Edit any generated file. In this example, `sdk/typescript/README.md` is updated:
 apimatic sdk save-changes --language=typescript
 ```
 
-The CLI detects which files were modified and saves a diff to `src/sdk-source-tree/.typescript`. These changes will reapply automatically on every future generation.
+Output:
+
+```
+T   Save Changes
+|
+•  Detected changes in the following file(s):
+|    └─ typescript
+|     └─ README.md # Modified
+|
+|
+o  Do you want to review these changes?
+|  No
+|
+*  Changes saved successfully at '<project-dir>\src\sdk-source-tree\.typescript'.
+|
+•  Your saved changes will reapply automatically the next time you generate this SDK.
+|
+—  Succeeded
+```
 
 ---
 
@@ -46,4 +82,20 @@ The CLI detects which files were modified and saves a diff to `src/sdk-source-tr
 apimatic sdk generate --language=typescript
 ```
 
-The CLI overwrites the existing SDK and reapplies your saved customizations automatically. No manual re-editing needed.
+Output:
+
+```
+T   Generate SDK
+|
+o  The destination '<project-dir>\sdk' is not empty, do you want to overwrite?
+|  Yes
+|
+o  SDK generated successfully.
+|
+•  Successfully applied saved changes for 'typescript' SDK.
+|
+•  The generated SDK can be found at '<project-dir>\sdk\typescript'
+|    and the 'sdk-source-tree' can be found at '<project-dir>\src\sdk-source-tree\.typescript'.
+|
+—  Succeeded
+```
