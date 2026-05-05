@@ -42,9 +42,10 @@ Generate SDKs for your APIs in multiple languages using the APIMatic CLI.
 
 This skill is used by developers of all experience levels. All messages shown to the user must be clear, non-technical, and action-oriented. Follow these rules in every response:
 
-- **Never forward raw CLI output:** Do not paste or quote terminal output, spinner characters, ANSI escape codes, or build logs. Summarize what happened in plain language.
+- **Wait for commands to finish before showing output:** Never stream or forward live terminal output. The APIMatic CLI uses spinners and progress lines that repeat the same text many times — showing this raw produces cluttered, unreadable output. Always wait for the command to complete, then show the final output.
+- **Show CLI output in a code block:** After a command finishes, display the final terminal output to the user wrapped in a fenced code block. Before rendering, strip ANSI escape codes and remove duplicate consecutive lines caused by spinner animation (keep only the last occurrence of each repeated line). Do not summarize or paraphrase — show the cleaned output as-is inside the code block.
 - **Use the verbatim blocks provided:** When this skill provides a specific message to show, output it exactly as written. Do not paraphrase or add technical context around it.
-- **Keep error guidance actionable:** When something fails, tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
+- **Keep error guidance actionable:** When something fails, show the cleaned CLI output in a code block, then tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
 - **When in doubt, less is more:** If you are unsure whether a detail is useful to the user, leave it out.
 
 ## Customize an SDK
@@ -135,6 +136,7 @@ Apply these principles whenever you are making SDK customizations on the user's 
 1. **Add custom logic in a new file** where possible.
 2. **Avoid editing generated files directly.**
 3. **If you must edit a generated file**, add your changes at the top or bottom to reduce merge conflicts.
+4. **Update the SDK README after every customization:** After applying any customization, open the SDK's `README.md` and add a section (or update an existing one) that describes what was customized and why. This keeps the SDK self-documenting so future developers know what changes were made intentionally.
 
 ---
 
@@ -376,15 +378,24 @@ apimatic publishing profile list
 
 This lists all publishing profiles with their names, IDs, and enabled languages. Do not forward the raw table output to the user — summarize the available profiles and their IDs in plain language so the user can identify the one they want.
 
-### Step 3: Run SDK Publish
+### Step 3: Choose the destination
+
+If the destination is not already known from context, ask: "Do you have a specific path where you want the SDK to be generated, or should I use the default location?"
+
+- **User provides a path →** Use the `--destination` flag with the given path.
+- **User says default / no preference →** Omit the `--destination` flag. The SDK will be generated at `<input>/sdk/<language>` (or `<input>/sdk/<api-version>/<language>` if multiple API versions exist).
+
+### Step 4: Run SDK Publish
 
 See `examples/publish-sdk.md` for the expected command and output — flags and paths will differ based on the user's setup.
 
 **Non-interactive flow** requires all four of these flags — missing any one will drop the CLI into the interactive prompt:
 
 ```
-apimatic sdk publish --profile-id=<profile-id> --language=<language> --version=<version> --publish-type=<type>
+apimatic sdk publish --profile-id=<profile-id> --language=<language> --version=<version> --publish-type=<type> --force
 ```
+
+Always include `--force` to avoid the CLI prompting about an existing destination.
 
 #### Flags
 
@@ -405,10 +416,10 @@ Pass `--publish-type` once or twice to target one or both destinations. The lang
 
 ```
 # Publish to package registry only
-apimatic sdk publish --profile-id=<id> --language=java --version=2.0.0 --publish-type=package
+apimatic sdk publish --profile-id=<id> --language=java --version=2.0.0 --publish-type=package --force
 
 # Publish to both package registry and source repository
-apimatic sdk publish --profile-id=<id> --language=typescript --version=1.0.0 --publish-type=package --publish-type=sourcecode
+apimatic sdk publish --profile-id=<id> --language=typescript --version=1.0.0 --publish-type=package --publish-type=sourcecode --force
 ```
 
 #### Dry Run
@@ -419,12 +430,25 @@ Use `--dry-run` to generate the SDK locally and inspect it before publishing:
 apimatic sdk publish --dry-run --profile-id=<id> --language=python --version=1.0.0 --publish-type=package
 ```
 
+### After SDK Publish Completes (Success or Failure)
+
+After the command finishes — regardless of whether it succeeded or failed — scan the CLI output for a logs URL. It looks like:
+
+```
+https://dash.apimatic.io/publish/<publish-id>/logs/<log-id>
+```
+
+If this URL is present, always show it to the user with this exact message (substituting the actual URL):
+
+> You can view the full publishing logs here: <logs-url>
+
+Show this link whether publishing succeeded or failed. If no URL is present in the output, skip this step.
+
 ### If SDK Publish Fails
 
 1. **Profile not found or invalid ID:** Run `apimatic publishing profile list` to confirm the correct profile ID.
 2. **Language or publish type not supported by profile:** The language and publish type(s) must be enabled in the publishing profile. Check the profile configuration in the APIMatic App.
 3. **Authentication error:** Re-run `apimatic auth status` and re-authenticate if needed.
-4. **SDK already exists at destination:** Re-run with `--force` to overwrite.
-5. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
+4. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first and ask the user before retry.
 
 ---
