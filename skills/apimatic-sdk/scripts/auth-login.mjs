@@ -21,6 +21,7 @@ import { spawn } from "node:child_process";
 const child = spawn("apimatic", ["auth", "login"], {
   detached: true,
   stdio: "ignore",
+  shell: process.platform === "win32",
 });
 child.unref();
 
