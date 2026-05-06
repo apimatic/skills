@@ -37,12 +37,13 @@ Generate SDKs for your APIs in multiple languages using the APIMatic CLI.
 - About to run `sdk publish` because the user said "for publishing", "to publish", "for npm", or similar contextual phrases → these describe the user's **goal**, not a publish instruction; only run `sdk publish` if the user explicitly asks to publish (e.g., "publish the SDK", "run sdk publish", "push to npm using apimatic", "push to GitHub using apimatic"); for any other phrasing, stop at SDK generation
 - About to run `sdk publish` without a `--profile-id` and the user hasn't provided one → run `apimatic publishing profile list` first and present the available profiles so the user can choose
 - About to pass a `--publish-type` value other than `package` or `sourcecode` → see the [Publish Types](#publish-types) section for valid values
+- About to cancel or rerun `sdk publish` because the output shows "publishing is queued" for a long time → do not cancel or rerun; the queued state is normal and the command will complete on its own; only act if the CLI exits with an explicit error message
+- About to finish responding after `sdk publish` without sharing the logs URL → always extract the `https://dash.apimatic.io/publish/.../logs/...` URL from the CLI output and show it to the user, whether publishing succeeded or failed; never skip this step
 
 ## Communication Guidelines
 
 This skill is used by developers of all experience levels. All messages shown to the user must be clear, non-technical, and action-oriented. Follow these rules in every response:
 
-- **Wait for commands to finish before showing output:** Never stream or forward live terminal output. The APIMatic CLI uses spinners and progress lines that repeat the same text many times — showing this raw produces cluttered, unreadable output. Always wait for the command to complete, then show the final output.
 - **Show CLI output in a code block:** After a command finishes, display the final terminal output to the user wrapped in a fenced code block. Before rendering, strip ANSI escape codes and remove duplicate consecutive lines caused by spinner animation (keep only the last occurrence of each repeated line). Do not summarize or paraphrase — show the cleaned output as-is inside the code block.
 - **Use the verbatim blocks provided:** When this skill provides a specific message to show, output it exactly as written. Do not paraphrase or add technical context around it.
 - **Keep error guidance actionable:** When something fails, show the cleaned CLI output in a code block, then tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
@@ -438,11 +439,11 @@ After the command finishes — regardless of whether it succeeded or failed — 
 https://dash.apimatic.io/publish/<publish-id>/logs/<log-id>
 ```
 
-If this URL is present, always show it to the user with this exact message (substituting the actual URL):
+Always show it to the user with this exact message (substituting the actual URL):
 
 > You can view the full publishing logs here: <logs-url>
 
-Show this link whether publishing succeeded or failed. If no URL is present in the output, skip this step.
+This step is mandatory — never skip it regardless of success or failure.
 
 ### If SDK Publish Fails
 
