@@ -11,6 +11,7 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 | Skill                                                | Description                                                           | When to use                                                                                                                                                                                        |
 |------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`apimatic-portal`](skills/apimatic-portal/SKILL.md) | Build, configure, and publish API Portals using a Docs as Code workflow | Creating, serving, or deploying an APIMatic portal; configuring themes, navigation, API Copilot, LLMs.txt, SEO, custom pages, dynamic configurations, context plugins, API recipes and more. |
+| [`apimatic-sdk`](skills/apimatic-sdk/SKILL.md) | Generate, customize, and publish SDKs using the APIMatic CLI | Generating SDKs in any supported language (C#, Java, PHP, Python, Ruby, TypeScript, Go); customizing generated code via CodeGen settings or change tracking; publishing SDKs to package registries (npm, PyPI, NuGet) or source repos. |
 
 ## Prerequisites
 
