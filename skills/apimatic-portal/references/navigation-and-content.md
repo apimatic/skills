@@ -246,7 +246,8 @@ Custom UI components are JSX-style elements that can be used inside any `.md` fi
 - `<Accordion title="...">` / `<AccordionGroup>` — Collapsible content sections
 - `<Frame caption="...">` — Image with an optional caption displayed below
 - `<Video url="...">` — Embedded YouTube or Vimeo video
-- `<Mermaid>` — Diagram via Mermaid syntax (place a fenced `mermaid` block inside)
+
+For diagrams, write a fenced ` ```mermaid ` code block — see the Mermaid example below.
 
 ### Component Examples
 
@@ -284,6 +285,16 @@ Custom UI components are JSX-style elements that can be used inside any `.md` fi
     response = requests.get('/api/endpoint')
   </Tab>
 </Tabs>
+```
+
+**Mermaid:**
+
+Write a fenced ` ```mermaid ` code block. The portal renders the diagram from the block directly:
+
+```mermaid
+flowchart TD
+  A[Client] -->|request| B[API]
+  B -->|response| A
 ```
 
 ---
