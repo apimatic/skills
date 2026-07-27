@@ -210,8 +210,9 @@ Notes:
 - `verify` — function receiving `(response, setError)`; return `true` to allow
   the user to proceed, `false` to block with an error message;
   `response.StatusCode` is the HTTP status (capital S and C)
-- `args` — optional; pre-fills request parameters; keys are `body`, `query`,
-  `path`
+- `args` — optional; pre-fills request parameters. The request body goes under
+  the `body` key; path and query parameters are set at the root level of `args`,
+  keyed by parameter name — there are no `path` or `query` sub-objects
 
 ---
 
@@ -219,6 +220,10 @@ Notes:
 
 Use the `args` property on `showEndpoint` to pre-fill request parameter values,
 typically populated from a previous step's `stepState`.
+
+Only the request body is nested, under the `body` key. **Path and query
+parameters are set at the root level of `args`, keyed by parameter name** —
+do not wrap them in `path` or `query` objects.
 
 ### Body Parameters
 
@@ -234,42 +239,44 @@ args: {
 
 ### Query Parameters
 
+Set at the root of `args`, keyed by query parameter name:
+
 ```javascript
 args: {
-  query: {
-    page: 1,
-    limit: 10,
-    filter: "active"
-  }
+  page: 1,
+  limit: 10,
+  filter: "active"
 }
 ```
 
 ### Path Parameters
 
+Also set at the root of `args`, keyed by path template name:
+
 ```javascript
 args: {
-  path: {
-    userId: previousUserId,
-    orderId: previousOrderId
-  }
+  userId: previousUserId,
+  orderId: previousOrderId
 }
 ```
 
 ### Combined body, query, and path
 
+Path (`customerId`) and query (`include`) sit alongside each other at the root;
+only `body` is nested:
+
 ```javascript
 args: {
-  path: {
-    customerId: customerId
-  },
-  query: {
-    include: "orders"
-  },
+  customerId: customerId,
+  include: "orders",
   body: {
     updateData: someData
   }
 }
 ```
+
+Because path and query parameters share the root namespace, a path parameter and
+a query parameter with the same name cannot both be pre-filled.
 
 ---
 
@@ -295,8 +302,8 @@ stepState = {
     requestData: {
       args: {
         body: {},   // Request body parameters sent by the user
-        query: {},  // Query parameters sent
-        path: {},   // Path parameters sent
+        // Path and query parameters sent appear here at the root level,
+        // keyed by parameter name — e.g. userId: "123", page: 2
       },
     },
   },
