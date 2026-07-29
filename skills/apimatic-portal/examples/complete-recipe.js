@@ -54,7 +54,7 @@ Fetch the order you just created to confirm it was saved correctly.
           `,
           endpointPermalink: "$e/Orders/GetOrder",
           args: {
-            path: { orderId: orderId }
+            orderId: orderId
           },
           verify: (response, setError) => {
             if (response.StatusCode === 200) return true;
