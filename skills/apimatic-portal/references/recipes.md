@@ -493,6 +493,34 @@ Always use optional chaining (`?.`) when reading stepState — the step may not
 have completed yet. Never write `stepState["Step 2"].data.field`; always write
 `stepState?.["Step 2"]?.data?.field`.
 
+### Pattern 5: Pre-filling `oneOf` / `anyOf` Fields
+
+The patterns above chain data from previous steps into `args.body`. If the target field's schema is defined using `oneOf` or `anyOf` (i.e. it accepts multiple possible shapes), there's an extra step: the playground renders a **selector ("pill") control** letting the user pick which variant to fill in, and a plain value chained into that field won't tell the pill which variant it belongs to.
+
+To pre-fill this kind of field via `args`, wrap the value instead of passing it directly:
+
+```javascript
+args: {
+  body: {
+    paymentMethod: {
+      $$__case: 1,            // index of the desired variant in the oneOf/anyOf list
+      $$__case_of: "oneOf",   // or "anyOf", matching the schema keyword used
+      value: {
+        // the actual payload matching that variant's schema
+        accountNumber: "1234567890",
+        routingNumber: "021000021"
+      }
+    }
+  }
+}
+```
+
+**Important:** `$$__case` is a positional index into the `oneOf`/`anyOf` array as defined in your API specification — it is not matched by field names or by validating the shape of `value`. If you pass a plain object instead of this wrapper, the first variant (index `0`) will be selected by default, even if your data matches a different variant.
+
+To find the correct index, check the order of the variants in the endpoint's schema in your OpenAPI/API specification file, or open the endpoint in the portal and count the pills from left to right (0-indexed).
+
+This same wrapper applies whenever a value chained from a previous step's response, request data, or configuration — as in Patterns 2, 3, and 4 — targets a `oneOf`/`anyOf` body field.
+
 ---
 
 ## portal.setConfig — Auth and Headers
