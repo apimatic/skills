@@ -210,8 +210,9 @@ Notes:
 - `verify` — function receiving `(response, setError)`; return `true` to allow
   the user to proceed, `false` to block with an error message;
   `response.StatusCode` is the HTTP status (capital S and C)
-- `args` — optional; pre-fills request parameters; keys are `body`, `query`,
-  `path`
+- `args` — optional; pre-fills request parameters. The request body goes under
+  the `body` key; path and query parameters are set at the root level of `args`,
+  keyed by parameter name — there are no `path` or `query` sub-objects
 
 ---
 
@@ -219,6 +220,10 @@ Notes:
 
 Use the `args` property on `showEndpoint` to pre-fill request parameter values,
 typically populated from a previous step's `stepState`.
+
+Only the request body is nested, under the `body` key. **Path and query
+parameters are set at the root level of `args`, keyed by parameter name** —
+do not wrap them in `path` or `query` objects.
 
 ### Body Parameters
 
@@ -234,42 +239,44 @@ args: {
 
 ### Query Parameters
 
+Set at the root of `args`, keyed by query parameter name:
+
 ```javascript
 args: {
-  query: {
-    page: 1,
-    limit: 10,
-    filter: "active"
-  }
+  page: 1,
+  limit: 10,
+  filter: "active"
 }
 ```
 
 ### Path Parameters
 
+Also set at the root of `args`, keyed by path template name:
+
 ```javascript
 args: {
-  path: {
-    userId: previousUserId,
-    orderId: previousOrderId
-  }
+  userId: previousUserId,
+  orderId: previousOrderId
 }
 ```
 
 ### Combined body, query, and path
 
+Path (`customerId`) and query (`include`) sit alongside each other at the root;
+only `body` is nested:
+
 ```javascript
 args: {
-  path: {
-    customerId: customerId
-  },
-  query: {
-    include: "orders"
-  },
+  customerId: customerId,
+  include: "orders",
   body: {
     updateData: someData
   }
 }
 ```
+
+Because path and query parameters share the root namespace, a path parameter and
+a query parameter with the same name cannot both be pre-filled.
 
 ---
 
@@ -295,8 +302,8 @@ stepState = {
     requestData: {
       args: {
         body: {},   // Request body parameters sent by the user
-        query: {},  // Query parameters sent
-        path: {},   // Path parameters sent
+        // Path and query parameters sent appear here at the root level,
+        // keyed by parameter name — e.g. userId: "123", page: 2
       },
     },
   },
@@ -485,6 +492,34 @@ echo back the submitted values.
 Always use optional chaining (`?.`) when reading stepState — the step may not
 have completed yet. Never write `stepState["Step 2"].data.field`; always write
 `stepState?.["Step 2"]?.data?.field`.
+
+### Pattern 5: Pre-filling `oneOf` / `anyOf` Fields
+
+The patterns above chain data from previous steps into `args.body`. If the target field's schema is defined using `oneOf` or `anyOf` (i.e. it accepts multiple possible shapes), there's an extra step: the playground renders a **selector ("pill") control** letting the user pick which variant to fill in, and a plain value chained into that field won't tell the pill which variant it belongs to.
+
+To pre-fill this kind of field via `args`, wrap the value instead of passing it directly:
+
+```javascript
+args: {
+  body: {
+    paymentMethod: {
+      $$__case: 1,            // index of the desired variant in the oneOf/anyOf list
+      $$__case_of: "oneOf",   // or "anyOf", matching the schema keyword used
+      value: {
+        // the actual payload matching that variant's schema
+        accountNumber: "1234567890",
+        routingNumber: "021000021"
+      }
+    }
+  }
+}
+```
+
+**Important:** `$$__case` is a positional index into the `oneOf`/`anyOf` array as defined in your API specification — it is not matched by field names or by validating the shape of `value`. If you pass a plain object instead of this wrapper, the first variant (index `0`) will be selected by default, even if your data matches a different variant.
+
+To find the correct index, check the order of the variants in the endpoint's schema in your OpenAPI/API specification file, or open the endpoint in the portal and count the pills from left to right (0-indexed).
+
+This same wrapper applies whenever a value chained from a previous step's response, request data, or configuration — as in Patterns 2, 3, and 4 — targets a `oneOf`/`anyOf` body field.
 
 ---
 
