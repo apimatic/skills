@@ -49,23 +49,28 @@
     {
       "id": 1,
       "prompt": "I have my OpenAPI spec at ~/projects/petstore.yaml and I've never set up an APIMatic portal before. Help me create one from scratch.",
-      "expected_output": "The agent downloads the sample portal repo as a zip, extracts src/ into the project directory, replaces the sample spec with the user's petstore.yaml, and starts the dev server. It does NOT run `apimatic quickstart`.",
+      "expected_output": "The agent downloads the v2 branch of the sample portal repo, extracts src/ into the project directory, replaces the sample spec with the user's petstore.yaml, and starts the preview server. It does NOT download the master (v1) branch and does NOT run `apimatic quickstart`.",
       "files": [],
       "assertions": [
         {
-          "id": "downloads-sample-portal",
-          "description": "Response includes downloading the sample portal zip from GitHub",
+          "id": "downloads-v2-sample",
+          "description": "Response downloads the v2 branch of the sample portal",
           "type": "contains_any",
           "value": [
-            "sample-docs-as-code-portal",
-            "sample portal",
-            "download",
-            "zip"
+            "heads/v2",
+            "v2.zip",
+            "v2 branch"
           ]
         },
         {
+          "id": "not-master-branch",
+          "description": "Response does NOT download the v1 master branch",
+          "type": "not_contains",
+          "value": "heads/master"
+        },
+        {
           "id": "extracts-src-directory",
-          "description": "Response mentions extracting or copying the src/ directory",
+          "description": "Response extracts or copies the src/ directory",
           "type": "contains_any",
           "value": [
             "src/",
@@ -76,18 +81,13 @@
         },
         {
           "id": "replaces-sample-spec",
-          "description": "Response replaces the sample spec with the user's petstore.yaml",
-          "type": "contains_any",
-          "value": [
-            "petstore",
-            "replace",
-            "spec",
-            "openapi"
-          ]
+          "description": "Response replaces the sample spec with petstore.yaml",
+          "type": "contains",
+          "value": "petstore"
         },
         {
           "id": "does-not-run-quickstart",
-          "description": "Response does NOT run apimatic quickstart",
+          "description": "Response does NOT run the interactive quickstart wizard",
           "type": "not_contains",
           "value": "apimatic quickstart"
         }
@@ -96,14 +96,17 @@
     {
       "id": 2,
       "prompt": "My APIMatic portal project lives at ~/my-portal/ and it has a src/ folder inside it. I want to start the local dev server with hot reload. What commands should I run?",
-      "expected_output": "The agent navigates to ~/my-portal/ (the directory containing src/, not inside src/) and runs `apimatic portal serve` from there.",
+      "expected_output": "The agent works from ~/my-portal/ (the directory containing src/, not inside src/) and starts the preview with the serve.mjs script, which runs `apimatic portal serve`.",
       "files": [],
       "assertions": [
         {
           "id": "runs-portal-serve",
-          "description": "Response includes the command `apimatic portal serve`",
-          "type": "contains",
-          "value": "apimatic portal serve"
+          "description": "Response starts the preview server",
+          "type": "contains_any",
+          "value": [
+            "serve.mjs start",
+            "apimatic portal serve"
+          ]
         },
         {
           "id": "correct-directory",
@@ -128,187 +131,171 @@
     {
       "id": 3,
       "prompt": "I'm configuring a GitHub Actions CI pipeline to build and deploy my APIMatic portal. I have an API key from the APIMatic dashboard. How do I run the portal build step without requiring browser-based login?",
-      "expected_output": "The agent recommends `apimatic portal generate --auth-key=YOUR_API_KEY` as the CI-appropriate pattern. The --auth-key flag is documented and presented as the recommended non-interactive auth approach for CI.",
+      "expected_output": "The agent recommends `apimatic portal generate --auth-key=...` with the key from a repository secret, sets up Node 24 in the workflow, and uses @apimatic/cli@beta. It does not suggest browser-based login.",
       "files": [],
       "assertions": [
         {
           "id": "runs-portal-generate",
-          "description": "Response includes `apimatic portal generate`",
+          "description": "Response uses apimatic portal generate",
           "type": "contains",
-          "value": "apimatic portal generate"
+          "value": "portal generate"
         },
         {
           "id": "uses-auth-key-flag",
-          "description": "Response includes the --auth-key flag pattern",
+          "description": "Response passes the API key with --auth-key",
           "type": "contains",
           "value": "--auth-key"
         },
         {
-          "id": "recommends-for-ci",
-          "description": "Response frames --auth-key as the recommended/appropriate approach for CI environments",
+          "id": "uses-beta-cli",
+          "description": "Response uses the v2 CLI via @apimatic/cli@beta",
+          "type": "contains",
+          "value": "@apimatic/cli@beta"
+        },
+        {
+          "id": "uses-node-24",
+          "description": "Response sets up Node 24 in CI",
           "type": "contains_any",
           "value": [
-            "recommended for CI",
-            "CI environment",
-            "non-interactive",
-            "without browser",
-            "no browser",
-            "CI/CD"
+            "node-version: \"24\"",
+            "node-version: 24",
+            "node-version: '24'",
+            "Node 24",
+            "Node.js 24"
           ]
         },
         {
           "id": "no-browser-login-for-ci",
-          "description": "Response does NOT recommend apimatic auth login as the CI approach (browser login is not suitable for CI)",
+          "description": "Response does NOT use browser login in CI",
           "type": "not_contains",
-          "value": "apimatic auth login"
+          "value": "auth-login.mjs"
         }
       ]
     },
     {
       "id": 4,
       "prompt": "I want to add an API recipe to my APIMatic portal. How do I scaffold one using the CLI?",
-      "expected_output": "The agent explains that the CLI wizard (`apimatic portal recipe new`) is interactive and cannot be driven by the agent, so it creates the recipe manually instead — creating the four required files: .md page, toc.yml entry, recipes.workflows registration, and .js script.",
+      "expected_output": "The agent explains that API Recipes are not available in APIMatic CLI v2 and offers a supported alternative such as a Markdown guide page. It does not invent recipe configuration.",
       "files": [],
       "assertions": [
         {
-          "id": "mentions-wizard-is-interactive",
-          "description": "Response mentions the wizard is interactive or that the agent cannot drive it",
+          "id": "says-not-available",
+          "description": "Response says recipes are not available in this CLI version",
           "type": "contains_any",
           "value": [
-            "interactive",
-            "cannot drive",
-            "can't drive",
-            "prompts the user",
-            "manually",
-            "create manually",
-            "apimatic portal recipe new"
+            "not available",
+            "isn't available",
+            "is not available",
+            "not supported",
+            "isn't supported",
+            "no longer",
+            "was removed",
+            "were removed"
           ]
         },
         {
-          "id": "creates-recipe-files",
-          "description": "Response describes creating the recipe files (markdown, toc, build registration, JS script)",
-          "type": "contains_any",
+          "id": "no-recipe-command",
+          "description": "Response does NOT tell the user to run the removed recipe wizard",
+          "type": "not_contains",
+          "value": "run `apimatic portal recipe new`"
+        },
+        {
+          "id": "no-recipes-config",
+          "description": "Response does NOT invent recipe configuration",
+          "type": "not_contains_any",
           "value": [
-            "content/recipes",
-            "toc.yml",
             "recipes.workflows",
-            "static/scripts/recipes"
+            "workflowCtx"
           ]
         },
         {
-          "id": "from-project-root",
-          "description": "Response instructs running from the project root (not inside src/)",
+          "id": "offers-alternative",
+          "description": "Response offers a guide page as an alternative",
           "type": "contains_any",
           "value": [
-            "project root",
-            "directory containing src",
-            "contains the src",
-            "outside src",
-            "not inside src",
-            "src/"
+            "guide",
+            "Markdown page",
+            "src/content"
           ]
         }
       ]
     },
     {
       "id": 5,
-      "prompt": "I need to create an API recipe manually (without the wizard). What files do I need to create and what changes do I need to make to APIMATIC-BUILD.json?",
-      "expected_output": "The agent lists all four required steps: (1) create the .md page in src/content/recipes/, (2) add a page: entry to toc.yml, (3) register under recipes.workflows (top-level, NOT inside generatePortal) in APIMATIC-BUILD.json, (4) create the .js script in src/static/scripts/recipes/.",
+      "prompt": "Change my portal's brand color to #FF5733 and use our logo, which is at ./assets/logo.png.",
+      "expected_output": "The agent copies the logo into src/static/ and sets portal.brand.logo to a static/... path and portal.brand.colors.primary to #FF5733 in src/apimatic.json.",
       "files": [],
       "assertions": [
         {
-          "id": "md-page-required",
-          "description": "Response mentions creating the markdown page in src/content/recipes/",
-          "type": "contains_any",
+          "id": "edits-apimatic-json",
+          "description": "Response edits src/apimatic.json",
+          "type": "contains",
+          "value": "apimatic.json"
+        },
+        {
+          "id": "sets-primary-color",
+          "description": "Response sets colors.primary",
+          "type": "contains",
+          "value": "\"primary\""
+        },
+        {
+          "id": "uses-hex-value",
+          "description": "Response uses the requested hex value",
+          "type": "contains",
+          "value": "#FF5733"
+        },
+        {
+          "id": "static-logo-path",
+          "description": "Response references the logo as a static/ path",
+          "type": "contains",
+          "value": "static/"
+        },
+        {
+          "id": "no-v1-theme-keys",
+          "description": "Response does NOT use v1 theme keys",
+          "type": "not_contains_any",
           "value": [
-            "src/content/recipes",
-            "content/recipes",
-            ".md page",
-            "markdown page"
+            "primaryColor",
+            "portalSettings",
+            "logoUrl"
           ]
-        },
-        {
-          "id": "toc-entry-required",
-          "description": "Response mentions adding a toc.yml entry for the recipe page",
-          "type": "contains_any",
-          "value": ["toc.yml", "page: entry", "page:recipes", "toc entry"]
-        },
-        {
-          "id": "recipes-workflows-top-level",
-          "description": "Response places recipes.workflows as a top-level key in APIMATIC-BUILD.json, not nested inside generatePortal",
-          "type": "contains_any",
-          "value": [
-            "recipes.workflows",
-            "top-level",
-            "sibling of generatePortal",
-            "not inside generatePortal",
-            "alongside generatePortal"
-          ]
-        },
-        {
-          "id": "js-script-required",
-          "description": "Response mentions creating the .js recipe script in src/static/scripts/recipes/",
-          "type": "contains_any",
-          "value": [
-            "src/static/scripts/recipes",
-            "static/scripts/recipes",
-            ".js script",
-            "recipe script"
-          ]
-        },
-        {
-          "id": "not-nested-in-generatePortal",
-          "description": "Response does NOT nest recipes or recipes.workflows inside generatePortal",
-          "type": "not_contains",
-          "value": "generatePortal.recipes"
         }
       ]
     },
     {
       "id": 6,
-      "prompt": "I'm writing the JavaScript file for my APIMatic recipe. How should the function be exported and how do I safely read data from a previous step?",
-      "expected_output": "The agent specifies `export default function RecipeName(workflowCtx, portal)` (not async, not a named export), and shows optional chaining when reading stepState (e.g., stepState?.['Step 1']?.data?.field).",
+      "prompt": "I want my portal to be dark mode only, without the light/dark toggle.",
+      "expected_output": "The agent sets portal.brand.colorMode to \"dark\" in src/apimatic.json, which hides the theme switch.",
       "files": [],
       "assertions": [
         {
-          "id": "correct-export-syntax",
-          "description": "Response shows export default function (not async, not named export)",
-          "type": "contains_any",
+          "id": "sets-color-mode",
+          "description": "Response uses brand.colorMode",
+          "type": "contains",
+          "value": "colorMode"
+        },
+        {
+          "id": "dark-value",
+          "description": "Response sets it to dark",
+          "type": "contains",
+          "value": "\"dark\""
+        },
+        {
+          "id": "no-v1-keys",
+          "description": "Response does NOT use v1 settings",
+          "type": "not_contains_any",
           "value": [
-            "export default function",
-            "export default function RecipeName"
+            "disableSwitch",
+            "defaultMode",
+            "portalSettings"
           ]
-        },
-        {
-          "id": "not-async-export",
-          "description": "Response does NOT declare the top-level recipe function as async",
-          "type": "not_contains",
-          "value": "export default async function"
-        },
-        {
-          "id": "optional-chaining-for-stepstate",
-          "description": "Response uses optional chaining (?.) when accessing stepState fields",
-          "type": "contains_any",
-          "value": [
-            "?.[",
-            "?.data",
-            "?.response",
-            "optional chaining",
-            "stepState?."
-          ]
-        },
-        {
-          "id": "workflowctx-and-portal-params",
-          "description": "Response shows workflowCtx and portal as function parameters",
-          "type": "contains_any",
-          "value": ["workflowCtx", "workflowCtx, portal"]
         }
       ]
     },
     {
       "id": 7,
       "prompt": "I'm completely new to APIMatic and want to build my first developer portal from scratch.",
-      "expected_output": "The agent follows Path A: runs `node --version` directly (does not ask the user to run it), asks permission before installing the CLI, then runs `apimatic auth login` and waits for browser sign-in confirmation before proceeding.",
+      "expected_output": "The agent follows Path A: runs `node --version` directly and checks for v24 or later, asks permission before installing @apimatic/cli@beta, then signs in and waits for browser sign-in confirmation before proceeding.",
       "files": [],
       "assertions": [
         {
@@ -316,6 +303,15 @@
           "description": "Response includes running `node --version` as the first check",
           "type": "contains",
           "value": "node --version"
+        },
+        {
+          "id": "requires-node-24",
+          "description": "Response checks for Node 24 or later",
+          "type": "contains_any",
+          "value": [
+            "24",
+            "v24"
+          ]
         },
         {
           "id": "asks-install-permission",
@@ -329,6 +325,12 @@
             "install it?",
             "permission"
           ]
+        },
+        {
+          "id": "installs-beta-cli",
+          "description": "Response installs the v2 CLI with @beta",
+          "type": "contains",
+          "value": "@apimatic/cli@beta"
         },
         {
           "id": "runs-auth-login",
@@ -353,14 +355,23 @@
     {
       "id": 8,
       "prompt": "I ran npm install -g @apimatic/cli but when I run apimatic --version it still says command not found.",
-      "expected_output": "The agent suggests trying `sudo npm install -g @apimatic/cli` and does NOT proceed to authentication or portal generation until the CLI is verified.",
+      "expected_output": "The agent tells the user to install the v2 CLI with @beta (retrying with sudo on macOS/Linux) and does NOT proceed to authentication or portal generation until the CLI is verified.",
       "files": [],
       "assertions": [
         {
-          "id": "suggests-sudo-install",
-          "description": "Response suggests sudo npm install as a fix",
+          "id": "suggests-beta-install",
+          "description": "Response uses npm install -g @apimatic/cli@beta",
           "type": "contains",
-          "value": "sudo npm install -g @apimatic/cli"
+          "value": "npm install -g @apimatic/cli@beta"
+        },
+        {
+          "id": "suggests-elevated-retry",
+          "description": "Response suggests retrying with elevated privileges",
+          "type": "contains_any",
+          "value": [
+            "sudo",
+            "Administrator"
+          ]
         },
         {
           "id": "does-not-proceed-to-auth",
@@ -370,7 +381,7 @@
         },
         {
           "id": "does-not-proceed-to-quickstart",
-          "description": "Response does NOT run apimatic quickstart",
+          "description": "Response does NOT run quickstart",
           "type": "not_contains",
           "value": "apimatic quickstart"
         }
@@ -408,116 +419,6 @@
       ]
     },
     {
-      "id": 11,
-      "prompt": "Add a custom markdown page called overview.md to my APIMatic portal guides.",
-      "expected_output": "The agent creates the .md file in src/content/guides/ and references it in toc.yml using `page:` + `file:` keys (e.g., `- page: overview` / `  file: guides/overview.md`). It does NOT use `generate:` + `from:` for custom markdown pages.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "creates-md-file",
-          "description": "Agent creates the .md file inside src/content/guides/",
-          "type": "contains_any",
-          "value": [
-            "src/content/guides/overview.md",
-            "content/guides/overview.md",
-            "guides/overview.md"
-          ]
-        },
-        {
-          "id": "uses-page-key",
-          "description": "toc.yml entry uses `page:` key for the custom markdown page",
-          "type": "contains",
-          "value": "page: overview"
-        },
-        {
-          "id": "uses-file-key",
-          "description": "toc.yml entry uses `file:` key pointing to the guide path",
-          "type": "contains",
-          "value": "file: guides/overview.md"
-        },
-        {
-          "id": "not-generate-key",
-          "description": "Agent does NOT use `generate:` + `from:` for the custom markdown page",
-          "type": "not_contains",
-          "value": "generate: overview"
-        },
-        {
-          "id": "not-from-guides-key",
-          "description": "Agent does NOT use `from: guides/overview` syntax for the custom markdown page",
-          "type": "not_contains",
-          "value": "from: guides/overview"
-        }
-      ]
-    },
-    {
-      "id": 13,
-      "prompt": "I want to add SDK download links and disable the download button for all languages in my APIMatic portal.",
-      "expected_output": "The agent adds a languageSettings block under portalSettings using the correct template names for all languages (python_generic_lib, ts_generic_lib, java_eclipse_jre_lib, ruby_generic_lib, cs_net_standard_lib, php_generic_lib_v2, go_generic_lib — NOT the raw languageConfig names) and includes sdkDownloadLink and disableSdkDownload fields for each. It does not use raw language names like python, typescript, java, csharp, php, ruby, or go as keys.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-python-generic-lib",
-          "description": "Agent uses python_generic_lib as the key for Python, not 'python'",
-          "type": "contains",
-          "value": "python_generic_lib"
-        },
-        {
-          "id": "uses-ts-generic-lib",
-          "description": "Agent uses ts_generic_lib as the key for TypeScript, not 'typescript' or 'typescript_generic_lib'",
-          "type": "contains",
-          "value": "ts_generic_lib"
-        },
-        {
-          "id": "uses-php-generic-lib-v2",
-          "description": "Agent uses php_generic_lib_v2 as the key for PHP, not 'php' or 'php_generic_lib'",
-          "type": "contains",
-          "value": "php_generic_lib_v2"
-        },
-        {
-          "id": "uses-java-eclipse-jre-lib",
-          "description": "Agent uses java_eclipse_jre_lib as the key for Java, not 'java'",
-          "type": "contains",
-          "value": "java_eclipse_jre_lib"
-        },
-        {
-          "id": "uses-ruby-generic-lib",
-          "description": "Agent uses ruby_generic_lib as the key for Ruby, not 'ruby'",
-          "type": "contains",
-          "value": "ruby_generic_lib"
-        },
-        {
-          "id": "uses-cs-net-standard-lib",
-          "description": "Agent uses cs_net_standard_lib as the key for C#, not 'csharp'",
-          "type": "contains",
-          "value": "cs_net_standard_lib"
-        },
-        {
-          "id": "uses-go-generic-lib",
-          "description": "Agent uses go_generic_lib as the key for Go, not 'go'",
-          "type": "contains",
-          "value": "go_generic_lib"
-        },
-        {
-          "id": "includes-sdk-download-link",
-          "description": "Agent includes sdkDownloadLink in the languageSettings entry",
-          "type": "contains",
-          "value": "sdkDownloadLink"
-        },
-        {
-          "id": "includes-disable-sdk-download",
-          "description": "Agent includes disableSdkDownload in the languageSettings entry",
-          "type": "contains",
-          "value": "disableSdkDownload"
-        },
-        {
-          "id": "nested-under-portal-settings",
-          "description": "Agent places languageSettings under portalSettings, not at the top level or under generatePortal directly",
-          "type": "contains",
-          "value": "portalSettings"
-        }
-      ]
-    },
-    {
       "id": 10,
       "prompt": "The portal server is running. How do I stop it?",
       "expected_output": "The agent runs `serve.mjs stop` directly to stop the server — it does NOT ask the user to run the stop command themselves.",
@@ -533,793 +434,522 @@
           "id": "does-not-ask-user-to-stop",
           "description": "Response does NOT tell the user to run the stop command themselves as the primary action",
           "type": "not_contains_any",
-          "value": ["please run", "you should run", "run this command yourself"]
+          "value": [
+            "please run",
+            "you should run",
+            "run this command yourself"
+          ]
         },
         {
           "id": "confirms-stop",
           "description": "Response confirms the server was stopped or the port will be freed",
           "type": "contains_any",
-          "value": ["stopped", "port", "free", "shut down", "terminated"]
-        }
-      ]
-    },
-    {
-      "id": 31,
-      "prompt": "I have multiple api specs, I want to create a versioned portal.",
-      "expected_output": "The agent creates a versioned portal directory structure: a parent directory containing an outer `APIMATIC-BUILD.json` with `generateVersionedPortal.versions` config, and a `versioned_docs/` folder with one subdirectory per version (e.g. `version-1.0/`, `version-2.0/`), each containing its own `APIMATIC-BUILD.json`, `spec/`, `content/`, and `static/` directories. The outer build file uses `generateVersionedPortal` (NOT `generatePortal`) with a `versions` array containing `label` and `version` fields for each API version.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-generate-versioned-portal",
-          "description": "Outer APIMATIC-BUILD.json uses generateVersionedPortal, not generatePortal",
-          "type": "contains",
-          "value": "generateVersionedPortal"
-        },
-        {
-          "id": "uses-versions-array",
-          "description": "Response includes a versions array inside generateVersionedPortal",
-          "type": "contains",
-          "value": "\"versions\""
-        },
-        {
-          "id": "versions-have-label",
-          "description": "Each version entry includes a label field",
-          "type": "contains",
-          "value": "\"label\""
-        },
-        {
-          "id": "versions-have-version",
-          "description": "Each version entry includes a version field",
-          "type": "contains",
-          "value": "\"version\""
-        },
-        {
-          "id": "creates-separate-version-directories",
-          "description": "Response creates separate subdirectories for each API version",
-          "type": "contains_any",
           "value": [
-            "version-1",
-            "version-2",
-            "versioned_docs",
-            "version 1",
-            "version 2"
-          ]
-        },
-        {
-          "id": "each-version-has-own-build-file",
-          "description": "Each version subdirectory has its own APIMATIC-BUILD.json",
-          "type": "contains",
-          "value": "APIMATIC-BUILD.json"
-        },
-        {
-          "id": "not-generate-portal-in-outer-file",
-          "description": "Outer build file does NOT use generatePortal — that belongs only in the per-version build files",
-          "type": "not_contains",
-          "value": "\"generatePortal\": {\n    \"apiSpecs\""
-        },
-        {
-          "id": "asks-for-spec-paths-or-version-labels",
-          "description": "Response asks the user for spec file paths or version label names before scaffolding",
-          "type": "contains_any",
-          "value": [
-            "spec",
-            "version label",
-            "version name",
-            "paths",
-            "where are",
-            "provide"
+            "stopped",
+            "port",
+            "free",
+            "shut down",
+            "terminated"
           ]
         }
       ]
     },
     {
-      "id": 30,
-      "prompt": "I want to set portal theme programmatically.",
-      "expected_output": "The agent explains the Theme Control Hook: the `window.APIMaticDevPortal.setThemeMode(type)` function where `type` is `'light'` or `'dark'`. It shows how to check for availability before calling it, how to wire it to an external toggle button, and optionally how to use `currentTheme` to set the portal's `colorMode.defaultMode` to match the app's initial theme. It does NOT use the `APIMaticDevPortal.ready` + `setConfig` pattern for this use case.",
+      "id": 11,
+      "prompt": "Add a custom markdown page called overview.md to my APIMatic portal guides.",
+      "expected_output": "The agent creates src/content/guides/overview.md starting with front matter that sets a title, adds \"overview\" (no extension) to guides/nav.json if that file lists pages explicitly, and restarts the preview because a page was added. It does NOT use toc.yml.",
       "files": [],
       "assertions": [
         {
-          "id": "uses-set-theme-mode",
-          "description": "Response includes the setThemeMode function",
-          "type": "contains",
-          "value": "setThemeMode"
-        },
-        {
-          "id": "uses-apimatic-dev-portal-global",
-          "description": "Response references window.APIMaticDevPortal or APIMaticDevPortal global object",
+          "id": "creates-md-file",
+          "description": "Response creates the page under content/guides/",
           "type": "contains_any",
           "value": [
-            "window.APIMaticDevPortal",
-            "APIMaticDevPortal.setThemeMode"
+            "src/content/guides/overview.md",
+            "content/guides/overview.md"
           ]
         },
         {
-          "id": "checks-availability-before-calling",
-          "description": "Response checks for availability of setThemeMode before invoking it",
-          "type": "contains_any",
+          "id": "adds-front-matter-title",
+          "description": "Response gives the page a title in front matter",
+          "type": "contains",
+          "value": "title:"
+        },
+        {
+          "id": "mentions-nav-json",
+          "description": "Response mentions nav.json for ordering",
+          "type": "contains",
+          "value": "nav.json"
+        },
+        {
+          "id": "restarts-preview",
+          "description": "Response restarts the preview after adding a page",
+          "type": "contains",
+          "value": "restart"
+        },
+        {
+          "id": "no-toc-yml",
+          "description": "Response does NOT use toc.yml",
+          "type": "not_contains_any",
           "value": [
-            "window.APIMaticDevPortal &&",
-            "APIMaticDevPortal &&",
-            "typeof",
-            "if (window.APIMaticDevPortal"
+            "toc.yml",
+            "page: overview",
+            "file: guides/overview.md"
           ]
         },
         {
-          "id": "mentions-light-and-dark-values",
-          "description": "Response mentions light and dark as the valid type values",
-          "type": "contains_any",
-          "value": ["'light'", "'dark'", "\"light\"", "\"dark\""]
-        },
-        {
-          "id": "not-set-config-approach",
-          "description": "Response does NOT use the APIMaticDevPortal.ready + setConfig pattern as the primary approach for this use case",
+          "id": "no-extension-in-nav",
+          "description": "Response does NOT put the file extension in nav.json",
           "type": "not_contains",
-          "value": "APIMaticDevPortal.ready"
-        },
-        {
-          "id": "not-theme-override",
-          "description": "Response does NOT use the deprecated themeOverride setting",
-          "type": "not_contains",
-          "value": "themeOverride"
+          "value": "\"overview.md\""
         }
       ]
     },
     {
-      "id": 29,
-      "prompt": "I want to enable code sample api.",
-      "expected_output": "The agent adds `\"codeSampleApi\": { \"isEnabled\": true }` as a top-level key in `APIMATIC-BUILD.json` — a sibling of `generatePortal`, NOT nested inside it.",
+      "id": 12,
+      "prompt": "In my portal's guides folder, I want the Authentication page to come before Quickstart in the sidebar.",
+      "expected_output": "The agent edits src/content/guides/nav.json so \"authentication\" is listed before \"quickstart\", using bare page names without extensions.",
       "files": [],
       "assertions": [
         {
-          "id": "uses-code-sample-api",
-          "description": "Response includes codeSampleApi key",
+          "id": "edits-nav-json",
+          "description": "Response edits nav.json",
           "type": "contains",
-          "value": "codeSampleApi"
+          "value": "nav.json"
         },
         {
-          "id": "is-enabled-true",
-          "description": "Response sets isEnabled to true inside codeSampleApi",
+          "id": "orders-pages",
+          "description": "Response lists authentication in pages",
           "type": "contains",
-          "value": "\"isEnabled\": true"
+          "value": "\"authentication\""
         },
         {
-          "id": "not-nested-in-generate-portal",
-          "description": "codeSampleApi is NOT nested inside generatePortal",
-          "type": "not_contains",
-          "value": "generatePortal.codeSampleApi"
-        },
-        {
-          "id": "not-nested-in-portal-settings",
-          "description": "codeSampleApi is NOT nested inside portalSettings",
-          "type": "not_contains",
-          "value": "portalSettings.codeSampleApi"
-        },
-        {
-          "id": "not-is-enabled-false",
-          "description": "Response does NOT set isEnabled to false",
-          "type": "not_contains",
-          "value": "\"isEnabled\": false"
-        }
-      ]
-    },
-    {
-      "id": 28,
-      "prompt": "I want that my authentication section is focused when try it out returns 401 unauthorized.",
-      "expected_output": "The agent adds `\"focusAuthSectionOnUnauthorizedError\": true` inside `portalSettings` in `APIMATIC-BUILD.json`.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-focus-auth-section",
-          "description": "Response includes focusAuthSectionOnUnauthorizedError set to true",
-          "type": "contains",
-          "value": "\"focusAuthSectionOnUnauthorizedError\": true"
-        },
-        {
-          "id": "nested-under-portal-settings",
-          "description": "focusAuthSectionOnUnauthorizedError is placed inside portalSettings",
-          "type": "contains",
-          "value": "portalSettings"
-        },
-        {
-          "id": "not-false",
-          "description": "Response does NOT set focusAuthSectionOnUnauthorizedError to false",
-          "type": "not_contains",
-          "value": "\"focusAuthSectionOnUnauthorizedError\": false"
-        },
-        {
-          "id": "not-under-generate-portal-directly",
-          "description": "focusAuthSectionOnUnauthorizedError is NOT placed directly under generatePortal outside portalSettings",
-          "type": "not_contains",
-          "value": "generatePortal.focusAuthSectionOnUnauthorizedError"
-        }
-      ]
-    },
-    {
-      "id": 27,
-      "prompt": "I want to disable external API calls to my portal.",
-      "expected_output": "The agent adds `\"enableConsoleCalls\": false` inside `portalSettings` and warns the user that this requires `useHostedPortalScript` to be set to `false`, along with the downsides: no automatic bug fixes, larger portal size, and needing to regenerate frequently.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-enable-console-calls-false",
-          "description": "Response sets enableConsoleCalls to false",
-          "type": "contains",
-          "value": "\"enableConsoleCalls\": false"
-        },
-        {
-          "id": "nested-under-portal-settings",
-          "description": "enableConsoleCalls is placed inside portalSettings",
-          "type": "contains",
-          "value": "portalSettings"
-        },
-        {
-          "id": "warns-about-use-hosted-portal-script",
-          "description": "Response warns that useHostedPortalScript must be set to false",
-          "type": "contains_any",
+          "id": "no-extensions",
+          "description": "Response does NOT use file extensions in nav.json",
+          "type": "not_contains_any",
           "value": [
-            "useHostedPortalScript",
-            "usedHostedPortalScript",
-            "hosted portal script"
+            "\"authentication.md\"",
+            "\"quickstart.md\""
           ]
         },
         {
-          "id": "warns-about-no-automatic-updates",
-          "description": "Response warns that bundling the script means no automatic bug fix updates",
-          "type": "contains_any",
-          "value": [
-            "automatic",
-            "frequent releases",
-            "not receive",
-            "fixes automatically",
-            "generate frequently",
-            "keep it updated"
-          ]
-        },
-        {
-          "id": "warns-about-larger-size",
-          "description": "Response warns that the generated portal will be larger",
-          "type": "contains_any",
-          "value": ["larger size", "larger", "bundled", "more time"]
-        },
-        {
-          "id": "not-enable-console-calls-true",
-          "description": "Response does NOT set enableConsoleCalls to true",
-          "type": "not_contains",
-          "value": "\"enableConsoleCalls\": true"
-        }
-      ]
-    },
-    {
-      "id": 26,
-      "prompt": "I want to rename HTTP to REST.",
-      "expected_output": "The agent adds `\"renameHttpToRest\": true` directly inside `generatePortal` in `APIMATIC-BUILD.json` — NOT inside `portalSettings`.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-rename-http-to-rest",
-          "description": "Response includes renameHttpToRest set to true",
-          "type": "contains",
-          "value": "\"renameHttpToRest\": true"
-        },
-        {
-          "id": "nested-under-generate-portal",
-          "description": "renameHttpToRest is placed inside generatePortal",
-          "type": "contains",
-          "value": "generatePortal"
-        },
-        {
-          "id": "not-under-portal-settings",
-          "description": "renameHttpToRest is NOT placed inside portalSettings",
-          "type": "not_contains",
-          "value": "portalSettings.renameHttpToRest"
-        },
-        {
-          "id": "not-false",
-          "description": "Response does NOT set renameHttpToRest to false",
-          "type": "not_contains",
-          "value": "\"renameHttpToRest\": false"
-        }
-      ]
-    },
-    {
-      "id": 25,
-      "prompt": "I want to decrease the maxWidth of my content.",
-      "expected_output": "The agent adds a `layout` object inside the `theme` object under `portalSettings` with a `content` key containing `maxWidth` (a pixel value smaller than the default) and `align` fields.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-layout-key",
-          "description": "Response includes a layout key inside theme",
-          "type": "contains",
-          "value": "layout"
-        },
-        {
-          "id": "uses-max-width",
-          "description": "Response includes maxWidth field",
-          "type": "contains",
-          "value": "maxWidth"
-        },
-        {
-          "id": "max-width-is-px-value",
-          "description": "Response sets maxWidth to a pixel value",
-          "type": "contains",
-          "value": "px"
-        },
-        {
-          "id": "uses-content-key",
-          "description": "Response includes content key inside layout",
-          "type": "contains",
-          "value": "\"content\""
-        },
-        {
-          "id": "uses-align-key",
-          "description": "Response includes align field alongside maxWidth",
-          "type": "contains",
-          "value": "align"
-        },
-        {
-          "id": "nested-under-theme",
-          "description": "layout is placed inside the theme object under portalSettings",
-          "type": "contains",
-          "value": "theme"
-        },
-        {
-          "id": "not-under-generate-portal-directly",
-          "description": "layout is NOT placed directly under generatePortal outside portalSettings",
-          "type": "not_contains",
-          "value": "generatePortal.layout"
-        }
-      ]
-    },
-    {
-      "id": 24,
-      "prompt": "I want to add beta tag to a language.",
-      "expected_output": "The agent asks which language to tag, then adds `\"stabilityLevelTag\": \"beta\"` under the correct language key inside `portalSettings.languageSettings` in `APIMATIC-BUILD.json`. It uses the correct template name (e.g. `java_eclipse_jre_lib`, not `java`) and does NOT use `\"alpha\"` or any other value unless the user specified it.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "asks-which-language",
-          "description": "Response asks the user which language to apply the beta tag to",
-          "type": "contains_any",
-          "value": [
-            "which language",
-            "which SDK",
-            "language would you",
-            "which one",
-            "for which"
-          ]
-        },
-        {
-          "id": "uses-stability-level-tag",
-          "description": "Response includes stabilityLevelTag field",
-          "type": "contains",
-          "value": "stabilityLevelTag"
-        },
-        {
-          "id": "uses-beta-value",
-          "description": "Response sets stabilityLevelTag to beta",
-          "type": "contains",
-          "value": "\"beta\""
-        },
-        {
-          "id": "nested-under-language-settings",
-          "description": "stabilityLevelTag is placed inside portalSettings.languageSettings",
-          "type": "contains",
-          "value": "languageSettings"
-        },
-        {
-          "id": "uses-template-name-not-raw",
-          "description": "Response uses a template name key (ending in _lib) not a raw language name like java or python",
-          "type": "contains_any",
-          "value": [
-            "_lib",
-            "java_eclipse_jre_lib",
-            "python_generic_lib",
-            "ts_generic_lib",
-            "cs_net_standard_lib",
-            "ruby_generic_lib",
-            "php_generic_lib_v2",
-            "go_generic_lib"
-          ]
-        },
-        {
-          "id": "not-alpha-value",
-          "description": "Response does NOT set stabilityLevelTag to alpha unless user specified it",
-          "type": "not_contains",
-          "value": "\"alpha\""
-        }
-      ]
-    },
-    {
-      "id": 23,
-      "prompt": "I want to add proxy for console calls.",
-      "expected_output": "The agent adds `\"useProxyForConsoleCalls\": true` inside `portalSettings` in `APIMATIC-BUILD.json`.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-proxy-for-console-calls",
-          "description": "Response includes useProxyForConsoleCalls set to true",
-          "type": "contains",
-          "value": "\"useProxyForConsoleCalls\": true"
-        },
-        {
-          "id": "nested-under-portal-settings",
-          "description": "useProxyForConsoleCalls is placed inside portalSettings",
-          "type": "contains",
-          "value": "portalSettings"
-        },
-        {
-          "id": "not-under-generate-portal-directly",
-          "description": "useProxyForConsoleCalls is NOT placed directly under generatePortal outside portalSettings",
-          "type": "not_contains",
-          "value": "\"useProxyForConsoleCalls\": true,\n    \"portalSettings\""
-        },
-        {
-          "id": "not-false",
-          "description": "Response does NOT set useProxyForConsoleCalls to false",
-          "type": "not_contains",
-          "value": "\"useProxyForConsoleCalls\": false"
-        }
-      ]
-    },
-    {
-      "id": 22,
-      "prompt": "My SDKs are published, I want to add those published SDK information in languages.",
-      "expected_output": "The agent prompts the user to provide package information (packageRepository and packageSettings) for each language, then adds them under `generatePortal.languageConfig.<language>` — NOT under languageSettings. Each language gets the correct packageRepository value (e.g. Maven for java, PyPI for python, Npm for typescript, NuGet for csharp, Packagist for php, RubyGems for ruby) and the matching packageSettings fields.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "asks-for-package-info",
-          "description": "Response asks the user to provide package information before writing config",
-          "type": "contains_any",
-          "value": [
-            "package",
-            "PackageName",
-            "packageRepository",
-            "published",
-            "repository"
-          ]
-        },
-        {
-          "id": "uses-package-repository",
-          "description": "Response includes packageRepository field",
-          "type": "contains",
-          "value": "packageRepository"
-        },
-        {
-          "id": "uses-package-settings",
-          "description": "Response includes packageSettings field",
-          "type": "contains",
-          "value": "packageSettings"
-        },
-        {
-          "id": "nested-under-language-config",
-          "description": "packageRepository and packageSettings are placed under languageConfig, not under languageSettings",
-          "type": "contains",
-          "value": "languageConfig"
-        },
-        {
-          "id": "not-under-language-settings",
-          "description": "Response does NOT place packageRepository or packageSettings under languageSettings",
-          "type": "not_contains",
-          "value": "languageSettings.packageRepository"
-        },
-        {
-          "id": "correct-repository-name-for-java",
-          "description": "Response uses Maven (not maven or MAVEN) as the packageRepository value for java",
-          "type": "contains_any",
-          "value": ["\"Maven\"", "Maven"]
-        },
-        {
-          "id": "includes-package-name",
-          "description": "Response includes PackageName in packageSettings",
-          "type": "contains",
-          "value": "PackageName"
-        },
-        {
-          "id": "includes-version",
-          "description": "Response includes Version in packageSettings",
-          "type": "contains",
-          "value": "Version"
-        }
-      ]
-    },
-    {
-      "id": 21,
-      "prompt": "I want to add sdk download link with languages.",
-      "expected_output": "When languageSettings is absent from the build file, the agent asks the user to provide the initial platform before adding languageSettings, and adds `\"initialPlatform\": \"http_curl_v1\"` (or the user-specified platform) inside `portalSettings`.",
-      "files": [
-        {
-          "path": "src/APIMATIC-BUILD.json",
-          "content": "{\n  \"$schema\": \"https://titan.apimatic.io/api/build/schema\",\n  \"buildFileVersion\": \"1\",\n  \"generatePortal\": {\n    \"apiSpecs\": [\"petstore\"],\n    \"languageConfig\": {\n      \"http\": {},\n      \"python\": {},\n      \"typescript\": {}\n    },\n    \"portalSettings\": {}\n  }\n}"
-        }
-      ],
-      "assertions": [
-        {
-          "id": "asks-for-initial-platform",
-          "description": "Response asks the user which initial platform or language to set as the default",
-          "type": "contains_any",
-          "value": [
-            "initial platform",
-            "initialPlatform",
-            "default language",
-            "which language",
-            "which platform",
-            "preferred language",
-            "default platform"
-          ]
-        },
-        {
-          "id": "uses-initial-platform-key",
-          "description": "Response includes initialPlatform in portalSettings",
-          "type": "contains",
-          "value": "initialPlatform"
-        },
-        {
-          "id": "nested-under-portal-settings",
-          "description": "initialPlatform is placed inside portalSettings",
-          "type": "contains",
-          "value": "portalSettings"
-        },
-        {
-          "id": "includes-sdk-download-link",
-          "description": "Response includes sdkDownloadLink in languageSettings",
-          "type": "contains",
-          "value": "sdkDownloadLink"
-        },
-        {
-          "id": "uses-language-settings",
-          "description": "Response adds languageSettings block under portalSettings",
-          "type": "contains",
-          "value": "languageSettings"
-        }
-      ]
-    },
-    {
-      "id": 20,
-      "prompt": "I want to enable api copilot for my portal.",
-      "expected_output": "The agent asks the user for their API Copilot key, then adds `apiCopilotConfig` as a top-level key in `APIMATIC-BUILD.json` (a sibling of `generatePortal`, NOT nested inside it) with `key`, `welcomeMessage`, and `isEnabled: true`.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "asks-for-copilot-key",
-          "description": "Response asks the user for their API Copilot key before proceeding",
-          "type": "contains_any",
-          "value": [
-            "copilot key",
-            "Copilot key",
-            "subscription key",
-            "your key",
-            "provide your"
-          ]
-        },
-        {
-          "id": "uses-api-copilot-config",
-          "description": "Response includes the apiCopilotConfig key",
-          "type": "contains",
-          "value": "apiCopilotConfig"
-        },
-        {
-          "id": "is-enabled-true",
-          "description": "Response sets isEnabled to true",
-          "type": "contains",
-          "value": "\"isEnabled\": true"
-        },
-        {
-          "id": "includes-welcome-message",
-          "description": "Response includes a welcomeMessage field",
-          "type": "contains",
-          "value": "welcomeMessage"
-        },
-        {
-          "id": "top-level-not-nested",
-          "description": "apiCopilotConfig is placed at the root level, not nested inside generatePortal",
-          "type": "not_contains",
-          "value": "generatePortal.apiCopilotConfig"
-        },
-        {
-          "id": "not-inside-portal-settings",
-          "description": "apiCopilotConfig is NOT nested inside portalSettings",
-          "type": "not_contains",
-          "value": "portalSettings.apiCopilotConfig"
-        }
-      ]
-    },
-    {
-      "id": 19,
-      "prompt": "I want to set my auth dynamically.",
-      "expected_output": "The agent creates a JS file containing `APIMaticDevPortal.ready(({ setConfig }) => setConfig(...))` with an `auth` block inside the config, then references it in `generatePortal.tailIncludes` as a `<script defer src='static/script/config.js'>` tag.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-apimatic-dev-portal-ready",
-          "description": "Response includes APIMaticDevPortal.ready call",
-          "type": "contains",
-          "value": "APIMaticDevPortal.ready"
-        },
-        {
-          "id": "uses-set-config",
-          "description": "Response includes setConfig inside the ready callback",
-          "type": "contains",
-          "value": "setConfig"
-        },
-        {
-          "id": "includes-auth-block",
-          "description": "Response includes an auth block inside the config",
-          "type": "contains",
-          "value": "auth:"
-        },
-        {
-          "id": "references-script-in-tail-includes",
-          "description": "Response references the config JS file in tailIncludes",
-          "type": "contains",
-          "value": "tailIncludes"
-        },
-        {
-          "id": "uses-script-defer-tag",
-          "description": "Response uses a <script defer> tag to load the config JS",
-          "type": "contains",
-          "value": "script"
-        },
-        {
-          "id": "not-head-includes",
-          "description": "Response does NOT put the script tag in headIncludes",
-          "type": "not_contains",
-          "value": "headIncludes"
-        }
-      ]
-    },
-    {
-      "id": 18,
-      "prompt": "I want debug report in my portal to see if any warnings/errors got generated.",
-      "expected_output": "The agent adds a `debug` block inside `generatePortal` in `APIMATIC-BUILD.json` with `\"publishReport\": true` and `\"dumpImportedApi\": true`.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-publish-report",
-          "description": "Response includes publishReport set to true",
-          "type": "contains",
-          "value": "\"publishReport\": true"
-        },
-        {
-          "id": "uses-dump-imported-api",
-          "description": "Response includes dumpImportedApi set to true",
-          "type": "contains",
-          "value": "\"dumpImportedApi\": true"
-        },
-        {
-          "id": "uses-debug-key",
-          "description": "Response includes the debug key",
-          "type": "contains",
-          "value": "\"debug\""
-        },
-        {
-          "id": "nested-under-generate-portal",
-          "description": "debug block is placed inside generatePortal, not at the top level",
-          "type": "contains",
-          "value": "generatePortal"
-        },
-        {
-          "id": "not-top-level-debug",
-          "description": "Response does NOT place debug as a top-level sibling of generatePortal",
-          "type": "not_contains",
-          "value": "\"buildFileVersion\": \"1\",\n  \"debug\""
-        }
-      ]
-    },
-    {
-      "id": 17,
-      "prompt": "I want to enable the theme switch toggle.",
-      "expected_output": "The agent adds a theme block under portalSettings with `\"disableSwitch\": false` inside `colorMode`. It does NOT set disableSwitch to true.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-disable-switch-false",
-          "description": "Response sets disableSwitch to false",
-          "type": "contains",
-          "value": "\"disableSwitch\": false"
-        },
-        {
-          "id": "not-disable-switch-true",
-          "description": "Response does NOT set disableSwitch to true",
-          "type": "not_contains",
-          "value": "\"disableSwitch\": true"
-        }
-      ]
-    },
-    {
-      "id": 16,
-      "prompt": "I want my one custom content page to not have Table of Contents.",
-      "expected_output": "The agent adds frontmatter `---\npageMode: custom\n---` at the top of the specific markdown page. It does NOT change APIMATIC-BUILD.json or toc.yml.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-frontmatter",
-          "description": "Response includes YAML frontmatter delimiters ---",
-          "type": "contains",
-          "value": "---"
-        },
-        {
-          "id": "uses-page-mode-custom",
-          "description": "Response sets pageMode: custom in the frontmatter",
-          "type": "contains",
-          "value": "pageMode: custom"
-        },
-        {
-          "id": "not-build-json-change",
-          "description": "Response does NOT modify APIMATIC-BUILD.json to achieve this",
-          "type": "not_contains",
-          "value": "APIMATIC-BUILD.json"
-        },
-        {
-          "id": "not-global-page-meta-data",
-          "description": "Response does NOT use globalPageMetaData (that is the global setting, not per-page)",
-          "type": "not_contains",
-          "value": "globalPageMetaData"
-        }
-      ]
-    },
-    {
-      "id": 15,
-      "prompt": "I want my toc to be a floater.",
-      "expected_output": "The agent adds `\"globalPageMetaData\": { \"pageMode\": \"wide\" }` inside `portalSettings` in `APIMATIC-BUILD.json`.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-global-page-meta-data",
-          "description": "Response includes globalPageMetaData key",
-          "type": "contains",
-          "value": "globalPageMetaData"
-        },
-        {
-          "id": "uses-page-mode-wide",
-          "description": "Response sets pageMode to wide",
-          "type": "contains",
-          "value": "\"pageMode\": \"wide\""
-        },
-        {
-          "id": "nested-under-portal-settings",
-          "description": "globalPageMetaData is placed inside portalSettings, not at the top level or directly under generatePortal",
-          "type": "contains",
-          "value": "portalSettings"
-        },
-        {
-          "id": "not-toc-yml-change",
-          "description": "Response does NOT suggest editing toc.yml to achieve the floater effect",
+          "id": "no-toc-yml",
+          "description": "Response does NOT use toc.yml",
           "type": "not_contains",
           "value": "toc.yml"
         }
       ]
     },
     {
-      "id": 14,
-      "prompt": "Add Custom Components to my portal overview page. Include a Card that links to my getting started guide.",
-      "expected_output": "The agent adds a Card component to the markdown page. For the internal link URL, it uses the `page:` prefix (e.g., `url=\"page:guides/getting-started\"`) — NOT a regular path like `/guides/getting-started` or a full URL like `https://...`.",
+      "id": 13,
+      "prompt": "Add a 'Status' link to my portal header that goes to https://status.acme.com.",
+      "expected_output": "The agent adds { \"label\": \"Status\", \"url\": \"https://status.acme.com\" } to portal.navigation.links in src/apimatic.json.",
       "files": [],
       "assertions": [
         {
-          "id": "uses-card-component",
-          "description": "Response includes a Card component",
-          "type": "contains_any",
-          "value": ["<Card", "<CardGroup"]
-        },
-        {
-          "id": "uses-page-prefix-for-internal-url",
-          "description": "Card url attribute uses the page: prefix for the internal link",
+          "id": "uses-navigation-links",
+          "description": "Response uses portal.navigation.links",
           "type": "contains",
-          "value": "page:"
+          "value": "links"
         },
         {
-          "id": "not-absolute-path-url",
-          "description": "Card does NOT use a root-relative path (e.g. url=\"/guides/...\") for the internal link",
-          "type": "not_contains",
-          "value": "url=\"/"
+          "id": "has-label",
+          "description": "Response sets the label",
+          "type": "contains",
+          "value": "\"label\""
         },
         {
-          "id": "not-https-url",
-          "description": "Card does NOT use a full https URL for the internal link",
+          "id": "has-url",
+          "description": "Response uses the requested URL",
+          "type": "contains",
+          "value": "https://status.acme.com"
+        },
+        {
+          "id": "no-header-html",
+          "description": "Response does NOT create a custom header HTML file",
           "type": "not_contains",
-          "value": "url=\"https://"
+          "value": "header.html"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Add cards to my portal overview page. Include a Card that links to my getting started guide at src/content/guides/getting-started.md.",
+      "expected_output": "The agent adds a <Cards> block with a <Card> whose href is the page URL /guides/getting-started. It does NOT use v1 syntax like <CardGroup> or page: links.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-cards-component",
+          "description": "Response uses the Cards/Card components",
+          "type": "contains",
+          "value": "<Card"
+        },
+        {
+          "id": "uses-href",
+          "description": "Response uses href on the card",
+          "type": "contains",
+          "value": "href="
+        },
+        {
+          "id": "uses-page-url",
+          "description": "Response links to the page URL",
+          "type": "contains",
+          "value": "/guides/getting-started"
+        },
+        {
+          "id": "no-v1-syntax",
+          "description": "Response does NOT use v1 card syntax",
+          "type": "not_contains_any",
+          "value": [
+            "<CardGroup",
+            "page:guides",
+            "url=\"page:"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "I have an older APIMatic portal project with src/APIMATIC-BUILD.json and src/content/toc.yml. Help me upgrade it to the new CLI.",
+      "expected_output": "The agent follows the upgrade guide: installs @apimatic/cli@beta on Node 24, creates src/apimatic.json from the portal settings, adds title front matter to every page, replaces toc.yml with nav.json files, and tells the user which v1 features have no v2 equivalent.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "creates-apimatic-json",
+          "description": "Response creates src/apimatic.json",
+          "type": "contains",
+          "value": "apimatic.json"
+        },
+        {
+          "id": "uses-nav-json",
+          "description": "Response replaces toc.yml with nav.json",
+          "type": "contains",
+          "value": "nav.json"
+        },
+        {
+          "id": "adds-front-matter",
+          "description": "Response adds title front matter to pages",
+          "type": "contains_any",
+          "value": [
+            "front matter",
+            "title:"
+          ]
+        },
+        {
+          "id": "installs-beta",
+          "description": "Response installs the v2 CLI",
+          "type": "contains",
+          "value": "@apimatic/cli@beta"
+        },
+        {
+          "id": "requires-node-24",
+          "description": "Response mentions Node 24",
+          "type": "contains",
+          "value": "24"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "My portal only shows the TypeScript SDK. Add Python and C# SDKs too.",
+      "expected_output": "The agent adds \"python\": {} and \"csharp\": {} to the languages block of src/apimatic.json and restarts the preview, since adding a language needs a restart.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "edits-languages",
+          "description": "Response edits the languages block",
+          "type": "contains",
+          "value": "languages"
+        },
+        {
+          "id": "adds-python",
+          "description": "Response adds python",
+          "type": "contains",
+          "value": "\"python\""
+        },
+        {
+          "id": "adds-csharp",
+          "description": "Response adds csharp",
+          "type": "contains",
+          "value": "\"csharp\""
+        },
+        {
+          "id": "restarts-preview",
+          "description": "Response restarts the preview",
+          "type": "contains",
+          "value": "restart"
+        },
+        {
+          "id": "no-template-names",
+          "description": "Response does NOT use v1 template names",
+          "type": "not_contains_any",
+          "value": [
+            "python_generic_lib",
+            "cs_net_standard_lib",
+            "languageSettings"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Add a Java SDK to my APIMatic portal.",
+      "expected_output": "The agent explains that only C#, Python, and TypeScript are available in the portal today and does not add java to the languages block.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "says-not-available",
+          "description": "Response says Java is not available",
+          "type": "contains_any",
+          "value": [
+            "not available",
+            "isn't available",
+            "is not available",
+            "not supported",
+            "isn't supported",
+            "no longer",
+            "was removed",
+            "were removed"
+          ]
+        },
+        {
+          "id": "lists-supported",
+          "description": "Response names the supported languages",
+          "type": "contains_any",
+          "value": [
+            "C#",
+            "csharp"
+          ]
+        },
+        {
+          "id": "does-not-add-java",
+          "description": "Response does NOT add java to languages",
+          "type": "not_contains",
+          "value": "\"java\": {}"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "I want to enable API Copilot for my portal.",
+      "expected_output": "The agent explains that API Copilot is not part of APIMatic CLI v2's portal configuration and does not invent configuration for it.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "says-not-available",
+          "description": "Response says Copilot is not available",
+          "type": "contains_any",
+          "value": [
+            "not available",
+            "isn't available",
+            "is not available",
+            "not supported",
+            "isn't supported",
+            "no longer",
+            "was removed",
+            "were removed"
+          ]
+        },
+        {
+          "id": "no-copilot-config",
+          "description": "Response does NOT invent copilot configuration",
+          "type": "not_contains_any",
+          "value": [
+            "apiCopilotConfig",
+            "\"copilot\":"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "Set up SEO and LLMs.txt for my portal. It will be hosted at https://developers.acme.com.",
+      "expected_output": "The agent sets portal.site.url to https://developers.acme.com and explains that sitemap.xml, robots.txt, llms.txt and llms-full.txt are generated automatically.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sets-site-url",
+          "description": "Response sets the site URL",
+          "type": "contains",
+          "value": "https://developers.acme.com"
+        },
+        {
+          "id": "uses-site-block",
+          "description": "Response uses portal.site",
+          "type": "contains",
+          "value": "site"
+        },
+        {
+          "id": "mentions-llms-automatic",
+          "description": "Response says llms.txt is generated automatically",
+          "type": "contains",
+          "value": "llms.txt"
+        },
+        {
+          "id": "no-v1-keys",
+          "description": "Response does NOT use v1 SEO keys",
+          "type": "not_contains_any",
+          "value": [
+            "indexable",
+            "llmsContextGeneration",
+            "baseUrl"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "Remove the buttons on each page that open it in ChatGPT or other AI assistants.",
+      "expected_output": "The agent sets portal.ai.pageActions to false in src/apimatic.json.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-page-actions",
+          "description": "Response uses pageActions",
+          "type": "contains",
+          "value": "pageActions"
+        },
+        {
+          "id": "sets-false",
+          "description": "Response sets it to false",
+          "type": "contains",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "Put the API Reference tab before the SDKs tab in my portal.",
+      "expected_output": "The agent edits src/content/nav.json and places \"apimatic:api\" before \"apimatic:sdks\" in pages.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "edits-root-nav",
+          "description": "Response edits nav.json",
+          "type": "contains",
+          "value": "nav.json"
+        },
+        {
+          "id": "uses-api-token",
+          "description": "Response uses the apimatic:api token",
+          "type": "contains",
+          "value": "apimatic:api"
+        },
+        {
+          "id": "uses-sdks-token",
+          "description": "Response uses the apimatic:sdks token",
+          "type": "contains",
+          "value": "apimatic:sdks"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "Add a Context Plugin page to my portal so developers can use my API from Claude Code and Cursor.",
+      "expected_output": "The agent explains the SDKs must be published with source code first, records pluginId/pluginName/pluginVersion in the plugin block of src/apimatic.json, runs apimatic plugin generate, and restarts the preview so the Context Plugin tab appears.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "mentions-sourcecode",
+          "description": "Response requires publishing SDKs with source code",
+          "type": "contains",
+          "value": "sourcecode"
+        },
+        {
+          "id": "runs-plugin-generate",
+          "description": "Response runs apimatic plugin generate",
+          "type": "contains",
+          "value": "apimatic plugin generate"
+        },
+        {
+          "id": "plugin-block",
+          "description": "Response records the plugin identity",
+          "type": "contains",
+          "value": "pluginId"
+        },
+        {
+          "id": "no-v1-ai-integration",
+          "description": "Response does NOT use v1 aiIntegration settings",
+          "type": "not_contains",
+          "value": "aiIntegration"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "How do I deploy my APIMatic portal to Netlify?",
+      "expected_output": "The agent runs apimatic portal generate with --destination, explains the output folder is a static site to upload to Netlify, points unknown paths at 404.html, and sets portal.site.url to the production address.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-generate",
+          "description": "Response runs apimatic portal generate",
+          "type": "contains",
+          "value": "apimatic portal generate"
+        },
+        {
+          "id": "uses-destination",
+          "description": "Response uses --destination",
+          "type": "contains",
+          "value": "--destination"
+        },
+        {
+          "id": "mentions-404",
+          "description": "Response mentions 404.html",
+          "type": "contains",
+          "value": "404.html"
+        },
+        {
+          "id": "sets-site-url",
+          "description": "Response sets the production site URL",
+          "type": "contains_any",
+          "value": [
+            "site.url",
+            "\"url\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "prompt": "I added a new page at src/content/faq.md but it doesn't show up in the portal preview.",
+      "expected_output": "The agent checks the page starts with front matter that sets a title and restarts the preview, because adding a page needs a restart.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "checks-title",
+          "description": "Response checks for title front matter",
+          "type": "contains_any",
+          "value": [
+            "title:",
+            "front matter"
+          ]
+        },
+        {
+          "id": "restarts-preview",
+          "description": "Response restarts the preview",
+          "type": "contains",
+          "value": "restart"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "prompt": "apimatic portal serve refuses to run and says my Node.js version is 22.",
+      "expected_output": "The agent explains that APIMatic CLI v2 needs Node.js 24 or later and points the user to nodejs.org.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "requires-24",
+          "description": "Response says Node 24 or later is needed",
+          "type": "contains",
+          "value": "24"
+        },
+        {
+          "id": "links-nodejs",
+          "description": "Response points to the Node.js download page",
+          "type": "contains",
+          "value": "nodejs.org"
         }
       ]
     }

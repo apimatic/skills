@@ -10,18 +10,20 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 
 | Skill                                                | Description                                                           | When to use                                                                                                                                                                                        |
 |------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`apimatic-portal`](skills/apimatic-portal/SKILL.md) | Build, configure, and publish API Portals using a Docs as Code workflow | Creating, serving, or deploying an APIMatic portal; configuring themes, navigation, API Copilot, LLMs.txt, SEO, custom pages, dynamic configurations, context plugins, API recipes and more. |
-| [`apimatic-sdk`](skills/apimatic-sdk/SKILL.md) | Generate, customize, and publish SDKs using the APIMatic CLI | Generating SDKs in any supported language (C#, Java, PHP, Python, Ruby, TypeScript, Go); customizing generated code via CodeGen settings or change tracking; publishing SDKs to package registries (npm, PyPI, NuGet) or source repos. |
+| [`apimatic-portal`](skills/apimatic-portal/SKILL.md) | Build, configure, and publish API Portals using a Docs as Code workflow | Creating, previewing, or deploying an APIMatic portal; configuring `src/apimatic.json` (branding, header links, AI page actions, SDK languages), Markdown pages and `nav.json` navigation, Context Plugins, and upgrading CLI v1 portal projects. |
+| [`apimatic-sdk`](skills/apimatic-sdk/SKILL.md) | Generate, customize, and publish SDKs using the APIMatic CLI | Generating C#, Python, or TypeScript SDKs; validating or transforming API definitions; customizing generated code via CodeGen settings or change tracking; publishing SDKs to NuGet, PyPI, npm, or GitHub. |
 
 ## Prerequisites
 
-- Node.js >= 20 and npm
+- Node.js 24 or later and npm
 - An APIMatic account — [sign up free at app.apimatic.io](https://app.apimatic.io)
-- APIMatic CLI installed globally:
+- APIMatic CLI v2 installed globally:
 
 ```bash
-npm install -g @apimatic/cli
+npm install -g @apimatic/cli@beta
 ```
+
+These skills target APIMatic CLI v2, documented at [docs.apimatic.io/v4](https://docs.apimatic.io/v4).
 
 ## Installation
 
@@ -71,5 +73,5 @@ The agent will invoke the right skill and guide you through the workflow step by
 ## Resources
 
 - [APIMatic cli](https://www.npmjs.com/package/@apimatic/cli)
-- [APIMatic documentation](https://docs.apimatic.io)
+- [APIMatic documentation](https://docs.apimatic.io/v4)
 - [APIMatic app](https://app.apimatic.io)

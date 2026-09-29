@@ -19,6 +19,8 @@ Ask the user: "What is the path to your API specification file? (OpenAPI JSON/YA
 
 Store the spec file path.
 
+APIMatic accepts OpenAPI/Swagger (3.1, 3.0, 2.0, 1.x), RAML (1.0, 0.8), Postman Collection (2.0, 1.0), Insomnia, HAR, API Blueprint, WADL, WSDL, Google Discovery, I/O Docs, and APIMatic format.
+
 ---
 
 ## Step 3: Create the directory structure
@@ -55,7 +57,7 @@ Copy-Item "<spec-file>" -Destination "<project-root>\src\spec\"
 
 ## Step 5: Download APIMATIC-META.json
 
-Download the `APIMATIC-META.json` file from the sample portal repository into `src/spec/`:
+Download the `APIMATIC-META.json` template (it holds the `CodeGenSettings` block that the settings references edit) into `src/spec/`:
 
 ```bash
 curl -L -o <project-root>/src/spec/APIMATIC-META.json https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json
@@ -84,7 +86,9 @@ After setup, the project directory should look like this:
 └── src/
     └── spec/
         ├── <user-spec-file>       (e.g., openapi.json, petstore.yaml)
-        └── APIMATIC-META.json     (downloaded from sample portal)
+        └── APIMATIC-META.json     (CodeGen settings template)
 ```
+
+Optionally run `apimatic api validate --file=<project-root>/src/spec/<user-spec-file>` to catch spec errors before generating.
 
 Navigate to the project root and continue with the SDK generation workflow.

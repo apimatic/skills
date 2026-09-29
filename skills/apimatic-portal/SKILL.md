@@ -1,30 +1,38 @@
 ---
 name: apimatic-portal
-description: Use when a user wants to build, generate, configure, customize, or publish an APIMatic developer portal. Also use when the user asks about portal theme, navigation, API Copilot, LLMs.txt, SEO, custom pages, dynamic configurations, context plugins, header/footer customization, or API recipes in an APIMatic Docs as Code project.
+description: Use when a user wants to build, generate, configure, customize, preview, host, or publish an APIMatic developer portal with the APIMatic CLI. Also use when the user asks about src/apimatic.json, portal branding (logo, favicon, primary color, light/dark mode), header links, navigation tabs and nav.json, Markdown/MDX guide pages, SDK pages in the portal, AI page actions, Context Plugins, LLMs.txt, sitemaps, deploying the static portal, or upgrading a portal project from APIMATIC-BUILD.json.
 ---
 
 # APIMatic Portal
 
-Guide a user from zero to a running local developer portal. Execute these steps in order. The skill body IS the instructions — run each command directly; do not ask the user to run CLI commands unless explicitly noted.
+Guide a user from zero to a running local developer portal, then help them customize and ship it. The skill body IS the instructions — run each command directly; do not ask the user to run CLI commands unless explicitly noted.
+
+This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at https://docs.apimatic.io/v4. In v2 the portal is built on the user's machine from a `src/` directory and configured with `src/apimatic.json`.
 
 ## When to Use
 
 - User wants to create, serve, build, or deploy an APIMatic developer portal
-- User asks to configure theme, colors, fonts, navigation, SEO, LLMs.txt, API Copilot, dynamic configs, context plugins, custom pages, header/footer, or API recipes
-- User has a `src/APIMATIC-BUILD.json` or is setting one up
+- User asks to change the portal's name, logo, favicon, colors, color mode, header links, AI page actions, pages, sidebar order, or tabs
+- User wants SDK pages or a Context Plugin page in their portal
+- User has a `src/apimatic.json` or is setting one up
+- User has an older project with `src/APIMATIC-BUILD.json` and wants to upgrade it
 
-**When NOT to use:** Non-APIMatic portals (Docusaurus, ReadMe, etc.) — this skill covers only the Docs as Code Portals built using the `@apimatic/cli` toolchain.
+**When NOT to use:** Non-APIMatic portals (Docusaurus, ReadMe, etc.). SDK generation, customization, or publishing on its own belongs to the `apimatic-sdk` skill.
 
 ## Red Flags — STOP and re-read the relevant section
 
-- About to `cd src/` before running a portal command → commands run from project root, never from inside `src/`
-- About to nest `recipes.workflows` inside `generatePortal` → it is a top-level sibling, not nested
-- About to nest `apiCopilotConfig` inside `generatePortal` → it is a top-level sibling, not nested
-- About to use an absolute URL (`/guides/...` or `https://...`) in a `<Card>` internal link → use `page:` prefix (e.g., `url="page:guides/getting-started"`)
-- About to show `"enableConsoleCalls": true` while describing how to disable the playground → the value to show is `false`
-- About to use raw language names (`"python"`, `"typescript"`, `"csharp"`) as `languageSettings` keys → use template name identifiers only (e.g., `python_generic_lib`, `typescript_generic_lib`)
-- About to edit, create, or delete any file inside `src/` during first-time setup before the first portal generation → do not modify the scaffolded `src/` directory in any way except replacing the sample spec with the user's spec. Generate the portal first, then make changes if the user asks.
-
+- About to `cd src/` before running a portal command → commands run from the project root (the directory that *contains* `src/`), never from inside `src/`
+- About to add portal settings to `APIMATIC-BUILD.json`, or create `toc.yml` → CLI v2 ignores both for portals; use `src/apimatic.json` and `nav.json` (see `references/upgrading-from-v1.md` for existing projects)
+- About to add a key to the `portal` block that is not listed in `references/apimatic-json.md` (e.g. `theme`, `fonts`, `copilot`, `headIncludes`, `recipes`, `indexable`) → the `portal` block rejects unknown properties and the build fails. Tell the user the feature is not available in this CLI version instead of inventing a key
+- About to run `apimatic portal toc new`, `apimatic portal recipe new`, or `apimatic portal copilot` → these commands were removed in CLI v2
+- About to create a page without front matter, or with no `title` in it → every page in `src/content/` must start with front matter that includes `title`
+- About to write `.md` or `.mdx` extensions in `nav.json`, or a nested path like `guides/intro` → entries are bare file or folder names from the same directory; each folder orders its own pages with its own `nav.json`
+- About to put a page at `src/content/sdks/...` or `src/content/context-plugin/...` → those addresses are reserved for pages the portal generates
+- About to use a language key other than `csharp`, `python`, or `typescript` in `languages` → only these three are available
+- About to leave the `languages` block empty or remove it → a portal needs at least one SDK language
+- About to reference a logo or favicon outside `src/static/` (e.g. `images/logo.png`) → paths are written relative to `src` and must start with `static/`
+- About to add a page, add a language, add a `plugin` block, create `src/static/`, or change which files are in `src/spec/` while the preview is running, and then just wait for the browser to refresh → these changes need the preview **restarted** (see Portal Configuration)
+- About to edit, create, or delete any file inside `src/` during first-time setup before the first portal preview → do not modify the scaffolded `src/` directory except for replacing the sample spec with the user's spec. Start the portal first, then make changes if the user asks.
 
 ## Communication Guidelines
 
@@ -35,9 +43,9 @@ This skill is used by developers of all experience levels. All messages shown to
 - **Translate technical states into plain language:**
   - Instead of "Process 56078 is no longer running" → "The portal server is not running."
   - Instead of "Server process exited (code 1) before becoming ready" → "The portal server failed to start."
-  - Instead of "EADDRINUSE" or "port in use" → "The default port is already taken. Trying another one."
+  - Instead of "Port 23513 is already in use" → "The default port was taken, so the portal is using a different one."
   - Instead of "Cleaning stale PID file" → say nothing; this is an internal cleanup detail.
-- **Use the verbatim blocks provided:** When this skill provides a specific message to show (like the Server Briefing), output it exactly as written. Do not paraphrase or add technical context around it.
+- **Use the verbatim blocks provided:** When this skill provides a specific message to show (like the Server Briefing), output it exactly as written, substituting only the real URL. Do not paraphrase or add technical context around it.
 - **Keep error guidance actionable:** When something fails, tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
 - **When in doubt, less is more:** If you are unsure whether a detail is useful to the user, leave it out.
 
@@ -53,10 +61,10 @@ Then suggest the next item from this list, cycling forward from whatever was jus
 
 | Order | Feature | Recommendation |
 |-------|---------|----------------|
-| 1 | Theme, colors, and fonts | "Customize your portal's look — set brand colors, fonts, and light/dark mode." |
-| 2 | Custom markdown pages | "Create custom documentation pages with guides, tutorials, or any content your developers need." |
-| 3 | API Recipes | "Add interactive step-by-step tutorials that walk developers through real API workflows in the portal." |
-| 4 | API Copilot | "Enable an AI chat assistant in your portal so developers can ask questions about your API." |
+| 1 | Branding | "Make the portal yours — add your logo, favicon, brand color, and choose light, dark, or both modes." |
+| 2 | Custom pages | "Add guides, tutorials, or any other Markdown pages your developers need." |
+| 3 | Navigation | "Organize your sidebar and tabs, and add links to the portal header." |
+| 4 | Context Plugin | "Add a Context Plugin page so developers can give their AI coding assistants accurate knowledge of your API." |
 
 **Rules:**
 - Always cycle forward — after item 4, wrap to item 1
@@ -71,23 +79,31 @@ Then suggest the next item from this list, cycling forward from whatever was jus
 
 Confirm these are in place before starting:
 
-- Node.js >= 20 and npm installed
-- APIMatic account (free trial available at app.apimatic.io)
-- APIMatic CLI installed globally:
+- Node.js 24 or later and npm installed (`node --version` must print v24 or higher). CLI v2 refuses to run on older Node versions, even though npm lets the install finish.
+- An APIMatic account with portal generation enabled (free trial available at app.apimatic.io)
+- APIMatic CLI v2 installed globally:
 
 ```
-npm install -g @apimatic/cli
+npm install -g @apimatic/cli@beta
 ```
 
-- Verify the CLI is available:
+- Verify the CLI is available and on v2:
 
 ```
 apimatic --version
 ```
 
-If the version command fails, the CLI is not installed. Re-run the install command above.
+The output should start with `@apimatic/cli/2.`. If the command fails, the CLI is not installed — re-run the install command. If it shows `1.x`, re-run the install command to upgrade.
 
 ## Step 1: Authenticate with APIMatic
+
+First check whether the user is already signed in:
+
+```
+apimatic auth status
+```
+
+If the output shows an account email, skip to Step 2.
 
 **Primary flow (browser-based):**
 
@@ -99,7 +115,7 @@ node {skill_dir}/scripts/auth-login.mjs
 
 Where `{skill_dir}` is the absolute path to the directory containing this skill file.
 
-The script launches the browser OAuth flow and immediately returns. Relay the following message to the user: "A browser window has opened. Complete sign-in in the browser, then confirm here when done."
+The script launches the browser sign-in flow and immediately returns. Relay the following message to the user: "A browser window has opened. Complete sign-in in the browser, then confirm here when done."
 
 Wait for the user to confirm sign-in is complete before proceeding.
 
@@ -109,7 +125,7 @@ After confirmation, verify auth succeeded:
 apimatic auth status
 ```
 
-The output should show the account email. If it does not, authentication did not complete — try the fallback below.
+The output should show the account email and the SDK languages available on the plan. If it does not, authentication did not complete — try the fallback below.
 
 **Fallback flow (API key):**
 
@@ -121,18 +137,7 @@ Option 1 — CLI flag:
 apimatic auth login --auth-key=YOUR_API_KEY
 ```
 
-Option 2 — environment variable (no login command needed):
-
-```bash
-# macOS / Linux / bash / zsh:
-export APIMATIC_API_KEY=YOUR_API_KEY
-
-# Windows PowerShell:
-$env:APIMATIC_API_KEY = "YOUR_API_KEY"
-
-# Windows Command Prompt:
-set APIMATIC_API_KEY=YOUR_API_KEY
-```
+Option 2 — pass the key to each command with `--auth-key=YOUR_API_KEY` (supported by `portal serve` and `portal generate`).
 
 API keys are generated at: APIMatic Dashboard > Account > API Keys.
 
@@ -146,15 +151,16 @@ Do not proceed past this point until authentication is confirmed.
 
 ## Step 2: Determine setup path and get spec location
 
-If you do not know whether the user is starting from scratch or has an existing project, ask these two questions before continuing:
+If you do not know whether the user is starting from scratch or has an existing project, ask:
 
 1. "Do you already have an APIMatic portal project directory with a `src/` folder, or are you starting from scratch?"
    - **No `src/` yet (new project) → follow Path A**
-   - **`src/` already exists → follow Path B** (skip spec question below)
+   - **`src/` exists and contains `apimatic.json` → follow Path B**
+   - **`src/` exists but has `APIMATIC-BUILD.json` and no `apimatic.json` → it is a CLI v1 project. Read `references/upgrading-from-v1.md` and follow it, then continue with Path B**
 
 2. If following Path A, ask: "What is the path to your API specification file? (OpenAPI JSON/YAML, Postman collection, or other supported format)"
 
-Store the spec path. You will need it to bootstrap the Portal.
+Store the spec path. You will need it to bootstrap the portal.
 
 ---
 
@@ -162,11 +168,13 @@ Store the spec path. You will need it to bootstrap the Portal.
 
 Read `references/first-time-setup.md` and follow every step in order. Do not skip steps or summarize — execute each step exactly as written.
 
+The CLI also has an interactive wizard, `apimatic quickstart`, but it prompts in the terminal and cannot be driven by an agent. Use the scripted setup in `references/first-time-setup.md`. Only mention `apimatic quickstart` if the user asks for a wizard they can run themselves.
+
 ---
 
 ## Path B: Subsequent Local Development
 
-Use this path when a build directory (`src/`) already exists from a previous quickstart run or manual setup.
+Use this path when a v2 project (`src/apimatic.json`) already exists.
 
 ### Step 3B: Navigate to the project root
 
@@ -176,7 +184,7 @@ The project root is the directory that contains the `src/` folder — not inside
 cd your-project-directory
 ```
 
-### Step 4B: Start the local dev server
+### Step 4B: Start the local preview server
 
 First check whether a server is already running from a previous session:
 
@@ -184,7 +192,7 @@ First check whether a server is already running from a previous session:
 node {skill_dir}/scripts/serve.mjs status
 ```
 
-If a running process is detected, ask the user whether to reuse it or stop and restart — do not blindly start a second instance.
+If a running server is detected, ask the user whether to reuse it or restart it — do not blindly start a second instance.
 
 If no server is running, start it:
 
@@ -194,75 +202,70 @@ node {skill_dir}/scripts/serve.mjs start --input ./
 
 Where `{skill_dir}` is the absolute path to the directory containing this skill file, and `--input` is the project root (the directory containing `src/`).
 
-The script spawns `apimatic portal serve` and streams its output live — the user sees build progress (and any errors) in real time. The script exits automatically once the local URL line appears. When the URL appears, surface it to the user and append the shutdown reminder at the end of this response and every subsequent response while the server is running:
+The script spawns `apimatic portal serve` and streams its output live. The first start downloads the generated SDKs and code samples and can take a minute or two. The script exits automatically once the line `The portal is running at <url>` appears. The CLI's default port is 23513; if it is taken, the CLI picks another free port on its own, so always use the URL the script reports. Surface that URL to the user and append the shutdown reminder at the end of this response and every subsequent response while the server is running:
 
-"Your portal is running at http://localhost:3000"
+"Your portal is running at <url>"
 
 > Portal server is running. It will stop automatically after 30 minutes of inactivity. To stop it now, tell me: **"shut down the portal"**
 
 **Additional serve subcommands:**
 
-Check server status and recent logs:
-
-```
-node {skill_dir}/scripts/serve.mjs status
-```
-
-Stop the server:
-
-```
-node {skill_dir}/scripts/serve.mjs stop
-```
+| Command | What it does |
+|---------|--------------|
+| `node {skill_dir}/scripts/serve.mjs status` | Check whether the server is running and show recent output |
+| `node {skill_dir}/scripts/serve.mjs watch` | After an edit, wait briefly and report whether the preview accepted it |
+| `node {skill_dir}/scripts/serve.mjs restart --input ./` | Stop and start the server (needed after some edits — see Portal Configuration) |
+| `node {skill_dir}/scripts/serve.mjs stop` | Stop the server |
 
 **If portal serve fails:**
 
-1. **Port conflict (EADDRINUSE):** The script automatically retries on the next port up to 3 times (3000 → 3001 → 3002). If all three ports are in use, the script prints an error — ask the user to free a port or provide one manually, then retry with `--port=NNNN`.
-
-2. **Missing spec file:** Check that `src/spec/` contains the API spec file. If missing, copy the user's spec file there and retry.
-
-3. **`apimatic` command not found:** The script prints install instructions. Run `npm install -g @apimatic/cli` and verify with `apimatic --version`, then retry.
-
-4. **Permission error or script cannot run:** The script prints the specific error and path. If the error cannot be resolved automatically, tell the user:
+1. **Not signed in:** The CLI says you need to be signed in to generate a portal. Go back to Step 1.
+2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
+3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI reports problems with the spec, run `apimatic api validate --file=src/spec/<file>` and explain the errors to the user.
+4. **Problems in `apimatic.json`, a page, or a `nav.json`:** The CLI lists each problem with the file it is in. Fix each one using `references/apimatic-json.md` and `references/content-and-navigation.md`, then retry.
+5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`, then retry.
+6. **Permission error or script cannot run:** If the error cannot be resolved automatically, tell the user:
 
    > "I was unable to start the portal server automatically due to a permissions or environment issue. To start it manually, run this command in your project root (the directory that contains `src/`):
    >
-   > `apimatic portal serve`
+   > `apimatic portal serve --open`
    >
-   > Once you see a URL like `http://localhost:3000` in your terminal, come back here and tell me the server is running."
+   > Once you see a line like `The portal is running at http://localhost:23513`, come back here and tell me the server is running."
 
-   Then ask the user: "Is the server running? What URL do you see? (e.g. http://localhost:3000, a different port, or tell me if you got an error)"
+   Then ask the user: "Is the server running? What URL do you see? (or tell me if you got an error)"
 
-5. **Any other error:** Read the exact error message from the CLI output above. Do not retry automatically — diagnose the specific error first.
+7. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
 
 ---
 
-## CI / Production Builds
+## Build and Host the Portal
 
-Use `apimatic portal generate` (without serve) when building for CI pipelines or production deployment. This builds the portal output without starting a local server.
-
-```
-apimatic portal generate
-```
-
-**With an API key directly (recommended for CI — no interactive auth needed):**
+`apimatic portal generate` builds the portal as a folder of static files (HTML, CSS, JavaScript, and assets) that can be hosted anywhere. Run it from the project root:
 
 ```
-apimatic portal generate --auth-key=YOUR_API_KEY
+apimatic portal generate --destination=./portal
 ```
 
-The generated portal files are written to `./portal/` by default. Use `--destination` to specify a different output directory:
+| Flag | What it does |
+|------|--------------|
+| `-i, --input` | Path to the directory that contains `src`. Defaults to `./`. |
+| `-d, --destination` | Where to write the portal. Defaults to `<input>/portal`. |
+| `-f, --force` | Overwrite a previous build in the destination without asking. Use for repeated builds. |
+| `--zip` | Write the portal as a `.zip` archive instead of a folder. |
+| `-k, --auth-key` | Authenticate with an API key instead of the signed-in session. |
 
+**Deploying:** Upload the destination folder to any static host that serves files over HTTPS — Netlify, Cloudflare Pages, Vercel, Azure Static Web Apps or Blob Storage, AWS S3 behind CloudFront, or GitHub Pages. Point unknown paths at `404.html`; nothing else needs configuring. Then set the production address in `portal.site.url` in `src/apimatic.json` (no path, e.g. `https://docs.example.com`) — this adds canonical links and absolute sitemap URLs for search engines.
+
+**CI/CD:** Regenerate and redeploy whenever the API definition or guides change. In CI, use Node 24 and sign in with an API key stored as a secret, not a browser session:
+
+```yaml
+- uses: actions/setup-node@v4
+  with:
+    node-version: "24"
+- run: npx @apimatic/cli@beta portal generate --auth-key="${{ secrets.APIMATIC_API_KEY }}" --destination=./portal --force
 ```
-apimatic portal generate --destination=./dist/portal
-```
 
-**GitHub Actions pattern:**
-
-Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in your workflow step. A complete sample workflow is available at: github.com/apimatic/sample-docs-as-code-portal
-
-**Additional flags:**
-- `--force, -f` : Overwrite if a portal already exists in the destination. Use for repeated CI builds.
-- `--zip` : Download the generated portal as a .zip archive instead of a directory.
+Then deploy `./portal` with the host's CLI or Git integration. A complete sample workflow is in the `v2` branch of github.com/apimatic/sample-docs-as-code-portal (`.github/workflows/DeployStaticPortal.yml`).
 
 ---
 
@@ -270,281 +273,107 @@ Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in 
 
 | Task | Command / Location |
 |------|-------------------|
-| First-time setup | Download sample portal and scaffold `src/` — see [Path A](#path-a-first-time-setup-guided-onboarding) |
-| Start local dev server | `node {skill_dir}/scripts/serve.mjs start --input ./` |
-| Server status / stop | `node {skill_dir}/scripts/serve.mjs status` / `stop` |
-| Build for CI/production | `apimatic portal generate --auth-key=KEY` |
-| Regenerate toc.yml | `apimatic portal toc new` |
-| Configure API Copilot | `apimatic portal copilot` (wizard) |
-| Scaffold a recipe | Follow the [API Recipes](#api-recipes) section below |
-| Theme / colors / fonts | `generatePortal.portalSettings.theme` in `APIMATIC-BUILD.json` |
-| SEO mode | `generatePortal.baseUrl` + `generatePortal.indexable: {}` |
-| LLMs.txt | `generatePortal.baseUrl` + `generatePortal.llmsContextGeneration.enable: true` |
-| Custom markdown page | Create `.md` in `src/content/`, then `apimatic portal toc new` |
-| Custom header HTML | `src/components/header.html` (replaces default portal header) |
-| Custom footer HTML | `src/components/footer.html` |
-| Inject CSS into `<head>` | `generatePortal.headIncludes` in `APIMATIC-BUILD.json` |
-| Inject JS before `</body>` | `generatePortal.tailIncludes` in `APIMATIC-BUILD.json` |
-| Dynamic auth (runtime) | `APIMaticDevPortal.ready({ setConfig })` + `generatePortal.tailIncludes` |
-| Context Plugins (IDE AI) | `portalSettings.languageSettings.<lang>.aiIntegration` |
+| First-time setup | Download the v2 sample `src/` — see [Path A](#path-a-first-time-setup-guided-onboarding) |
+| Start local preview | `node {skill_dir}/scripts/serve.mjs start --input ./` |
+| Server status / restart / stop | `node {skill_dir}/scripts/serve.mjs status` / `restart --input ./` / `stop` |
+| Build for hosting / CI | `apimatic portal generate --destination=./portal --auth-key=KEY` |
+| Portal name, address, description | `portal.site` in `src/apimatic.json` |
+| Logo, favicon, primary color, light/dark mode | `portal.brand` in `src/apimatic.json` |
+| Header links | `portal.navigation.links` in `src/apimatic.json` |
+| "Open in AI assistant" page actions | `portal.ai.pageActions` in `src/apimatic.json` |
+| SDK languages shown in the portal | `languages` in `src/apimatic.json` (`csharp`, `python`, `typescript`) |
+| Custom page | `.md` or `.mdx` file with `title` front matter in `src/content/` |
+| Sidebar order, folder titles, tabs | `nav.json` in each folder of `src/content/` |
+| Images for pages | `src/static/` (written as `/images/x.png` in pages) |
+| Context Plugin page | `plugin` block (via `apimatic plugin generate`) or `portal.pluginUrl` |
+| LLMs.txt, sitemap, robots.txt | Generated automatically; set `portal.site.url` for absolute sitemap URLs and canonical links |
+| Validate the API spec | `apimatic api validate --file=src/spec/<file>` |
 
 ---
 
 ## Portal Configuration
 
-After generating a working portal (Path A or B), configure appearance and content by editing `src/APIMATIC-BUILD.json` and `src/content/` files.
+After the portal is running (Path A or B), configure it by editing `src/apimatic.json`, the pages in `src/content/`, and the `nav.json` files. Read `references/apimatic-json.md` before editing `apimatic.json`, and `references/content-and-navigation.md` before editing pages or `nav.json`.
 
-**After making any change**, follow this two-step preview protocol:
+**After making any change**, follow this preview protocol:
 
 **Step 1 — Check that the server is running:**
-
-Run:
 
 ```
 node {skill_dir}/scripts/serve.mjs status
 ```
 
-- Output contains `Running (PID` → server is live. Continue to Step 2.
-- Output contains `No server running` or stale PID → ask the user: "No preview server is running. Would you like me to start it now so you can preview your changes?"
-  - User says yes → run `node {skill_dir}/scripts/serve.mjs start --input ./`. Once the URL appears, surface it, append the shutdown reminder, then continue to Step 2.
-  - User says no → skip Step 2 and continue without a preview.
+- Output contains `Running` → server is live. Continue to Step 2.
+- Output contains `No server running` or `no longer running` → ask the user: "No preview server is running. Would you like me to start it now so you can preview your changes?"
+  - User says yes → run `node {skill_dir}/scripts/serve.mjs start --input ./`. Once the URL appears, surface it, append the shutdown reminder, then stop here — a fresh start already includes the change.
+  - User says no → skip the rest of this protocol.
 
-**Step 2 — Wait for regeneration to complete:**
+**Step 2 — Decide whether the change needs a restart.**
 
-Inform the user: "Your changes have been saved. The portal is regenerating — this typically takes 15–60 seconds. Watching for completion..."
+The preview picks up these edits live, within a second or two:
+- Changes to the text of existing pages in `src/content/`
+- Changes to any `nav.json` (order, titles, tabs)
+- Changes to the `portal` block of `apimatic.json`
+- Removing a language from `languages`, or removing the `plugin` block
 
-Then run:
+These edits need the preview **restarted**:
+- Adding or removing a page in `src/content/`
+- Adding a language to `languages`, or adding a `plugin` block
+- Creating `src/static/` when it did not exist
+- Adding, removing, or replacing files in `src/spec/`
+
+If the change needs a restart, run `node {skill_dir}/scripts/serve.mjs restart --input ./`, surface the URL, and skip Step 3.
+
+**Step 3 — Confirm the preview accepted the change:**
 
 ```
 node {skill_dir}/scripts/serve.mjs watch
 ```
 
-- Exit code 0 → relay to the user: "Your portal has been successfully regenerated. Open http://localhost:3000 in your browser to review the changes."
-- Exit code 1 (timeout) → tell the user: "Portal generation is still in progress — it's taking longer than usual. Refresh your browser in a moment to see the changes once it completes."
+- Exit code 0 → tell the user: "Your changes are live. Refresh <url> in your browser if it hasn't updated."
+- Exit code 2 → the CLI rejected the edit and the preview keeps showing the last version it accepted. The script prints the CLI's explanation. Fix the specific problem, save, and run `watch` again. If the output says the edit needs the preview restarted, run `restart` instead.
 
 Apply this protocol after every configuration change in any sub-section below.
 
-**If `apimatic portal serve` fails after a config change**, stop and read the exact error message from the CLI output before retrying. Common causes: malformed JSON in `APIMATIC-BUILD.json` (missing comma, mismatched brace) or a `portalSetting` key that does not exist. Fix the specific error, then re-run serve.
+### Portal name, address, and description
 
-### Theme
+Set `portal.site.name`, `portal.site.url`, and `portal.site.description`. By default the portal takes its name and description from the API spec. `site.name` is **required** when `src/spec/` holds more than one spec. `site.url` is the production address without a path — never `http://localhost:...`.
 
-Edit `portalSettings.theme` inside `generatePortal` in `APIMATIC-BUILD.json` to set colors, typography, base theme, and dark mode behavior.
+### Branding: logo, favicon, colors, color mode
 
-For **runtime theme switching** (e.g., syncing with a host application's dark/light toggle), use the Theme Control Hook — `window.APIMaticDevPortal.setThemeMode('light' | 'dark')`. This is triggered externally from your application, not via the build file.
+Edit `portal.brand`. Put image files in `src/static/` and reference them as `static/...` paths. Colors are `#rgb` or `#rrggbb` hex values. `colorMode` is `"light"`, `"dark"`, or `"both"` (default). Forcing `light` or `dark` hides the theme switch. Only a primary brand color is configurable — there are no settings for fonts, other colors, or custom CSS.
 
-Read `references/theme-and-appearance.md` for all theme fields, accepted values, the complete `colorMode` object structure, and the Theme Control Hook integration guide.
+Read `references/apimatic-json.md` for the single-value and `{ light, dark }` forms.
 
-### API Copilot
+### Header links
 
-Prompt the user to run the interactive wizard — it updates `APIMATIC-BUILD.json` automatically:
+Add entries to `portal.navigation.links`. Each link has a `label` and a `url` that is either a portal page starting with `/` (e.g. `/guides/quickstart`) or an external address starting with `https://` or `http://`.
 
-```
-apimatic portal copilot
-```
+### AI page actions
 
-**Step aside — the CLI handles all prompts directly with the user.** Do not intercept or answer the wizard prompts on the user's behalf. The wizard will ask for the subscription key and an optional welcome message, then write the copilot block to `APIMATIC-BUILD.json`. Copilot can only be active on one portal at a time.
+`portal.ai.pageActions` (default `true`) adds an option on every page to open it in an external AI assistant. Set it to `false` to remove it. The portal also publishes `/llms.txt`, `/llms-full.txt`, and a Markdown version of every page (`<page-url>.md`) automatically — no configuration needed.
 
-Read `references/copilot-and-ai.md` for the written configuration block and indexing time expectations.
+### Custom pages and navigation
 
-### LLMs.txt
+Create a `.md` or `.mdx` file anywhere under `src/content/` that starts with front matter giving its `title`, then add its file name (without extension) to the `nav.json` in the same folder if that file lists pages explicitly. Restart the preview after adding or removing a page.
 
-Add `baseUrl` and `llmsContextGeneration` to `generatePortal` in `APIMATIC-BUILD.json`. Set `baseUrl` to the production domain, not `http://localhost:3000`.
+The top level of the portal is shown as tabs: **Home** holds `index.md` and the other top-level pages, each folder listed in `src/content/nav.json` becomes its own tab, and the generated tabs (SDKs, Context Plugin, API Reference) are positioned with the tokens `apimatic:sdks`, `apimatic:plugin`, and `apimatic:api`.
 
-Read `references/copilot-and-ai.md` for the exact field names, values, and verification steps.
+Read `references/content-and-navigation.md` for front matter, `nav.json` rules, tabs, folders, images, links, and the available MDX components (`Callout`, `Cards`/`Card`).
 
-### SEO
+### SDK languages
 
-Add `baseUrl` and `indexable` to `generatePortal` in `APIMATIC-BUILD.json`. `baseUrl` is required and must be the production URL.
+Each language in the `languages` block (`csharp`, `python`, `typescript`) gets a card on the SDKs tab with a download link, a page with its getting-started guide, and code samples on every API reference page. Declare a language with an empty object, e.g. `"python": {}`. Once `apimatic sdk publish` records a release, the card also shows the install command, package, and source repository. Do not hand-write the `publishing` part of a language entry — `apimatic sdk publish` writes it. Restart the preview after adding a language.
 
-Read `references/seo-and-discovery.md` for the full list of generated files, required fields, and deployment guidance.
+### Context Plugins
 
-### Navigation (toc.yml)
+A Context Plugin gives AI coding assistants (Claude Code, Cursor, VS Code) accurate context about the API and its SDKs. The portal shows a **Context Plugin** tab with install instructions when `apimatic.json` has a `plugin` block, or a `portal.pluginUrl` for a plugin hosted elsewhere.
 
-Edit `src/content/toc.yml` directly to reorder sections or add manual entries. To regenerate it from current files:
+Read `references/context-plugins.md` for the publish → generate → publish flow and the `plugin` block.
 
-```
-apimatic portal toc new
-```
+### Features not available in CLI v2
 
-The wizard overwrites the existing `toc.yml` — review the output after running.
-
-Read `references/navigation-and-content.md` for the full toc.yml format including groups, dirs, generated sections, and custom UI component syntax.
-
-### Custom Markdown Pages
-
-Create a `.md` file in `src/content/guides/` (or any subdirectory of `src/content/`), then run `apimatic portal toc new` to update navigation.
-
-Read `references/navigation-and-content.md` for the custom UI component list and syntax examples.
-
-### Context Plugins for AI assistants (AI Integration)
-
-Context Plugins give developers one-click access to your API's SDK context directly inside their IDE — Cursor, VS Code, or Claude Code. Once installed, AI assistants in those IDEs can generate accurate, SDK-specific code completions without the developer leaving their editor.
-
-**Prerequisites:**
-- API Copilot must be configured with a valid key (`portalSettings.copilot.key`) — Context Plugins use Copilot infrastructure
-- SDKs must be published (not just generated)
-
-**Configuration:** Add `aiIntegration` under `portalSettings.languageSettings` for each SDK language you want to support. The language key must be the APIMatic SDK template name identifier (e.g., `python_generic_lib`, `typescript_generic_lib`, `java_eclipse_jre_lib`).
-
-> **Warning:** NEVER use raw language names (`"python"`, `"typescript"`, `"csharp"`, etc.) as `languageSettings` keys — they will be silently ignored. Always use the full template name identifier. Do not mention raw language names in explanatory text either.
-
-When adding `languageSettings` for the first time, also ask the user which language should be shown by default and set `initialPlatform` in `portalSettings`:
-
-```json
-{
-  "generatePortal": {
-    "portalSettings": {
-      "initialPlatform": "python_generic_lib",
-      "languageSettings": {
-        "python_generic_lib": { }
-      }
-    }
-  }
-}
-```
-
-```json
-{
-  "portalSettings": {
-    "languageSettings": {
-      "python_generic_lib": {
-        "aiIntegration": {
-          "cursor": { "isEnabled": true },
-          "vscode": { "isEnabled": true },
-          "claudeCode": { "isEnabled": true }
-        }
-      }
-    }
-  }
-}
-```
-
-Enable only the IDEs you want to support — each `isEnabled: true` adds the corresponding integration button in the portal's SDK Reference section. After updating the config, regenerate the portal with `apimatic portal generate` or `apimatic portal serve`.
-
-See `examples/comprehensive-build.json` for a complete `languageSettings` + `aiIntegration` example covering multiple languages.
-
-### Dynamic Configurations
-
-There are two mechanisms — use the right one for the task:
-
-**Runtime JS (for auth credentials, OAuth tokens, dynamic config values):**
-
-Use `APIMaticDevPortal.ready(({ setConfig }) => setConfig({...}))` to inject values at portal load time. Create a JS file in `src/static/` and inject it via `generatePortal.tailIncludes`:
-
-```javascript
-// src/static/scripts/config.js
-APIMaticDevPortal.ready(({ setConfig }) =>
-  setConfig((defaultConfig) => {
-    return {
-      ...defaultConfig,
-      auth: {
-        oauth_2_0: {
-          OAuthClientId: "your-client-id",
-          OAuthClientSecret: "your-client-secret",
-          OAuthRedirectUri: "https://your-app.com/callback",
-          OAuthToken: "",
-          OAuthScopes: ["read"],
-        },
-      },
-    };
-  })
-);
-```
-
-```json
-{
-  "generatePortal": {
-    "tailIncludes": "<script defer src='static/scripts/config.js'></script>"
-  }
-}
-```
-
-Read `references/dynamic-configurations.md` for the full `setConfig` callback reference, discovering available properties, and a complete consolidated example.
-
-### Header and Footer Customization
-
-There are two distinct mechanisms. Use the right one for the job:
-
-| Goal | Mechanism |
-|------|-----------|
-| Replace the portal header with custom HTML | `src/components/header.html` |
-| Add a footer | `src/components/footer.html` |
-| Load custom CSS on every page | `generatePortal.headIncludes` — injected into `<head>` |
-| Load custom JS / analytics | `generatePortal.tailIncludes` — injected just before `</body>` |
-
-**IMPORTANT:** `headIncludes` and `tailIncludes` are for CSS and JS only — never put header or footer HTML markup in them. `tailIncludes` injects at the bottom of the page; any HTML placed there will appear as a footer, not a header.
-
-#### Replacing the portal header
-
-Create `src/components/header.html`. This file fully replaces the default APIMatic portal header.
-
-**CRITICAL:** APIMatic automatically wraps the contents of `header.html` in `<div class="portal-header">`. Do NOT include that wrapper in your file, Write only the inner content:
-
-```html
-<!-- header.html — do NOT add a portal-header wrapper, APIMatic adds it automatically -->
-<div class="custom-header-inner">
-  <!-- your header content goes here -->
-</div>
-```
-
-Similarly, create `src/components/footer.html` to add a footer. APIMatic wraps it in `<div class="portal-footer">` automatically — same rule applies:
-
-```html
-<!-- footer.html — do NOT add a portal-footer wrapper, APIMatic adds it automatically -->
-<div class="custom-footer-inner">
-  <!-- your footer content goes here -->
-</div>
-```
-
-The `src/components/` directory sits alongside `src/content/`, `src/spec/`, and `src/static/`:
-
-```
-src/
-├── components/
-│   ├── header.html
-│   └── footer.html
-├── content/
-├── spec/
-├── static/
-└── APIMATIC-BUILD.json
-```
-
-#### Loading CSS and JS for your components
-
-Place CSS and JS files in `src/static/` and reference them in `APIMATIC-BUILD.json`:
-
-```json
-{
-  "generatePortal": {
-    "headIncludes": "<link rel=\"stylesheet\" href=\"./static/custom.css\">",
-    "tailIncludes": "<script src=\"./static/custom.js\"></script>"
-  }
-}
-```
-
-For complete worked examples see `examples/components/header.html` and `examples/components/footer.html`.
-
-### Versioned Portals
-
-When the user needs multiple versions of their documentation (e.g., v1.0 and v2.0) with a version selector in the portal:
-
-> **Critical:** The outer `APIMATIC-BUILD.json` for a versioned portal uses `generateVersionedPortal` — **not** `generatePortal`. Never include `generatePortal.apiSpecs` or any `generatePortal` fields in the outer file.
-
-Read `references/versioned-portals.md` for the full directory structure, outer build file format, per-version build file format, and migration steps.
-
----
-
-### API Recipes
-
-The CLI provides an interactive wizard (`apimatic portal recipe new`) for creating API Recipes. The wizard is interactive — it prompts the user directly, so the agent cannot drive it. Create recipes manually instead.
-
-When creating a recipe manually (without the CLI wizard), four things are required:
-1. Create `src/content/recipes/RecipeName.md` (at least one line of content)
-2. Add a `page:` entry in `toc.yml` pointing to `recipes/RecipeName.md`
-3. Register in `APIMATIC-BUILD.json` under top-level `recipes.workflows` with `"permalink": "page:recipes/RecipeName"`
-4. Create `src/static/scripts/recipes/RecipeName.js` using `export default function RecipeName(workflowCtx, portal)` returning a step object
-
-Read `references/recipes.md` for the full registration schema, all step types, and a complete example.
+API Recipes, API Copilot, custom themes and fonts, custom header/footer HTML, `headIncludes`/`tailIncludes`, dynamic configuration scripts, and versioned portals are not part of CLI v2's portal configuration. If the user asks for one, say it is not available in this version of the APIMatic CLI, and offer the closest supported option (for example, a Markdown guide page instead of a recipe, or `portal.brand.colors.primary` instead of a full theme). Never invent configuration keys for them.
 
 ---
 
@@ -553,27 +382,26 @@ Read `references/recipes.md` for the full registration schema, all step types, a
 | Mistake | Fix |
 |---------|-----|
 | Running `apimatic portal serve` from inside `src/` | Run from the project root (the directory that *contains* `src/`) |
-| Setting `baseUrl` to `http://localhost:3000` in a production build | Set to the real production domain (e.g., `https://developers.yourcompany.com`) |
-| Nesting `recipes.workflows` inside `generatePortal` | `recipes` is a **top-level sibling** of `generatePortal`, not inside it |
-| Nesting `apiCopilotConfig` inside `generatePortal` | `apiCopilotConfig` is a **top-level sibling** of `generatePortal` |
-| JSON syntax error in `APIMATIC-BUILD.json` causing serve to fail | Read the exact CLI error; fix the specific line (missing comma, extra brace, wrong key name) |
-| Recipe function exported as `async` or as named export | Must be `export default function RecipeName(workflowCtx, portal)` — not async, not named |
-| Reading stepState without optional chaining | Always use `stepState?.["Step N"]?.data?.field` — never assume a step has completed |
-| Wrapping `header.html` content in `<div class="portal-header">` | APIMatic adds this wrapper automatically — write only the inner content. Double-wrapping causes the default navbar to bleed through. |
-| Putting header or footer HTML in `tailIncludes` | `tailIncludes` injects just before `</body>` (bottom of page). Use `src/components/header.html` to replace the portal header. |
+| Installing `@apimatic/cli` or `@apimatic/cli@latest` | Those install CLI v1. Install `@apimatic/cli@beta` |
+| Using Node 20 or 22 | CLI v2 needs Node 24 or later, locally and in CI |
+| Page has no front matter or no `title` | Start every page with `---\ntitle: Page title\n---` |
+| `nav.json` entry has an extension or a path (`"guides/intro.md"`) | Use the bare name of a page or folder in the same directory (`"intro"`) |
+| Logo path `images/logo.png` or `/static/logo.png` | Write `static/images/logo.png` (relative to `src`, under `static`) |
+| Setting `site.url` to `http://localhost:23513` or including a path | Use the production origin only, e.g. `https://docs.example.com` |
+| Adding a page and waiting for live reload | Adding or removing pages needs `serve.mjs restart` |
+| Adding `theme`, `copilot`, or other v1 keys to `portal` | The `portal` block rejects unknown properties. The feature is not available in v2 |
+| Saving `nav.json` with a UTF-8 byte-order mark | Save as UTF-8 without BOM; the build cannot read a BOM |
 
 ---
 
 ## Reference Files
 
-- `references/build-directory.md` — Build directory layout, `spec/` and `content/` directory rules, sample `toc.yml`, minimal `APIMATIC-BUILD.json` with field explanations, and guidance on which directory to run commands from.
-- `references/theme-and-appearance.md` — Complete `portalSettings.theme` schema: colors, typography, baseTheme, `colorMode` object (`defaultMode`, `disableSwitch`), consolidated example, and the Theme Control Hook (`window.APIMaticDevPortal.setThemeMode`) for runtime theme switching.
-- `references/versioned-portals.md` — Versioned portal directory structure, outer `APIMATIC-BUILD.json` using `generateVersionedPortal`, per-version build files using `generatePortal`, migration guide, and recommended practices.
-- `references/copilot-and-ai.md` — API Copilot CLI wizard walkthrough, the written APIMATIC-BUILD.json copilot block, LLMs.txt `llmsContextGeneration` configuration, and production `baseUrl` warning.
-- `references/seo-and-discovery.md` — SEO mode configuration (`indexable`, `baseUrl`), generated file list, and when to use SEO vs SPA mode.
-- `references/navigation-and-content.md` — toc.yml format with all entry types, `apimatic portal toc new` usage, custom markdown page workflow, and custom UI component syntax.
-- `references/dynamic-configurations.md` — Dynamic portal configurations using `APIMaticDevPortal.ready` with `setConfig`, discovering available properties via browser dev tools, `tailIncludes` script injection, and a complete consolidated example.
-- `references/recipes.md` — Recipe registration schema (`recipes.workflows` in `APIMATIC-BUILD.json`), `.js` file authoring guide covering all step types (`showContent`, `showEndpoint`, `stepState`, `portal.setConfig`, `showConfettiAnimation`, `nextRecipe`), and a complete consolidated example.
-- `examples/` — Comprehensive working examples: `comprehensive-build.json` (all configuration sections in one file), `toc.yml` (all navigation patterns), `complete-recipe.js` (all recipe step types in a real-world scenario), and `components/header.html` + `components/footer.html` (header/footer injection). Use these files as authoritative reference when writing portal configuration.
+- `references/first-time-setup.md` — Path A: Node 24 check, CLI v2 install, sign-in, scaffolding `src/` from the v2 sample portal, first preview, and the Server Briefing.
+- `references/apimatic-json.md` — Every `src/apimatic.json` setting: `portal.site`, `portal.brand`, `portal.navigation`, `portal.ai`, `portal.pluginUrl`, `languages`, `plugin`, and value formats (static paths, colors, links).
+- `references/content-and-navigation.md` — `src/content/` layout, page front matter, `nav.json` (ordering, `...`, titles, tabs, generated-section tokens, `(group)` folders), page URLs, images, reserved addresses, and MDX components.
+- `references/context-plugins.md` — Generating and publishing a Context Plugin, the `plugin` block, and `pluginUrl`.
+- `references/upgrading-from-v1.md` — Moving a CLI v1 project (`APIMATIC-BUILD.json`, `toc.yml`) to CLI v2.
+- `examples/apimatic.json` — A complete `src/apimatic.json` using every portal setting.
+- `examples/content/` — Sample pages and `nav.json` files showing tabs, folders, front matter, and MDX components.
 
-Read the relevant reference file when the user asks about any configuration area. Multiple reference files may apply for combined changes (e.g., SEO + LLMs.txt share `baseUrl`).
+Read the relevant reference file when the user asks about any configuration area.

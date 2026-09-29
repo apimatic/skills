@@ -1,25 +1,30 @@
 #!/usr/bin/env node
 /**
- * APIMatic portal dev server manager.
+ * APIMatic portal preview server manager (APIMatic CLI v2).
  *
  * Usage (run from any directory — the project root is passed via --input):
- *   node serve.mjs start [--port 3000] [--input ./]
+ *   node serve.mjs start   [--port 23513] [--input ./]
+ *   node serve.mjs restart [--port 23513] [--input ./]
  *   node serve.mjs status
- *   node serve.mjs stop
  *   node serve.mjs watch
+ *   node serve.mjs stop
  *
- * `start` streams the CLI output live so the user sees build progress and
- * errors in real time. It exits once the local URL is detected (server ready)
- * or if the process dies. The server keeps running in the background via
- * detached: true + unref().
+ * `start` runs `apimatic portal serve` in the background with its output written
+ * straight to a log file, so the server keeps logging after this script exits.
+ * The script streams the log live and exits once the CLI prints
+ * "The portal is running at <url>", or if the server dies first.
  *
- * Auto-retry: if a port is in use, tries the next port up to 3 times.
+ * `watch` is run after an edit. It reads what the server logs next and exits
+ * 0 when the edit was accepted, 2 when the CLI rejected it or asked for a
+ * restart, and 1 when no server is running.
+ *
+ * The CLI picks another free port on its own when the requested one is taken.
  * Auto-stop: a watchdog process stops the server after 30 min of agent inactivity.
  *
  * No external dependencies — Node.js built-ins only.
  */
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,14 +32,35 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PID_FILE = path.join(SCRIPT_DIR, "serve.pid");
 const LOG_FILE = path.join(SCRIPT_DIR, "serve.log");
+const URL_FILE = path.join(SCRIPT_DIR, "serve.url");
 const HEARTBEAT_FILE = path.join(SCRIPT_DIR, "serve.heartbeat");
 const WATCHDOG_SCRIPT = path.join(SCRIPT_DIR, "watchdog.mjs");
 
-const STARTUP_MARKERS = ["Local:", "localhost:", "http://"];
-const STARTUP_TIMEOUT_MS = 120_000;
-const MAX_PORT_RETRIES = 3;
+const IS_WINDOWS = process.platform === "win32";
+const DEFAULT_PORT = 23513;
+const READY_MARKER = "The portal is running at";
+// The first start of a project fetches the generated SDKs and code samples and
+// pre-bundles the site, which can take several minutes.
+const STARTUP_TIMEOUT_MS = 300_000;
+const POLL_MS = 250;
+
+// What the CLI logs after an edit while the preview is running.
+const WATCH_WINDOW_MS = 8_000;
+const ACCEPTED_MARKERS = ["Applied the changes to", "a build would accept it again"];
+const PROBLEM_MARKERS = [
+  "keeps showing what it last accepted",
+  "needs the preview restarted",
+  "Restart the preview",
+  "could not be applied",
+  "could not be checked",
+  "cannot be watched",
+  "is no longer watched",
+  "stopped unexpectedly",
+];
 
 // ── helpers ────────────────────────────────────────────────────────────────
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function isRunning(pid) {
   try {
@@ -45,28 +71,39 @@ function isRunning(pid) {
   }
 }
 
+function readPidLines() {
+  if (!fs.existsSync(PID_FILE)) return [];
+  try {
+    return fs
+      .readFileSync(PID_FILE, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => parseInt(line, 10));
+  } catch {
+    return [];
+  }
+}
+
 function readPid() {
-  if (!fs.existsSync(PID_FILE)) return null;
-  const raw = fs.readFileSync(PID_FILE, "utf8").trim();
-  const pid = parseInt(raw.split("\n")[0], 10);
-  return isNaN(pid) ? null : pid;
+  const pid = readPidLines()[0];
+  return Number.isInteger(pid) ? pid : null;
 }
 
 function readWatchdogPid() {
-  if (!fs.existsSync(PID_FILE)) return null;
-  const lines = fs.readFileSync(PID_FILE, "utf8").trim().split("\n");
-  if (lines.length < 2) return null;
-  const pid = parseInt(lines[1], 10);
-  return isNaN(pid) ? null : pid;
+  const pid = readPidLines()[1];
+  return Number.isInteger(pid) ? pid : null;
 }
 
-/** Throws on failure — used in start() where write errors should abort. */
+function readUrl() {
+  try {
+    return fs.readFileSync(URL_FILE, "utf8").trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Silent best-effort — write errors should never abort a command. */
 function touchHeartbeat() {
-  fs.writeFileSync(HEARTBEAT_FILE, String(Date.now()));
-}
-
-/** Silent best-effort — used in status() and watch() where write errors should not abort. */
-function safeTouchHeartbeat() {
   try { fs.writeFileSync(HEARTBEAT_FILE, String(Date.now())); } catch { /* best effort */ }
 }
 
@@ -77,373 +114,392 @@ function safeUnlink(filePath) {
   } catch { /* best effort */ }
 }
 
+function cleanUp() {
+  safeUnlink(PID_FILE);
+  safeUnlink(URL_FILE);
+  safeUnlink(HEARTBEAT_FILE);
+}
+
+/** Strips ANSI colour codes, OSC 8 hyperlinks, spinner redraws, and blank lines. */
+function clean(text) {
+  const stripped = text
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, "")
+    // A spinner redraws its line with cursor moves; treat each frame as a line so repeats collapse.
+    .replace(/(?:\x1b\[[0-9]*[DGJK])+/g, "\n")
+    .replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")
+    .replace(/\r/g, "\n");
+  const lines = [];
+  for (const line of stripped.split("\n")) {
+    const trimmed = line.trimEnd();
+    if (trimmed.trim() && trimmed !== lines[lines.length - 1]) lines.push(trimmed);
+  }
+  return lines.join("\n");
+}
+
+/** Reads what was appended to the log since `offset`. */
+function readLogFrom(offset) {
+  try {
+    const size = fs.statSync(LOG_FILE).size;
+    if (size <= offset) return { text: "", offset: size };
+    const fd = fs.openSync(LOG_FILE, "r");
+    const buf = Buffer.alloc(size - offset);
+    fs.readSync(fd, buf, 0, buf.length, offset);
+    fs.closeSync(fd);
+    return { text: buf.toString(), offset: size };
+  } catch {
+    return { text: "", offset };
+  }
+}
+
+function logSize() {
+  try {
+    return fs.statSync(LOG_FILE).size;
+  } catch {
+    return 0;
+  }
+}
+
 function printLogTail(n = 15) {
   if (!fs.existsSync(LOG_FILE)) {
-    console.log("(no log file yet)");
+    console.log("(no log output yet)");
     return;
   }
   try {
-    const lines = fs.readFileSync(LOG_FILE, "utf8").split("\n");
-    const tail = lines.slice(-n - 1, -1);
-    console.log(tail.join("\n").trimEnd());
+    const lines = clean(fs.readFileSync(LOG_FILE, "utf8")).split("\n");
+    console.log(lines.slice(-n).join("\n"));
   } catch {
-    console.log("(log file could not be read)");
+    console.log("(log could not be read)");
   }
+}
+
+/**
+ * How to launch the CLI. On Windows npm installs `apimatic` as a `.cmd` shim, and a
+ * detached `cmd.exe` drops the output of the Node process it starts, so the shim is
+ * read and the CLI's JavaScript entry point is run with Node directly.
+ * Returns null when the CLI cannot be found.
+ */
+function resolveCli() {
+  if (!IS_WINDOWS) return { command: "apimatic", args: [] };
+  for (const dir of (process.env.PATH || "").split(path.delimiter)) {
+    if (!dir) continue;
+    const shim = path.join(dir.replace(/^"|"$/g, ""), "apimatic.cmd");
+    let contents;
+    try {
+      contents = fs.readFileSync(shim, "utf8");
+    } catch {
+      continue;
+    }
+    const match = contents.match(/%dp0%\\([^"]+\.js)"/i);
+    if (match) {
+      const entry = path.join(path.dirname(shim), match[1]);
+      if (fs.existsSync(entry)) return { command: process.execPath, args: [entry] };
+    }
+  }
+  return null;
+}
+
+function printCliNotFound() {
+  console.error("ERROR: 'apimatic' command not found.");
+  console.error("The APIMatic CLI is not installed or not on your PATH.");
+  console.error("Fix: npm install -g @apimatic/cli@beta");
+  console.error("Then verify: apimatic --version");
+  console.error('Manual fallback: once installed, run "apimatic portal serve" in the project root.');
+}
+
+/** Kills the server's whole process tree: the CLI starts the site builder as a child. */
+function killTree(pid, force) {
+  if (IS_WINDOWS) {
+    spawnSync("taskkill", ["/PID", String(pid), "/T", ...(force ? ["/F"] : [])], { stdio: "ignore" });
+    return;
+  }
+  try { process.kill(-pid, force ? "SIGKILL" : "SIGTERM"); } catch { /* already dead */ }
 }
 
 // ── commands ───────────────────────────────────────────────────────────────
 
-function start(port, inputPath, retryCount = 0) {
-  // Guard: already running
+async function start(port, inputPath) {
   const pid = readPid();
   if (pid && isRunning(pid)) {
-    console.log(`Already running (PID ${pid}). Server URL: http://localhost:${port}`);
-    console.log("Use 'node serve.mjs status' to check logs or 'node serve.mjs stop' to stop.");
-    return;
+    const url = readUrl();
+    console.log(`Already running (PID ${pid}).${url ? ` Server URL: ${url}` : ""}`);
+    console.log("Use 'node serve.mjs status' to check logs, 'restart' to restart, or 'stop' to stop.");
+    return 0;
   }
+  cleanUp();
 
-  // Guard: input path must exist
   if (!fs.existsSync(inputPath)) {
     console.error(`ERROR: Input path not found: "${inputPath}"`);
     console.error("Make sure you are running from the project root (the directory that contains src/).");
     console.error("Example: node serve.mjs start --input ./");
     console.error('Manual fallback: cd into your project root and run "apimatic portal serve".');
-    process.exit(1);
+    return 1;
   }
 
-  // Set up log stream and PID file — abort if the scripts dir is not writable
-  let logStream;
+  const cli = resolveCli();
+  if (!cli) {
+    printCliNotFound();
+    return 1;
+  }
+
+  // The server writes straight to the log file, so it keeps logging after this script exits.
+  let logFd;
   try {
-    safeUnlink(PID_FILE);
-    logStream = fs.createWriteStream(LOG_FILE, { flags: "w" });
+    logFd = fs.openSync(LOG_FILE, "w");
   } catch (err) {
     console.error(`ERROR: Cannot write to scripts directory: ${err.message}`);
     console.error(`Path: ${SCRIPT_DIR}`);
     console.error("Fix: check that you have write permission to that directory.");
     console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
-    process.exit(1);
+    return 1;
   }
 
-  // Use pipe stdio so we can read output in real time AND write it to the log.
-  // The process is spawned with detached:true so it outlives this script.
-  const child = spawn(
-    "apimatic",
-    ["portal", "serve", `--port=${port}`, `--input=${inputPath}`],
-    {
-      detached: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    }
-  );
+  const child = spawn(cli.command, [...cli.args, "portal", "serve", `--port=${port}`, `--input=${inputPath}`], {
+    detached: true,
+    stdio: ["ignore", logFd, logFd],
+    windowsHide: true,
+  });
+  fs.closeSync(logFd);
 
-  // Handle spawn errors (e.g. apimatic not on PATH)
-  child.on("error", (err) => {
-    logStream.end();
-    safeUnlink(PID_FILE);
-    safeUnlink(HEARTBEAT_FILE);
-    if (err.code === "ENOENT") {
-      console.error("ERROR: 'apimatic' command not found.");
-      console.error("The APIMatic CLI is not installed or not on your PATH.");
-      console.error("Fix: npm install -g @apimatic/cli");
-      console.error("Then verify: apimatic --version");
-      console.error('Manual fallback: once installed, run "apimatic portal serve" in the project root.');
+  let spawnError = null;
+  let exitCode = null;
+  child.on("error", (err) => { spawnError = err; });
+  child.on("exit", (code) => { exitCode = code ?? 1; });
+
+  // Give a missing executable the chance to surface before anything is written.
+  await sleep(POLL_MS);
+  if (spawnError) {
+    cleanUp();
+    if (spawnError.code === "ENOENT") {
+      printCliNotFound();
     } else {
-      console.error(`ERROR: Failed to start server process: ${err.message}`);
+      console.error(`ERROR: Failed to start server process: ${spawnError.message}`);
       console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
     }
-    process.exit(1);
-  });
+    return 1;
+  }
 
   try {
     fs.writeFileSync(PID_FILE, String(child.pid));
-    touchHeartbeat();
   } catch (err) {
-    console.error(`ERROR: Cannot write PID/heartbeat files: ${err.message}`);
-    console.error(`Path: ${SCRIPT_DIR}`);
-    console.error("Fix: check that you have write permission to that directory.");
+    console.error(`ERROR: Cannot write PID file: ${err.message}`);
+    console.error("Fix: check that you have write permission to the scripts directory.");
     console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
-    try { child.kill(); } catch { /* best effort */ }
-    process.exit(1);
+    killTree(child.pid, true);
+    return 1;
   }
+  touchHeartbeat();
 
-  console.log(`Starting APIMatic portal server (PID ${child.pid})...`);
+  console.log(`Starting APIMatic portal preview (PID ${child.pid})...`);
   console.log("Streaming output from apimatic portal serve:\n");
 
-  let urlFound = false;
-  let exited = false;
-  let portInUse = false;
+  let offset = 0;
+  let seen = "";
+  const deadline = Date.now() + STARTUP_TIMEOUT_MS;
 
-  function handleChunk(chunk) {
-    const text = chunk.toString();
-    logStream.write(text);
-    process.stdout.write(text);
+  while (Date.now() < deadline) {
+    await sleep(POLL_MS);
+    const chunk = readLogFrom(offset);
+    offset = chunk.offset;
+    if (chunk.text) {
+      seen += chunk.text;
+      const text = clean(chunk.text);
+      if (text) console.log(text);
+    }
 
-    // Detect port-in-use early so the exit handler can retry
-    if (text.includes("EADDRINUSE")) portInUse = true;
+    const readyLine = clean(seen).split("\n").find((line) => line.includes(READY_MARKER));
+    if (readyLine) {
+      const url = (readyLine.match(/https?:\/\/[^\s'"]+/) || [])[0] || `http://localhost:${port}`;
+      try { fs.writeFileSync(URL_FILE, url); } catch { /* best effort */ }
 
-    if (!urlFound) {
-      for (const marker of STARTUP_MARKERS) {
-        if (text.includes(marker)) {
-          urlFound = true;
-          for (const line of text.split("\n")) {
-            if (line.includes(marker)) {
-              console.log(`\nPortal is ready: ${line.trim()}`);
-              break;
-            }
-          }
-          console.log("Hot reload is active. Edit files in src/ and the portal will update automatically.");
-          console.log("Server will auto-stop after 30 minutes of inactivity.");
-          console.log("To stop: node serve.mjs stop\n");
+      const watchdog = spawn(
+        process.execPath,
+        [WATCHDOG_SCRIPT, `--server-pid=${child.pid}`, `--heartbeat=${HEARTBEAT_FILE}`],
+        { detached: true, stdio: "ignore", windowsHide: true }
+      );
+      watchdog.on("error", () => {
+        console.error("WARNING: The portal server is running but will NOT auto-stop after 30 minutes.");
+        console.error("Remember to stop it manually: node serve.mjs stop");
+      });
+      watchdog.unref();
+      try { fs.writeFileSync(PID_FILE, `${child.pid}\n${watchdog.pid}`); } catch { /* best effort */ }
 
-          child.stdout.removeAllListeners("data");
-          child.stderr.removeAllListeners("data");
-          child.stdout.pipe(logStream);
-          child.stderr.pipe(logStream);
-          child.unref();
+      console.log(`\nPortal is ready: ${url}`);
+      console.log("Live reload is active. Some edits need a restart: node serve.mjs restart --input <dir>");
+      console.log("Server will auto-stop after 30 minutes of inactivity.");
+      console.log("To stop: node serve.mjs stop\n");
+      child.unref();
+      return 0;
+    }
 
-          // Spawn watchdog to auto-stop the server after 30 min of inactivity
-          const watchdog = spawn(
-            process.execPath,
-            [
-              WATCHDOG_SCRIPT,
-              `--server-pid=${child.pid}`,
-              `--heartbeat=${HEARTBEAT_FILE}`,
-            ],
-            { detached: true, stdio: "ignore" }
-          );
-
-          watchdog.on("error", (err) => {
-            console.error(`WARNING: Watchdog failed to start: ${err.message}`);
-            console.error("The portal server is running but will NOT auto-stop after 30 minutes.");
-            console.error("Remember to stop it manually: node serve.mjs stop");
-            // Rewrite PID file with just the server PID
-            try { fs.writeFileSync(PID_FILE, String(child.pid)); } catch { /* best effort */ }
-          });
-
-          watchdog.unref();
-          try {
-            fs.writeFileSync(PID_FILE, `${child.pid}\n${watchdog.pid}`);
-          } catch { /* best effort — server is already running */ }
-
-          process.exit(0);
-        }
-      }
+    if (exitCode !== null || !isRunning(child.pid)) {
+      const rest = clean(readLogFrom(offset).text);
+      if (rest) console.log(rest);
+      console.error(`\nServer process exited (code ${exitCode ?? "unknown"}) before becoming ready.`);
+      console.error("Full output is above. Check the error and retry.");
+      console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
+      cleanUp();
+      return 1;
     }
   }
 
-  child.stdout.on("data", handleChunk);
-  child.stderr.on("data", handleChunk);
-
-  child.on("exit", (code) => {
-    exited = true;
-    logStream.end();
-    if (!urlFound) {
-      if (portInUse && retryCount < MAX_PORT_RETRIES) {
-        const nextPort = port + 1;
-        console.log(`\nPort ${port} is already in use. Retrying on port ${nextPort}...`);
-        safeUnlink(PID_FILE);
-        safeUnlink(HEARTBEAT_FILE);
-        start(nextPort, inputPath, retryCount + 1);
-      } else if (portInUse) {
-        const triedPorts = Array.from({ length: MAX_PORT_RETRIES + 1 }, (_, i) => port - retryCount + i).join(", ");
-        console.error(`\nERROR: Ports ${triedPorts} are all in use.`);
-        console.error('Free a port first, or run "apimatic portal serve --port=NNNN" manually in the project root.');
-        safeUnlink(PID_FILE);
-        safeUnlink(HEARTBEAT_FILE);
-        process.exit(1);
-      } else {
-        console.error(`\nServer process exited (code ${code}) before becoming ready.`);
-        console.error("Full output is above. Check the error and retry.");
-        console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
-        safeUnlink(PID_FILE);
-        safeUnlink(HEARTBEAT_FILE);
-        process.exit(1);
-      }
-    }
-  });
-
-  // Safety timeout
-  setTimeout(() => {
-    if (!urlFound && !exited) {
-      console.log(`\nTimeout after ${STARTUP_TIMEOUT_MS / 1000}s — URL not yet detected.`);
-      console.log("The server may still be starting. Check with 'node serve.mjs status'.");
-      child.stdout.destroy();
-      child.stderr.destroy();
-      child.unref();
-      logStream.end();
-      process.exit(0);
-    }
-  }, STARTUP_TIMEOUT_MS);
+  console.log(`\nTimeout after ${STARTUP_TIMEOUT_MS / 1000}s — the portal URL has not appeared yet.`);
+  console.log("The server may still be starting. Check with 'node serve.mjs status'.");
+  child.unref();
+  return 0;
 }
 
 function status() {
-  safeTouchHeartbeat();
   const pid = readPid();
   if (pid === null) {
     console.log("No server running (no PID file).");
-    return;
+    return 0;
   }
   if (isRunning(pid)) {
-    console.log(`Running (PID ${pid}).`);
+    touchHeartbeat();
+    const url = readUrl();
+    console.log(`Running (PID ${pid}).${url ? ` URL: ${url}` : " URL not detected yet."}`);
     console.log("\nRecent log output:");
     printLogTail(15);
   } else {
     console.log(`Process ${pid} is no longer running. Cleaning stale PID file.`);
-    safeUnlink(PID_FILE);
+    cleanUp();
   }
+  return 0;
 }
 
-function stop() {
+async function stop() {
   const pid = readPid();
   if (pid === null) {
     console.log("No server running (no PID file).");
-    return;
+    return 0;
   }
 
-  // Kill watchdog first so it doesn't race to kill the server independently
+  // Kill the watchdog first so it doesn't race to kill the server independently.
   const watchdogPid = readWatchdogPid();
-  if (watchdogPid) {
-    try { process.kill(watchdogPid, "SIGTERM"); } catch { /* already dead */ }
+  if (watchdogPid && isRunning(watchdogPid)) {
+    try { process.kill(watchdogPid); } catch { /* already dead */ }
   }
-
-  // Delete heartbeat — signals watchdog to exit cleanly if SIGTERM was missed
+  // Deleting the heartbeat also tells a watchdog that missed the signal to exit.
   safeUnlink(HEARTBEAT_FILE);
 
   if (!isRunning(pid)) {
     console.log(`Process ${pid} already stopped. Removing stale PID file.`);
-    safeUnlink(PID_FILE);
-    return;
+    cleanUp();
+    return 0;
   }
-  try {
-    process.kill(process.platform === "win32" ? pid : -pid, "SIGTERM");
-    let waited = 0;
-    const waitKill = setInterval(() => {
-      waited += 200;
-      if (!isRunning(pid)) {
-        clearInterval(waitKill);
-        safeUnlink(PID_FILE);
-        console.log(`Stopped (PID ${pid}).`);
-      } else if (waited >= 3000) {
-        clearInterval(waitKill);
-        try { process.kill(process.platform === "win32" ? pid : -pid, "SIGKILL"); } catch { /* already dead */ }
-        safeUnlink(PID_FILE);
-        console.log(`Force-killed (PID ${pid}).`);
-      }
-    }, 200);
-  } catch (err) {
-    if (err.code === "EPERM") {
-      console.error(`ERROR: Permission denied stopping process ${pid}.`);
-      console.error("The server may have been started by a different user.");
-      console.error(`Manual fix: kill -9 ${pid}`);
-    } else {
-      console.error(`Error stopping process ${pid}: ${err.message}`);
-      console.error("You may need to kill it manually.");
-    }
+
+  killTree(pid, false);
+  for (let waited = 0; waited < 3000 && isRunning(pid); waited += 200) await sleep(200);
+  if (isRunning(pid)) {
+    killTree(pid, true);
+    await sleep(500);
   }
+
+  if (isRunning(pid)) {
+    console.error(`ERROR: Could not stop process ${pid}.`);
+    console.error("The server may have been started by a different user.");
+    console.error(IS_WINDOWS ? `Manual fix: taskkill /PID ${pid} /T /F` : `Manual fix: kill -9 -${pid}`);
+    return 1;
+  }
+  cleanUp();
+  console.log(`Stopped (PID ${pid}).`);
+  return 0;
 }
 
-// ── watch ──────────────────────────────────────────────────────────────────
-
-function watch() {
+async function watch() {
   const pid = readPid();
   if (!pid || !isRunning(pid)) {
     console.log("No server running — nothing to watch.");
-    process.exit(1);
+    return 1;
   }
 
-  if (!fs.existsSync(LOG_FILE)) {
-    console.log("Log file not found. Server may still be starting.");
-    process.exit(1);
+  let offset = logSize();
+  let seen = "";
+  console.log("Watching the preview for the result of the edit...\n");
+
+  const deadline = Date.now() + WATCH_WINDOW_MS;
+  while (Date.now() < deadline) {
+    await sleep(POLL_MS);
+    touchHeartbeat();
+    const chunk = readLogFrom(offset);
+    offset = chunk.offset;
+    if (!chunk.text) continue;
+    seen += chunk.text;
+    const text = clean(chunk.text);
+    if (text) console.log(text);
+
+    // Wait for the rest of a multi-line report before judging it.
+    await sleep(500);
+    const tail = readLogFrom(offset);
+    offset = tail.offset;
+    if (tail.text) {
+      seen += tail.text;
+      const more = clean(tail.text);
+      if (more) console.log(more);
+    }
+
+    const all = clean(seen);
+    if (PROBLEM_MARKERS.some((marker) => all.includes(marker))) {
+      console.log("\nThe preview did not apply the edit. See the explanation above.");
+      return 2;
+    }
+    if (ACCEPTED_MARKERS.some((marker) => all.includes(marker))) {
+      console.log("\nThe preview applied the edit. Refresh the browser if it hasn't updated.");
+      return 0;
+    }
   }
 
-  const WATCH_MARKER = "Portal generated successfully";
-  const TIMEOUT_MS = 120_000;
-  let offset = fs.statSync(LOG_FILE).size; // start from current end of log
-  let elapsed = 0;
-  const POLL_MS = 500;
-  let heartbeatWarnedOnce = false;
-
-  console.log("Watching for portal regeneration...\n");
-
-  const interval = setInterval(() => {
-    elapsed += POLL_MS;
-
-    // Touch heartbeat to keep the watchdog from timing out while we're watching
-    try {
-      fs.writeFileSync(HEARTBEAT_FILE, String(Date.now()));
-    } catch {
-      if (!heartbeatWarnedOnce) {
-        heartbeatWarnedOnce = true;
-        console.error("WARNING: Could not update heartbeat file. Auto-stop timer may fire early.");
-      }
-    }
-
-    // Read new log output since last tick
-    try {
-      const stat = fs.statSync(LOG_FILE);
-      if (stat.size > offset) {
-        const fd = fs.openSync(LOG_FILE, "r");
-        const len = stat.size - offset;
-        const buf = Buffer.alloc(len);
-        fs.readSync(fd, buf, 0, len, offset);
-        fs.closeSync(fd);
-        offset = stat.size;
-
-        const text = buf.toString();
-        // Strip ANSI control sequences and cursor-move codes before printing
-        const clean = text.replace(/\x1b\[[0-9;]*[A-Za-z]|\[999D|\[J|\[?25[lh]/g, "");
-        if (clean.trim()) process.stdout.write(clean);
-
-        if (text.includes(WATCH_MARKER)) {
-          clearInterval(interval);
-          console.log("\nPortal regenerated successfully. Refresh your browser to see the changes.");
-          process.exit(0);
-        }
-      }
-    } catch {
-      // Log file temporarily unavailable — skip this tick silently
-    }
-
-    if (elapsed >= TIMEOUT_MS) {
-      clearInterval(interval);
-      console.log(`\nTimeout after ${TIMEOUT_MS / 1000}s — regeneration still in progress.`);
-      process.exit(1);
-    }
-  }, POLL_MS);
+  if (!isRunning(pid)) {
+    console.log("The portal server stopped. Start it again with 'node serve.mjs start'.");
+    return 1;
+  }
+  // Valid page and nav.json edits reload the browser without logging anything.
+  console.log("No problems reported. The preview has picked up the edit — refresh the browser if it hasn't updated.");
+  return 0;
 }
 
 // ── CLI entry point ────────────────────────────────────────────────────────
 
-const [, , command, ...rest] = process.argv;
-
 function parseArgs(args) {
-  const result = { port: 3000, input: "./" };
+  const result = { port: DEFAULT_PORT, input: "./" };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg.startsWith("--port=")) result.port = parseInt(arg.split("=")[1], 10);
-    else if (arg.startsWith("--input=")) result.input = arg.split("=")[1];
+    else if (arg.startsWith("--input=")) result.input = arg.slice("--input=".length);
     else if (arg === "--port" && args[i + 1]) result.port = parseInt(args[++i], 10);
     else if (arg === "--input" && args[i + 1]) result.input = args[++i];
   }
   return result;
 }
 
+const [, , command, ...rest] = process.argv;
+let exitCode;
+
 switch (command) {
   case "start": {
     const { port, input } = parseArgs(rest);
-    start(port, input);
+    exitCode = await start(port, input);
+    break;
+  }
+  case "restart": {
+    const { port, input } = parseArgs(rest);
+    exitCode = await stop();
+    if (exitCode === 0) exitCode = await start(port, input);
     break;
   }
   case "status":
-    status();
+    exitCode = status();
     break;
   case "stop":
-    stop();
+    exitCode = await stop();
     break;
   case "watch":
-    watch();
+    exitCode = await watch();
     break;
   default:
-    console.log("Usage: node serve.mjs <start|status|stop|watch> [--port 3000] [--input ./]");
+    console.log("Usage: node serve.mjs <start|restart|status|watch|stop> [--port 23513] [--input ./]");
     console.log("       Server auto-stops after 30 minutes of agent inactivity.");
-    process.exit(1);
+    exitCode = 1;
 }
+
+process.exit(exitCode);

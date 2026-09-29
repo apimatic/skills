@@ -4,6 +4,8 @@ This example shows how to generate an SDK with change tracking, customize a gene
 
 **Flow:** generate with change tracking → customize → save-changes → regenerate
 
+> This flow needs a CLI release that includes change tracking. Run `apimatic sdk generate --help` first and confirm it lists `--track-changes` (see the Change Tracking Availability Check in `SKILL.md`).
+
 ---
 
 ## Step 1: Generate the SDK
