@@ -55,29 +55,7 @@ Copy-Item "<spec-file>" -Destination "<project-root>\src\spec\"
 
 ---
 
-## Step 5: Download APIMATIC-META.json
-
-Download the `APIMATIC-META.json` template (it holds the `CodeGenSettings` block that the settings references edit) into `src/spec/`:
-
-```bash
-curl -L -o <project-root>/src/spec/APIMATIC-META.json https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json
-```
-
-On Windows PowerShell:
-
-```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json" -OutFile "<project-root>\src\spec\APIMATIC-META.json"
-```
-
-On macOS/Linux if `curl` is unavailable:
-
-```bash
-wget -O <project-root>/src/spec/APIMATIC-META.json https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json
-```
-
----
-
-## Step 6: Verify the structure
+## Step 5: Verify the structure
 
 After setup, the project directory should look like this:
 
@@ -85,8 +63,7 @@ After setup, the project directory should look like this:
 <project-root>/
 └── src/
     └── spec/
-        ├── <user-spec-file>       (e.g., openapi.json, petstore.yaml)
-        └── APIMATIC-META.json     (CodeGen settings template)
+        └── <user-spec-file>       (e.g., openapi.json, petstore.yaml)
 ```
 
 Optionally run `apimatic api validate --file=<project-root>/src/spec/<user-spec-file>` to catch spec errors before generating.

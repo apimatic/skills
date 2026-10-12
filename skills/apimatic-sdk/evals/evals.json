@@ -625,59 +625,6 @@
       ]
     },
     {
-      "id": 15,
-      "prompt": "I want to generate a Python SDK for my API project at ./payments-api/ and make sure every generated file has a copyright notice in it. I'm already authenticated and the src/ folder is set up.",
-      "expected_output": "The agent recognizes that adding a copyright notice to every file is covered by the ShortCopyrightNotice CodeGen setting. It updates APIMATIC-META.json with ShortCopyrightNotice set to the copyright text, then generates the SDK. It does NOT manually edit generated files or inject copyright via custom code.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-short-copyright-notice-setting",
-          "description": "Response uses the ShortCopyrightNotice CodeGen setting in APIMATIC-META.json",
-          "type": "contains",
-          "value": "ShortCopyrightNotice"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json with the copyright setting",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        },
-        {
-          "id": "does-not-manually-inject-copyright",
-          "description": "Response does NOT manually edit generated files or add copyright as custom code injection",
-          "type": "not_contains_any",
-          "value": [
-            "sdk-source-tree",
-            "custom code injection",
-            "inject the copyright",
-            "manually add",
-            "manually edit"
-          ]
-        },
-        {
-          "id": "references-project-dir",
-          "description": "Response references the user's project directory",
-          "type": "contains_any",
-          "value": [
-            "payments-api",
-            "./payments-api"
-          ]
-        }
-      ]
-    },
-    {
       "id": 14,
       "prompt": "I'm running SDK generation in Docker and can't run apimatic auth login interactively. I don't want the API key to appear in my shell history. What's the cleanest way to authenticate?",
       "expected_output": "The agent recommends keeping the key in an APIMATIC_API_KEY environment variable (or Docker secret) and expanding it into the --auth-key flag, e.g. `apimatic sdk generate --language=<lang> --auth-key=\"$APIMATIC_API_KEY\"` or a one-time `apimatic auth login --auth-key=\"$APIMATIC_API_KEY\"`, so the literal key never appears in shell history. It does not claim the CLI reads the variable by itself.",
@@ -700,734 +647,6 @@
           "description": "Response does NOT recommend browser login",
           "type": "not_contains",
           "value": "auth-login.mjs"
-        }
-      ]
-    },
-    {
-      "id": 16,
-      "prompt": "I want to generate a TypeScript SDK without any documentation files. My project is at ./my-api/ and I'm already authenticated with the src/ folder set up.",
-      "expected_output": "The agent recognizes that disabling docs is covered by the DisableDocs CodeGen setting. It updates APIMATIC-META.json with DisableDocs set to true, then generates the SDK. It does NOT manually delete the docs folder or README.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-disable-docs-setting",
-          "description": "Response uses the DisableDocs CodeGen setting",
-          "type": "contains",
-          "value": "DisableDocs"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-typescript-sdk",
-          "description": "Response generates the SDK with --language=typescript",
-          "type": "contains",
-          "value": "--language=typescript"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        },
-        {
-          "id": "does-not-manually-delete-docs",
-          "description": "Response does NOT manually delete docs folder or use file deletion commands",
-          "type": "not_contains_any",
-          "value": [
-            "rm ",
-            "del ",
-            "Remove-Item",
-            "rmdir",
-            "manually delete",
-            "delete the docs"
-          ]
-        }
-      ]
-    },
-    {
-      "id": 17,
-      "prompt": "Disable linting in my TypeScript SDK. My project is at ./ts-lint-project/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that disabling linting is covered by the DisableLinting CodeGen setting. It updates APIMATIC-META.json with DisableLinting set to true, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-disable-linting-setting",
-          "description": "Response uses the DisableLinting CodeGen setting",
-          "type": "contains",
-          "value": "DisableLinting"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-typescript-sdk",
-          "description": "Response generates the SDK with --language=typescript",
-          "type": "contains",
-          "value": "--language=typescript"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 18,
-      "prompt": "Set the timeout to 60 seconds and enable retry with 3 attempts for my C# SDK. My project is at ./csharp-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that timeout and retry settings are covered by the Timeout, RetryOnTimeout, and Retries CodeGen settings. It updates APIMATIC-META.json with all relevant settings, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-timeout-setting",
-          "description": "Response uses the Timeout CodeGen setting",
-          "type": "contains",
-          "value": "Timeout"
-        },
-        {
-          "id": "uses-retries-setting",
-          "description": "Response uses the Retries CodeGen setting",
-          "type": "contains",
-          "value": "Retries"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 19,
-      "prompt": "Set the SDK project name to 'PaymentsSDK' for my C# SDK. My project is at ./payments/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that setting the project name is covered by the ProjectName CodeGen setting. It updates APIMATIC-META.json with ProjectName set to PaymentsSDK, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-project-name-setting",
-          "description": "Response uses the ProjectName CodeGen setting",
-          "type": "contains",
-          "value": "ProjectName"
-        },
-        {
-          "id": "uses-correct-name",
-          "description": "Response includes the user's requested project name",
-          "type": "contains",
-          "value": "PaymentsSDK"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 20,
-      "prompt": "Enable logging in my Python SDK. My project is at ./py-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that enabling logging is covered by the EnableLogging CodeGen setting. It updates APIMATIC-META.json with EnableLogging set to true, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-enable-logging-setting",
-          "description": "Response uses the EnableLogging CodeGen setting",
-          "type": "contains",
-          "value": "EnableLogging"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 21,
-      "prompt": "Set a custom user agent string for my Python SDK that includes the language and version. My project is at ./python-ua-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that setting a custom user agent is covered by the UserAgent CodeGen setting with placeholders. It updates APIMATIC-META.json with UserAgent set to a string containing {language} and {version} placeholders, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-user-agent-setting",
-          "description": "Response uses the UserAgent CodeGen setting",
-          "type": "contains",
-          "value": "UserAgent"
-        },
-        {
-          "id": "includes-placeholders",
-          "description": "Response includes the {language} and/or {version} placeholders",
-          "type": "contains_any",
-          "value": [
-            "{language}",
-            "{version}"
-          ]
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 22,
-      "prompt": "Change array serialization to CSV format for my TypeScript SDK. My project is at ./ts-project/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that array serialization format is covered by the ArraySerialization CodeGen setting. It updates APIMATIC-META.json with ArraySerialization set to CSV, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-array-serialization-setting",
-          "description": "Response uses the ArraySerialization CodeGen setting",
-          "type": "contains",
-          "value": "ArraySerialization"
-        },
-        {
-          "id": "sets-csv-format",
-          "description": "Response sets the value to CSV",
-          "type": "contains",
-          "value": "CSV"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-typescript-sdk",
-          "description": "Response generates the SDK with --language=typescript",
-          "type": "contains",
-          "value": "--language=typescript"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 23,
-      "prompt": "Make my C# SDK return null instead of throwing an exception on 404 responses. My project is at ./csharp-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that returning null on 404 is covered by the Nullify404 CodeGen setting. It updates APIMATIC-META.json with Nullify404 set to true, then regenerates the SDK. It does NOT add custom exception handling code.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-nullify404-setting",
-          "description": "Response uses the Nullify404 CodeGen setting",
-          "type": "contains",
-          "value": "Nullify404"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        },
-        {
-          "id": "does-not-add-custom-exception-handling",
-          "description": "Response does NOT add manual exception handling or try-catch code",
-          "type": "not_contains_any",
-          "value": [
-            "try {",
-            "catch (",
-            "try:",
-            "except ",
-            "custom exception handling"
-          ]
-        }
-      ]
-    },
-    {
-      "id": 24,
-      "prompt": "Add our company name 'Acme Corp' to all generated file headers in my TypeScript SDK. My project is at ./acme-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that adding a company name to file headers is covered by the BrandLabel CodeGen setting. It updates APIMATIC-META.json with BrandLabel set to Acme Corp, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-brand-label-setting",
-          "description": "Response uses the BrandLabel CodeGen setting",
-          "type": "contains",
-          "value": "BrandLabel"
-        },
-        {
-          "id": "includes-company-name",
-          "description": "Response includes the user's company name",
-          "type": "contains",
-          "value": "Acme Corp"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-typescript-sdk",
-          "description": "Response generates the SDK with --language=typescript",
-          "type": "contains",
-          "value": "--language=typescript"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 25,
-      "prompt": "Add 'Model' postfix to all model class names in my C# SDK to avoid naming conflicts. My project is at ./csharp-models-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that adding a Model postfix is covered by the UseModelPrefix CodeGen setting. It updates APIMATIC-META.json with UseModelPrefix set to true, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-model-prefix-setting",
-          "description": "Response uses the UseModelPrefix CodeGen setting",
-          "type": "contains",
-          "value": "UseModelPrefix"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 26,
-      "prompt": "Disable native enum types in my Python SDK and use plain strings instead. My project is at ./py-project/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that disabling native enums is covered by the GenerateEnums CodeGen setting. It updates APIMATIC-META.json with GenerateEnums set to false, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-generate-enums-setting",
-          "description": "Response uses the GenerateEnums CodeGen setting",
-          "type": "contains",
-          "value": "GenerateEnums"
-        },
-        {
-          "id": "sets-to-false",
-          "description": "Response sets GenerateEnums to false",
-          "type": "contains",
-          "value": "false"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 27,
-      "prompt": "Set custom error messages for 401 and 5XX responses in my TypeScript SDK. For 401 use 'Authorization failed, code: {$statusCode}' and for 5XX use 'Server error, code: {$statusCode}'. My project is at ./ts-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that custom error messages are covered by the ErrorTemplates CodeGen setting. It updates APIMATIC-META.json with ErrorTemplates containing entries for 401 and 5XX with the user's specified messages, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-error-templates-setting",
-          "description": "Response uses the ErrorTemplates CodeGen setting",
-          "type": "contains",
-          "value": "ErrorTemplates"
-        },
-        {
-          "id": "includes-401-code",
-          "description": "Response includes the 401 error code",
-          "type": "contains",
-          "value": "401"
-        },
-        {
-          "id": "includes-5xx-code",
-          "description": "Response includes the 5XX error code",
-          "type": "contains",
-          "value": "5XX"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-typescript-sdk",
-          "description": "Response generates the SDK with --language=typescript",
-          "type": "contains",
-          "value": "--language=typescript"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 28,
-      "prompt": "Generate my C# SDK with synchronous methods instead of async. My project is at ./sync-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that switching to synchronous methods is covered by the SynchronyMode CodeGen setting. It updates APIMATIC-META.json with SynchronyMode set to Synchronous, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-synchrony-mode-setting",
-          "description": "Response uses the SynchronyMode CodeGen setting",
-          "type": "contains",
-          "value": "SynchronyMode"
-        },
-        {
-          "id": "sets-synchronous-value",
-          "description": "Response sets the value to Synchronous",
-          "type": "contains",
-          "value": "Synchronous"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 29,
-      "prompt": "Remove the docs folder from my generated Python SDK. My project is at ./my-sdk/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that removing docs is covered by the DisableDocs CodeGen setting. It updates APIMATIC-META.json with DisableDocs set to true, then regenerates the SDK. It does NOT manually delete files, use rm commands, or treat this as a custom code injection.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-disable-docs-setting",
-          "description": "Response uses the DisableDocs CodeGen setting instead of manual deletion",
-          "type": "contains",
-          "value": "DisableDocs"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "does-not-manually-delete",
-          "description": "Response does NOT use file deletion commands",
-          "type": "not_contains_any",
-          "value": [
-            "rm ",
-            "del ",
-            "Remove-Item",
-            "rmdir",
-            "sdk-source-tree",
-            "custom code injection",
-            "manually delete"
-          ]
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 30,
-      "prompt": "Enable keyword arguments in my TypeScript SDK. My project is at ./ts-project/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that ForceKeywordArgsInRuby is a Ruby-only setting and informs the user that keyword arguments are not available for TypeScript. It does NOT blindly apply the setting.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "mentions-ruby-only",
-          "description": "Response mentions that keyword arguments are only available for Ruby",
-          "type": "contains_any",
-          "value": [
-            "Ruby",
-            "ruby",
-            "not supported",
-            "not available",
-            "only available",
-            "Ruby only",
-            "ForceKeywordArgsInRuby",
-            "doesn't support",
-            "does not support",
-            "isn't available",
-            "is not available"
-          ]
-        },
-        {
-          "id": "does-not-blindly-apply",
-          "description": "Response does NOT apply ForceKeywordArgsInRuby for TypeScript",
-          "type": "not_contains",
-          "value": "\"ForceKeywordArgsInRuby\": true"
-        }
-      ]
-    },
-    {
-      "id": 31,
-      "prompt": "For my C# SDK at ./orders-api/: set the project name to 'OrdersSDK', disable docs generation, and enable logging. I'm already authenticated.",
-      "expected_output": "The agent recognizes all three changes map to CodeGen settings: ProjectName, DisableDocs, and EnableLogging. It updates APIMATIC-META.json with all three settings in a single CodeGenSettings block, then regenerates the SDK once.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-project-name-setting",
-          "description": "Response uses the ProjectName CodeGen setting",
-          "type": "contains",
-          "value": "ProjectName"
-        },
-        {
-          "id": "uses-disable-docs-setting",
-          "description": "Response uses the DisableDocs CodeGen setting",
-          "type": "contains",
-          "value": "DisableDocs"
-        },
-        {
-          "id": "uses-enable-logging-setting",
-          "description": "Response uses the EnableLogging CodeGen setting",
-          "type": "contains",
-          "value": "EnableLogging"
-        },
-        {
-          "id": "includes-orders-sdk-name",
-          "description": "Response includes the requested project name",
-          "type": "contains",
-          "value": "OrdersSDK"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 32,
-      "prompt": "Add an option to skip SSL certificate verification in my Python SDK for development environments. My project is at ./dev-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that adding SSL skip is covered by the AllowSkippingSSLCertVerification CodeGen setting. It updates APIMATIC-META.json with AllowSkippingSSLCertVerification set to true, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-ssl-skip-setting",
-          "description": "Response uses the AllowSkippingSSLCertVerification CodeGen setting",
-          "type": "contains",
-          "value": "AllowSkippingSSLCertVerification"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 33,
-      "prompt": "Change the controller suffix from 'Controller' to 'Api' in my C# SDK. My project is at ./api-project/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that changing the controller suffix is covered by the ControllerPostfix CodeGen setting. It updates APIMATIC-META.json with ControllerPostfix set to Api, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-controller-postfix-setting",
-          "description": "Response uses the ControllerPostfix CodeGen setting",
-          "type": "contains",
-          "value": "ControllerPostfix"
-        },
-        {
-          "id": "sets-api-value",
-          "description": "Response sets the postfix to Api",
-          "type": "contains",
-          "value": "Api"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-csharp-sdk",
-          "description": "Response generates the SDK with --language=csharp",
-          "type": "contains",
-          "value": "--language=csharp"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
-        }
-      ]
-    },
-    {
-      "id": 34,
-      "prompt": "I want my Python SDK to return full HTTP responses including headers and status codes, not just the response body. My project is at ./py-http-api/ and I'm already authenticated.",
-      "expected_output": "The agent recognizes that returning full HTTP responses is covered by the ReturnCompleteHttpResponse CodeGen setting. It updates APIMATIC-META.json with ReturnCompleteHttpResponse set to true, then regenerates the SDK.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "uses-return-complete-response-setting",
-          "description": "Response uses the ReturnCompleteHttpResponse CodeGen setting",
-          "type": "contains",
-          "value": "ReturnCompleteHttpResponse"
-        },
-        {
-          "id": "updates-apimatic-meta",
-          "description": "Response updates APIMATIC-META.json",
-          "type": "contains",
-          "value": "APIMATIC-META.json"
-        },
-        {
-          "id": "generates-python-sdk",
-          "description": "Response generates the SDK with --language=python",
-          "type": "contains",
-          "value": "--language=python"
-        },
-        {
-          "id": "skips-auth",
-          "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
         }
       ]
     },
@@ -1794,6 +1013,157 @@
           "description": "Response passes the collection with --file",
           "type": "contains",
           "value": "--file="
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "prompt": "Disable linting in my TypeScript SDK. My project is at ./ts-lint-project/ and I'm already authenticated.",
+      "expected_output": "The agent tells the user that the current SDK generator (Codegen v4) does not support CodeGen settings, so linting cannot be switched off in a config file, and offers to make the change in the generated SDK code instead. It does NOT add DisableLinting or a CodeGenSettings block to APIMATIC-META.json.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "explains-no-settings",
+          "description": "Response says configuration settings are not supported by the current generator",
+          "type": "contains_any",
+          "value": [
+            "doesn't support configuration settings",
+            "does not support configuration settings",
+            "doesn't support codegen settings",
+            "does not support codegen settings",
+            "no codegen settings",
+            "not supported"
+          ]
+        },
+        {
+          "id": "offers-code-change",
+          "description": "Response offers to make the change in the SDK code",
+          "type": "contains_any",
+          "value": [
+            "generated sdk code",
+            "in the code",
+            "customiz"
+          ]
+        },
+        {
+          "id": "no-disable-linting-setting",
+          "description": "Response does NOT set DisableLinting",
+          "type": "not_contains_any",
+          "value": [
+            "\"DisableLinting\": true",
+            "DisableLinting: true"
+          ]
+        },
+        {
+          "id": "no-codegen-settings-block",
+          "description": "Response does NOT write a CodeGenSettings block",
+          "type": "not_contains",
+          "value": "\"CodeGenSettings\""
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "prompt": "Set the timeout to 60 seconds and enable retry with 3 attempts for my C# SDK. My project is at ./csharp-api/ and I'm already authenticated.",
+      "expected_output": "The agent explains that Codegen v4 has no CodeGen settings for timeouts or retries, offers to make the change as a code customization, and runs the change tracking availability check (`apimatic sdk generate --help`) before customizing. It does NOT edit APIMATIC-META.json.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "explains-no-settings",
+          "description": "Response says configuration settings are not supported by the current generator",
+          "type": "contains_any",
+          "value": [
+            "doesn't support configuration settings",
+            "does not support configuration settings",
+            "doesn't support codegen settings",
+            "does not support codegen settings",
+            "no codegen settings",
+            "not supported"
+          ]
+        },
+        {
+          "id": "checks-change-tracking-support",
+          "description": "Response checks whether the installed CLI supports change tracking",
+          "type": "contains",
+          "value": "sdk generate --help"
+        },
+        {
+          "id": "no-timeout-setting",
+          "description": "Response does NOT set Timeout or Retries CodeGen settings",
+          "type": "not_contains_any",
+          "value": [
+            "\"Timeout\": 60",
+            "\"Retries\": 3",
+            "\"CodeGenSettings\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "prompt": "Remove the docs folder from my generated Python SDK. My project is at ./my-sdk/ and I'm already authenticated.",
+      "expected_output": "The agent explains there is no CodeGen setting for this in Codegen v4 and treats the request as a code customization of the generated SDK, checking change tracking support first. It does NOT set DisableDocs in APIMATIC-META.json.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "explains-no-settings",
+          "description": "Response says configuration settings are not supported by the current generator",
+          "type": "contains_any",
+          "value": [
+            "doesn't support configuration settings",
+            "does not support configuration settings",
+            "doesn't support codegen settings",
+            "does not support codegen settings",
+            "no codegen settings",
+            "not supported"
+          ]
+        },
+        {
+          "id": "no-disable-docs-setting",
+          "description": "Response does NOT set DisableDocs",
+          "type": "not_contains_any",
+          "value": [
+            "\"DisableDocs\": true",
+            "DisableDocs: true"
+          ]
+        },
+        {
+          "id": "skips-auth",
+          "description": "Response does NOT run auth login since user is already authenticated",
+          "type": "not_contains",
+          "value": "apimatic auth login"
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "prompt": "My old project has src/spec/APIMATIC-META.json with a CodeGenSettings block (ProjectName, EnableLogging). Will those still apply when I generate a Python SDK with the new CLI?",
+      "expected_output": "The agent explains that CLI v2 generates with Codegen v4, which does not support CodeGen settings, so the CodeGenSettings in APIMATIC-META.json have no effect. It offers to make the equivalent changes as code customizations instead.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "explains-no-effect",
+          "description": "Response says the settings no longer apply",
+          "type": "contains_any",
+          "value": [
+            "no effect",
+            "not apply",
+            "won't apply",
+            "will not apply",
+            "doesn't support",
+            "does not support",
+            "not supported",
+            "ignored"
+          ]
+        },
+        {
+          "id": "mentions-codegen-v4",
+          "description": "Response names Codegen v4 or CLI v2 as the reason",
+          "type": "contains_any",
+          "value": [
+            "codegen v4",
+            "cli v2"
+          ]
         }
       ]
     }

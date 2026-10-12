@@ -1,6 +1,6 @@
 ---
 name: apimatic-sdk
-description: Use for any task involving APIMatic's SDK generation toolchain (APIMatic CLI v2). Use when a user wants to generate, create, customize, download, or publish a C#, Python, or TypeScript SDK using the APIMatic CLI. Also use when the user has already customized a generated SDK and wants to save those changes, when the user wants to make a specific change to an SDK (e.g. "change the analyzer", "switch the linter"), when the user asks about CodeGen settings, SDK configuration, or APIMATIC-META.json (e.g. "enable retry on timeout", "disable linting", "set the project name"), when the user wants to validate or transform an API definition before generating, or when the user wants to publish an SDK to a package registry (NuGet, PyPI, npm) or source repository, or wants to list publishing profiles.
+description: Use for any task involving APIMatic's SDK generation toolchain (APIMatic CLI v2). Use when a user wants to generate, create, customize, download, or publish a C#, Python, or TypeScript SDK using the APIMatic CLI. Also use when the user has already customized a generated SDK and wants to save those changes, when the user wants to make a specific change to an SDK (e.g. "change the analyzer", "switch the linter", "disable linting"), when the user wants to validate or transform an API definition before generating, or when the user wants to publish an SDK to a package registry (NuGet, PyPI, npm) or source repository, or wants to list publishing profiles.
 ---
 
 # APIMatic SDK
@@ -16,7 +16,6 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - User mentions `sdk save-changes` or asks how to save SDK changes
 - User says they have already customized a generated SDK and want to save or commit those changes
 - User asks to customize an SDK in a specific way (e.g. "change the analyzer", "switch the linter", "update the test framework in the TypeScript SDK")
-- User asks to change a CodeGen setting (e.g. "enable retry on timeout", "set the project name", "disable linting", "change the timeout", "enable HTTP cache") — these can be applied via `APIMATIC-META.json` and a regeneration
 - User wants to validate their API definition or convert it to another format before generating
 - User wants to publish an SDK to a package registry (NuGet, PyPI, npm) or source code repository (GitHub)
 - User wants to list publishing profiles or find a profile ID for publishing
@@ -35,9 +34,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to run `sdk save-changes` without `--track-changes` having been enabled → change tracking must be initialized during generation; regenerate with `--track-changes` first
 - About to add `--api-version` when user hasn't mentioned a specific API version → only include `--api-version` when the user explicitly names a version
 - About to ask for information the user already stated in their prompt → use what was given; only ask for genuinely unknown values
-- About to edit a generated SDK file for a change that could be a CodeGen setting → read each file in `references/` that covers settings (e.g. `endpoint-settings.md`, `http-configuration-settings.md`, `timeout-and-retries-settings.md`, `sdk-interface-customization-settings.md`, etc.) and check whether the change maps to a listed setting; if it does, update `APIMATIC-META.json` and regenerate instead of modifying generated files
-- About to pick the first matching CodeGen setting without reading all reference files → read all reference files first, then pick the most suitable match
-- About to manually delete or remove a generated folder or file (e.g., `docs/`, `README.md`) as a customization → check codegen settings first; (e.g., removing docs maps to `DisableDocs: true` in `APIMATIC-META.json`) — set this before generating, not after via file deletion or custom code injection
+- About to change the SDK through a CodeGen settings file → Codegen v4, the only generator in CLI v2, supports no CodeGen settings. Follow [CodeGen Settings](#codegen-settings) instead
 - About to open, read, or edit the `.<language>` files inside `sdk-source-tree/` (e.g., `.typescript`, `.python`) → these files are managed exclusively by the CLI; never touch them directly under any circumstance
 - About to manually compare or inspect customizations by reading `sdk-source-tree/` → if the user wants to see what changed between a plain generation and their customized one, regenerate using `--skip-changes` to produce a clean copy, then compare that against the customized SDK; do not manipulate or read the source tree files
 - About to run `sdk publish` because the user said "for publishing", "to publish", "for npm", or similar contextual phrases → these describe the user's **goal**, not a publish instruction; only run `sdk publish` if the user explicitly asks to publish (e.g., "publish the SDK", "run sdk publish", "push to npm using apimatic", "push to GitHub using apimatic"); for any other phrasing, stop at SDK generation
@@ -73,49 +70,20 @@ If the user asks Claude to make a specific change to an SDK (e.g. "change the an
 
 1. Confirm the Prerequisites section below is satisfied (Node.js 24+, CLI v2 installed).
 2. Complete Step 1: Authenticate with APIMatic below.
-3. **Check if the change is a CodeGen setting first** — see the [CodeGen Settings Check](#codegen-settings-check) section below. If the change maps to a CodeGen setting, follow that path instead.
-4. If the change is not a CodeGen setting, run the [Change Tracking Availability Check](#change-tracking-availability-check), then **check for `sdk-source-tree`** — see the [SDK Source Tree Check](#sdk-source-tree-check) section below.
+3. If the user expects the change to be a generation setting, first tell them as described in [CodeGen Settings](#codegen-settings).
+4. Run the [Change Tracking Availability Check](#change-tracking-availability-check), then **check for `sdk-source-tree`** — see the [SDK Source Tree Check](#sdk-source-tree-check) section below.
 
 Do not ask whether the user wants to customize or save — they have already told you what change to make. Proceed without prompting unless something is genuinely unknown.
 
-## CodeGen Settings Check
+## CodeGen Settings
 
-Before editing any generated SDK files for a customization, check whether the change can be applied as a CodeGen setting in `APIMATIC-META.json`.
+CLI v2 generates SDKs with Codegen v4, which does not support CodeGen settings. Every change to a generated SDK is a code customization.
 
-Read each of the following reference files one by one and check whether the requested change maps to a setting described in that file. Read all of them before deciding — pick the most suitable match:
+When the user expects a change to be a generation setting, tell them:
 
-- `references/user-agent-settings.md`
-- `references/code-branding-settings.md`
-- `references/endpoint-settings.md`
-- `references/enum-settings.md`
-- `references/exception-settings.md`
-- `references/http-configuration-settings.md`
-- `references/miscellaneous-settings.md`
-- `references/model-settings.md`
-- `references/sdk-docs-configuration-settings.md`
-- `references/sdk-interface-customization-settings.md`
-- `references/serialization-settings.md`
-- `references/timeout-and-retries-settings.md`
+> "The current SDK generator doesn't support configuration settings, so this can't be switched on in a config file. I can make the change directly in the generated SDK code instead."
 
-The language-support tables in these files also list Java, PHP, Ruby, and Go. CLI v2 generates only C#, Python, and TypeScript, so read only the **C#**, **Python**, and **TS** columns. If a setting is not supported for the user's language, say so and continue to the SDK Source Tree Check.
-
-**If a matching setting is found in any of those files:**
-
-Follow the numbered steps in that reference file to apply the setting and verify the output. Then continue below:
-
-1. If the input directory is not already known, ask: "What is the path to the directory that contains the `src/` folder?"
-2. Open `<input-dir>/src/spec/APIMATIC-META.json`. If this is a fresh project being scaffolded (the main Step 2 — Determine the input directory — is in progress), note the setting and apply it to `APIMATIC-META.json` as part of scaffolding — then continue to generation. If the file does not exist and the project should already have it, follow `references/first-time-setup.md` to scaffold the project first.
-3. Locate the `CodeGenSettings` object. Add or update the relevant key with the appropriate value.
-4. Save the file.
-5. Regenerate the SDK — proceed from [Step 3 to Step 7](#step-3-choose-the-language), skip the steps for which you have the values already known (language, destination, and API version).
-
-This is always the preferred approach when a CodeGen setting covers the request. Settings applied this way are baked into the generation config and survive every future regeneration — no manual file edits required.
-
-The v4 documentation does not list individual CodeGen settings for Codegen v4, so always complete the reference file's "Verify the Output" step after regenerating. If the setting had no visible effect, tell the user plainly that the setting did not change the generated SDK with the current generator, and offer a file-level customization instead.
-
-**If the setting is not listed there:**
-
-Continue to the [SDK Source Tree Check](#sdk-source-tree-check) for file-level customization.
+If the user wants to go ahead, treat the request as a code customization: run the [Change Tracking Availability Check](#change-tracking-availability-check), then continue with the [SDK Source Tree Check](#sdk-source-tree-check).
 
 ---
 
@@ -271,7 +239,7 @@ If you do not know whether the user has an existing project with a `src/` folder
 - **Has a `src/` folder →** Ask: "What is the path to the directory that contains the `src/` folder?"
   The `--input` flag will point to this directory.
 
-- **Starting from scratch →** Read `references/first-time-setup.md` and follow every step in order to scaffold the project directory with `src/spec/`, the user's API spec, and `APIMATIC-META.json`. Then continue to Step 3.
+- **Starting from scratch →** Read `references/first-time-setup.md` and follow every step in order to scaffold the project directory with `src/spec/` and the user's API spec. Then continue to Step 3.
 
 ## Step 3: Choose the language
 
@@ -301,16 +269,7 @@ Check whether the user wants to generate the SDK for a specific API version. Loo
 
 ## Step 6: Customization intent
 
-If the user has already described a specific change they want (e.g., "remove the docs folder", "disable documentation", "set the project name", "disable linting"), **check codegen settings first** — see the [CodeGen Settings Check](#codegen-settings-check) section, which will have you scan the individual reference files — before planning any manual file edits or deletions or additions.
-
-If the change maps to a CodeGen setting:
-
-- **New project (being scaffolded now):** Apply the setting to `APIMATIC-META.json` before generating. The setting is baked in from the start — no post-generation editing needed.
-- **Existing project (already has `APIMATIC-META.json`):** Apply the setting now and regenerate. The setting takes effect automatically.
-
-**Never plan to apply a CodeGen-covered customization by manually editing or deleting or adding generated files.** For example, "remove the docs folder" maps to `DisableDocs: true` — the correct fix is to set it before generation, not to delete the output folder afterward as a custom code injection.
-
-If the change does not map to any CodeGen setting, continue below.
+If the user has already described a specific change they want (e.g., "remove the docs folder", "disable documentation", "set the project name", "disable linting"), it is a code customization (see [CodeGen Settings](#codegen-settings)). Treat it as "User says yes" below.
 
 If not already known from context, ask: "Would you like to customize the SDK after generating it? (e.g., add custom code, modify generated files)"
 
