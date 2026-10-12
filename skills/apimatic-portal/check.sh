@@ -27,6 +27,8 @@ done
 if [ -z "$PY" ]; then echo "python3 (or python) is required"; exit 1; fi
 
 # ─────────────────────────────────────────────
+# REMINDER: CLI v2 is pinned to the npm `beta` dist-tag. When CLI v2 goes GA, these checks
+# must change with the skills — see "When APIMatic CLI v2 goes GA" in MAINTAINING.md.
 separator "QUAL-01 — Node.js 24+ and @apimatic/cli@beta"
 
 for f in "$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md"; do

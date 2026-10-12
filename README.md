@@ -75,3 +75,7 @@ The agent will invoke the right skill and guide you through the workflow step by
 - [APIMatic cli](https://www.npmjs.com/package/@apimatic/cli)
 - [APIMatic documentation](https://docs.apimatic.io/v4)
 - [APIMatic app](https://app.apimatic.io)
+
+## Maintaining these skills
+
+See [MAINTAINING.md](MAINTAINING.md) for release notes, the v1 maintenance branch, and the checklist for when APIMatic CLI v2 leaves beta.
