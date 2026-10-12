@@ -820,7 +820,7 @@
     {
       "id": 21,
       "prompt": "Put the API Reference tab before the SDKs tab in my portal.",
-      "expected_output": "The agent edits src/content/nav.json and places \"apimatic:api\" before \"apimatic:sdks\" in pages.",
+      "expected_output": "The agent edits src/content/nav.json and places \"apimatic:api\" before \"apimatic:sdks\" in the root file's tabs list (not in pages).",
       "files": [],
       "assertions": [
         {
@@ -840,6 +840,12 @@
           "description": "Response uses the apimatic:sdks token",
           "type": "contains",
           "value": "apimatic:sdks"
+        },
+        {
+          "id": "uses-tabs",
+          "description": "Response orders the tabs with the tabs key",
+          "type": "contains",
+          "value": "\"tabs\""
         }
       ]
     },
@@ -950,6 +956,101 @@
           "description": "Response points to the Node.js download page",
           "type": "contains",
           "value": "nodejs.org"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "prompt": "Our portal won't get its own subdomain. It will live at https://acme.com/developers on our main site. What do I need to change?",
+      "expected_output": "The agent sets portal.site.url to the full address https://acme.com/developers, restarts the preview because the path changed, rebuilds with apimatic portal generate, and explains that the build must be served at /developers with 404.html for missing pages under it, and that no robots.txt is generated so the sitemap line goes in the root robots.txt.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "sets-full-url",
+          "description": "Response sets site.url to the address with the path",
+          "type": "contains",
+          "value": "https://acme.com/developers"
+        },
+        {
+          "id": "restarts-preview",
+          "description": "Response restarts the preview after changing the path",
+          "type": "contains",
+          "value": "restart"
+        },
+        {
+          "id": "mentions-404",
+          "description": "Response says to serve 404.html under the path",
+          "type": "contains",
+          "value": "404.html"
+        },
+        {
+          "id": "mentions-robots",
+          "description": "Response explains the robots.txt / sitemap handling",
+          "type": "contains",
+          "value": "robots.txt"
+        },
+        {
+          "id": "no-v1-keys",
+          "description": "Response does NOT use v1 baseUrl",
+          "type": "not_contains",
+          "value": "baseUrl"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "After updating the APIMatic CLI, my portal's tab bar disappeared. The Guides folder, API Reference and SDKs now show up in the sidebar, and portal serve warns that src/content/nav.json has no tabs. My nav.json is {\"pages\": [\"index\", \"guides\", \"apimatic:api\", \"apimatic:sdks\"]}.",
+      "expected_output": "The agent explains that only what the root nav.json lists in tabs is a tab, moves guides, apimatic:api, and apimatic:sdks from pages to a tabs list (a name cannot be in both), and confirms the preview picks up the change.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "adds-tabs",
+          "description": "Response adds a tabs key",
+          "type": "contains",
+          "value": "\"tabs\""
+        },
+        {
+          "id": "keeps-guides-tab",
+          "description": "Response keeps Guides as a tab",
+          "type": "contains",
+          "value": "guides"
+        },
+        {
+          "id": "keeps-api-tab",
+          "description": "Response keeps the API reference as a tab",
+          "type": "contains",
+          "value": "apimatic:api"
+        },
+        {
+          "id": "no-v1-toc",
+          "description": "Response does NOT use toc.yml",
+          "type": "not_contains",
+          "value": "toc.yml"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "OAuth sign-in in my portal's API playground fails: the provider says the redirect URI doesn't match. The portal is at https://docs.acme.com.",
+      "expected_output": "The agent explains that the playground's OAuth sign-in returns to one page, /oauth/callback, and tells the user to register https://docs.acme.com/oauth/callback as a redirect URI with their OAuth provider.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "gives-callback",
+          "description": "Response gives the callback address",
+          "type": "contains",
+          "value": "https://docs.acme.com/oauth/callback"
+        },
+        {
+          "id": "register-with-provider",
+          "description": "Response tells the user to register it with the provider",
+          "type": "contains_any",
+          "value": [
+            "register",
+            "add it",
+            "allowed redirect",
+            "redirect uri"
+          ]
         }
       ]
     },

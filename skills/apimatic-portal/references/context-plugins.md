@@ -2,7 +2,7 @@
 
 An APIMatic Context Plugin gives AI coding assistants (Claude Code, Cursor, VS Code) accurate, current context about an API: the full API reference, authentication details, versioned SDK code, integration workflows and code samples, and per-language skills for client setup, calling endpoints, models, errors, configuration, and testing.
 
-The portal shows a **Context Plugin** tab with install instructions when `src/apimatic.json` has either:
+The portal shows a **Context Plugin** page with install instructions when `src/apimatic.json` has either:
 
 - a **`plugin` block** — the plugin generated from this project, or
 - a **`portal.pluginUrl`** — a plugin that is hosted elsewhere. It must start with `https://`.
@@ -69,11 +69,11 @@ Flags: `-i, --input` and `-d, --destination` (where the plugin was generated, de
 
 ## Step 4: Show it in the portal
 
-- With the `plugin` block in `apimatic.json`, the portal gets a **Context Plugin** tab. Restart the preview after adding the block (`serve.mjs restart --input ./`) — the plugin is fetched when the preview starts.
-- If the plugin is hosted somewhere else, set `portal.pluginUrl` to its `https://` address instead. The tab then installs the plugin from that address; the portal does not carry its own copy.
-- Position the tab with `"apimatic:plugin"` in `src/content/nav.json` (see `content-and-navigation.md`).
+- With the `plugin` block in `apimatic.json`, the portal gets a **Context Plugin** page. Restart the preview after adding the block (`serve.mjs restart --input ./`) — the plugin is fetched when the preview starts.
+- If the plugin is hosted somewhere else, set `portal.pluginUrl` to its `https://` address instead. The page then installs the plugin from that address; the portal does not carry its own copy.
+- To make it a tab, add `"apimatic:plugin"` to `tabs` in `src/content/nav.json`. Otherwise it is a folder in Home's sidebar (see `content-and-navigation.md`).
 
-To remove the tab, remove the `plugin` block (applies live) or `pluginUrl`.
+To remove the page, remove the `plugin` block (applies live) or `pluginUrl`.
 
 ---
 

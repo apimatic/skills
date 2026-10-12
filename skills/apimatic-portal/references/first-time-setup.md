@@ -112,8 +112,8 @@ The scaffold contains:
 src/
 ├── apimatic.json          # portal settings and SDK languages
 ├── content/
-│   ├── index.md           # home page
-│   └── nav.json           # sidebar order
+│   ├── index.mdx          # home page
+│   └── nav.json           # the tabs, and Home's sidebar order
 ├── spec/
 │   └── openapi.json       # sample API definition
 └── static/
@@ -141,7 +141,7 @@ node {skill_dir}/scripts/serve.mjs start --input ./
 
 The script streams `apimatic portal serve` output live and exits once the line `The portal is running at <url>` appears. The first start fetches the generated SDKs and code samples, so it can take a minute or two. When the URL appears, output the **Server Briefing** below verbatim, substituting the real URL.
 
-**If the script exits with code 1 or times out without a URL:** read the CLI output it printed. CLI v2 explains each problem and names the file it is in — common causes are an invalid spec, a mistake in `src/apimatic.json`, or a page without a `title` in its front matter. Fix the specific problem (see `references/apimatic-json.md` and `references/content-and-navigation.md`; for spec errors run `apimatic api validate --file=src/spec/<file>`), then retry `node {skill_dir}/scripts/serve.mjs start --input ./`.
+**If the script exits with code 1 or times out without a URL:** read the CLI output it printed. CLI v2 explains each problem and names the file it is in — common causes are an invalid spec, a mistake in `src/apimatic.json`, or a page without a `title` in its front matter. Fix the specific problem (see `references/apimatic-json.md` and `references/content-and-navigation.md`; for spec errors run `apimatic api validate`), then retry `node {skill_dir}/scripts/serve.mjs start --input ./`.
 
 If fixes do not resolve the issue, prompt the user to run the command manually:
 

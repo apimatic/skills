@@ -1197,6 +1197,37 @@
           "value": "apimatic --version"
         }
       ]
+    },
+    {
+      "id": 50,
+      "prompt": "Check the API definition in my project for errors before I generate anything. The project root is ./payments/ and it has src/spec/ set up. I'm authenticated.",
+      "expected_output": "The agent runs `apimatic api validate` against the project (from ./payments/, or with `--input=./payments`) so it checks the definition in src/spec/, and explains that errors must be fixed while warnings only lower quality. It does not generate an SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-validate",
+          "description": "Response runs apimatic api validate",
+          "type": "contains",
+          "value": "apimatic api validate"
+        },
+        {
+          "id": "targets-project",
+          "description": "Response validates the project rather than guessing a file name",
+          "type": "contains_any",
+          "value": [
+            "--input=./payments",
+            "--input ./payments",
+            "cd ./payments",
+            "cd payments"
+          ]
+        },
+        {
+          "id": "does-not-generate",
+          "description": "Response does NOT generate an SDK",
+          "type": "not_contains",
+          "value": "apimatic sdk generate --language"
+        }
+      ]
     }
   ]
 }

@@ -66,6 +66,6 @@ After setup, the project directory should look like this:
         └── <user-spec-file>       (e.g., openapi.json, petstore.yaml)
 ```
 
-Optionally run `apimatic api validate --file=<project-root>/src/spec/<user-spec-file>` to catch spec errors before generating.
+Optionally run `apimatic api validate` from the project root to catch spec errors before generating. It checks the definition in `src/spec/`.
 
 Navigate to the project root and continue with the SDK generation workflow.

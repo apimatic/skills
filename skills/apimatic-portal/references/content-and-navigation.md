@@ -23,8 +23,8 @@ How to add pages to an APIMatic CLI v2 portal and control the sidebar and tabs.
 src/
 ├── apimatic.json     # portal, SDK language, and plugin settings
 ├── content/          # your pages (.md or .mdx)
-│   ├── nav.json      # top-level order and tabs
-│   └── index.md      # home page
+│   ├── nav.json      # the tabs, and Home's sidebar order
+│   └── index.md      # home page (or index.mdx)
 ├── spec/             # your API definition(s)
 └── static/           # images and other files pages and apimatic.json use
 ```
@@ -33,7 +33,7 @@ src/
 - **`content/`** — your guides. Only `.md` and `.mdx` files and `nav.json` files are read.
 - **`static/`** — images, PDFs, and other files, served from the site root.
 
-Run `apimatic api validate --file=src/spec/<file>` to check a spec before building.
+Run `apimatic api validate` from the project root to check the specs in `src/spec/` before building.
 
 ---
 
@@ -77,7 +77,7 @@ A page's URL is its path under `src/content/` without the extension:
 | `content/guides/index.md` | `/guides` |
 | `content/(tutorials)/webhooks.md` | `/webhooks` (a `(group)` folder is left out of the URL) |
 
-Link between pages with normal Markdown links using these URLs: `[Quickstart](/guides/quickstart)`. API reference pages live under `/api/`.
+Link between pages with normal Markdown links using these URLs: `[Quickstart](/guides/quickstart)`. API reference pages live under `/api/`. When the portal is hosted under a path (`portal.site.url` is e.g. `https://example.com/docs`), keep writing links this way — the build adds the path.
 
 Every page is also available as Markdown at `<url>.md`, and the whole portal is summarized at `/llms.txt` and `/llms-full.txt`.
 
@@ -87,7 +87,7 @@ Every page is also available as Markdown at `<url>.md`, and the whole portal is 
 
 - An image written with a leading `/` (e.g. `![Logo](/images/logo.png)`) is read from `src/static/` — here, `src/static/images/logo.png`.
 - Any other relative path (e.g. `![Diagram](./diagram.png)`) is read from beside the page in `src/content/`.
-- The build fails if a page shows an image it cannot find.
+- The build fails if a page shows an image it cannot find. This applies to inline images and to reference-style images (`![alt][ref]` with `[ref]: /images/x.png` elsewhere on the page).
 
 Creating `src/static/` while the preview is running needs a restart before its files are served.
 
@@ -95,7 +95,7 @@ Creating `src/static/` while the preview is running needs a restart before its f
 
 ## nav.json
 
-Each folder in `src/content/` can have a `nav.json` that sets the order of the pages and folders in it. It has only two settings:
+Each folder in `src/content/` can have a `nav.json` that sets the order of the pages and folders in it. It has two settings, plus a third, `tabs`, only in `src/content/nav.json`:
 
 ```json
 {
@@ -106,8 +106,9 @@ Each folder in `src/content/` can have a `nav.json` that sets the order of the p
 
 | Setting | Description |
 |---------|-------------|
-| `pages` | Order of the pages and folders in **this** directory. |
-| `title` | Names this folder in the sidebar (outranks the folder name and its index page's title). In `src/content/nav.json` it names the **Home** tab. |
+| `pages` | Order of the pages and folders in **this** directory. In `src/content/nav.json`, the order of Home's sidebar. |
+| `title` | Names this folder in the sidebar (outranks the folder name and its index page's title). In `src/content/nav.json` it names the **Home** tab — which shows only when there is at least one other tab. |
+| `tabs` | **Only in `src/content/nav.json`.** The tabs after Home, in order. See [Tabs](#tabs). |
 
 Rules for `pages` entries — the CLI refuses a file that breaks them:
 
@@ -116,8 +117,8 @@ Rules for `pages` entries — the CLI refuses a file that breaks them:
 - Each entry may appear only once.
 - In a subfolder's `nav.json`, do not list `"index"` — the folder itself links to its index page, and the parent's `nav.json` positions the folder.
 - A folder with no pages in it cannot be listed.
-- Tokens (only in `src/content/nav.json`): `"apimatic:sdks"`, `"apimatic:plugin"`, `"apimatic:api"`. See [Tabs](#tabs).
-- Any other setting (e.g. `"order"`, `"icon"`) is an error — only `title` and `pages` exist.
+- Tokens (only in `src/content/nav.json`, in its `tabs` or `pages`): `"apimatic:sdks"`, `"apimatic:plugin"`, `"apimatic:api"`. See [Tabs](#tabs).
+- Any other setting (e.g. `"order"`, `"icon"`) is an error — only `title` and `pages` exist, plus `tabs` in `src/content/nav.json`. `tabs` in a subfolder's `nav.json` is an error.
 - Save the file as UTF-8 **without** a byte-order mark.
 
 Editing a `nav.json` applies live in the preview.
@@ -126,32 +127,43 @@ Editing a `nav.json` applies live in the preview.
 
 ## Tabs
 
-The top level of the portal is shown as tabs, decided by `src/content/nav.json`:
+Only what the `tabs` list in `src/content/nav.json` names is a tab:
 
-- **Home** comes first. It holds `index.md`, every other page at the top level, and any folders the file does **not** list. It opens on `index.md`. The root file's `title` renames it.
-- **Each folder listed** in `src/content/nav.json` becomes a tab of its own, after Home, in the file's order.
-- **Generated tabs** are positioned with tokens:
+- **Home** comes first, always. It holds `index.md` and every top-level page, plus every folder and generated section that `tabs` does not name, ordered by the root file's `pages`. It opens on `index.md`. The root file's `title` renames it.
+- **`tabs`** lists the tabs after Home, in order. An entry is a folder directly under `src/content/`, or one of these tokens:
 
-| Token | Tab |
-|-------|-----|
+| Token | Section |
+|-------|---------|
 | `apimatic:sdks` | **SDKs** — a card per language in `apimatic.json` `languages`, plus a page per language |
 | `apimatic:plugin` | **Context Plugin** — shown when `apimatic.json` has a `plugin` block or `portal.pluginUrl` |
-| `apimatic:api` | **API Reference** — generated from `src/spec/` |
+| `apimatic:api` | **API Reference** — generated from `src/spec/` (`"api"` also names it) |
 
-If the root `nav.json` names none of the tokens, the generated tabs are placed in their default order.
+- A generated section left out of `tabs` is a folder in Home's sidebar; position it there with its token in `pages`.
+- **No `tabs` key** (or no root `nav.json`) → no tab bar: the API Reference, SDKs, and Context Plugin become folders in Home's sidebar. `portal serve` and `portal generate` warn about this and print the `"tabs"` line to add. `"tabs": []` keeps the single sidebar and silences the warning.
 
-Example — Home, then a Guides tab, then the API Reference, SDKs, and Context Plugin tabs:
+Rules for `tabs` — the CLI refuses a file that breaks them:
+
+- A page cannot be a tab — only a folder or a token. Order pages with `pages`.
+- `"..."` cannot be a tab. Name each folder meant as a tab; the rest stay in Home.
+- A name cannot be in both `tabs` and `pages` (and `api` and `apimatic:api` count as the same name).
+- No nested paths (`"guides/advanced"`) — a tab is a folder directly under `src/content/`.
+- A folder that serves the home page cannot be a tab.
+
+Example — Home (named "Overview"), then a Guides tab, then the API Reference, SDKs, and Context Plugin tabs:
 
 ```json
 {
   "title": "Overview",
-  "pages": ["index", "changelog", "guides", "apimatic:api", "apimatic:sdks", "apimatic:plugin"]
+  "tabs": ["guides", "apimatic:api", "apimatic:sdks", "apimatic:plugin"],
+  "pages": ["index", "changelog", "..."]
 }
 ```
 
-Here `index` and `changelog` are pages in Home (the root `nav.json` may list `index` to order it among Home's pages), and `guides` is a folder, so it becomes its own tab.
+Here `index` and `changelog` are pages in Home's sidebar (the root `nav.json` may list `index` to order it among Home's pages), and `guides` is a folder, so it becomes its own tab.
 
-A folder that serves the home page cannot be a tab. Do not name a top-level page or folder `api` — that is where the API reference is mounted; use `apimatic:api` to position it.
+Do not name a top-level page or folder `api` — that is where the API reference is mounted; use `apimatic:api` to position it.
+
+**Projects created before CLI 2.0.0-beta.3** made every folder in the root `pages`, and all three generated sections, tabs. After upgrading, they lose their tab bar until the root `nav.json` gets a `tabs` key: move each folder that should stay a tab from `pages` to `tabs`, and add the tokens. Page URLs do not change.
 
 ---
 
@@ -204,7 +216,7 @@ Other components from CLI v1 portals (`<CardGroup>`, `page:` links, custom HTML 
 
 ## Reserved addresses
 
-The portal serves its generated pages at `/sdks` (and `/sdks/<language>`) and `/context-plugin`. A page in `src/content/` that would be served there (for example `content/sdks/index.md` or `content/context-plugin.md`) is refused. `/api` belongs to the API reference.
+The portal serves its generated pages at `/sdks` (and `/sdks/<language>`), `/context-plugin`, and `/oauth/callback` (where the API playground's OAuth sign-in returns). A page in `src/content/` that would be served there (for example `content/sdks/index.md`, `content/context-plugin.md`, or `content/oauth/callback.md`) is refused. `/api` belongs to the API reference.
 
 ---
 
@@ -229,9 +241,20 @@ The portal serves its generated pages at `/sdks` (and `/sdks/<language>`) and `/
 ### Make a Guides tab
 
 1. Put the guide pages in `src/content/guides/`, with an optional `index.md` as the tab's landing page.
-2. Add `"guides"` to `pages` in `src/content/nav.json`.
+2. Add `"guides"` to `tabs` in `src/content/nav.json` (and remove it from `pages` if it is there).
 3. Optionally add `src/content/guides/nav.json` with a `title` and page order.
 
 ### Put the API Reference before the SDKs
 
-In `src/content/nav.json`: `"pages": ["index", "...", "apimatic:api", "apimatic:sdks"]`.
+In `src/content/nav.json`, order the tokens in `tabs`: `"tabs": ["apimatic:api", "apimatic:sdks"]`.
+
+### Restore the tab bar after a CLI upgrade
+
+The CLI warns that the root `nav.json` has no `tabs`, and the guides and generated sections now sit in Home's sidebar. Add the line the warning prints, for example:
+
+```json
+{
+  "tabs": ["guides", "apimatic:sdks", "apimatic:api"],
+  "pages": ["index", "..."]
+}
+```

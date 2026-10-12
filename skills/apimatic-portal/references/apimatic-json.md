@@ -89,17 +89,40 @@ Unknown top-level properties are ignored.
 | `brand` | object | Logo, favicon, primary color, and color mode. |
 | `navigation` | object | Header links. |
 | `ai` | object | AI features on portal pages. |
-| `pluginUrl` | string | Where a Context Plugin hosted elsewhere lives. Must start with `https://` and contain no spaces. Adds the Context Plugin tab. See `context-plugins.md`. |
+| `pluginUrl` | string | Where a Context Plugin hosted elsewhere lives. Must start with `https://` and contain no spaces. Adds the Context Plugin page. See `context-plugins.md`. |
 
 ### portal.site
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `name` | non-blank string | Title of the only spec | The portal's name. **Required** when `src/spec/` holds more than one spec. |
-| `url` | string | — | Production address **without a path**, e.g. `https://docs.example.com`. `http://` and `https://` are accepted; one trailing `/` is allowed. Adds canonical links to every page, makes the URLs in `sitemap.xml` absolute, and adds the sitemap to `robots.txt`. Set it for any portal that should be indexed by search engines. |
+| `url` | string | — | The address the portal is hosted at: an origin such as `https://docs.example.com`, or an origin and a path such as `https://example.com/docs` to host the portal under that path. `http://` and `https://` are accepted; one trailing `/` is allowed. Adds canonical links to every page, makes the URLs in `sitemap.xml` absolute, and (at the root of a host) adds the sitemap to `robots.txt`. Set it for any portal that should be indexed by search engines. |
 | `description` | string | First paragraph of the only spec's description | Portal description. An empty string means no description. |
 
-Never set `url` to a localhost address or include a path such as `https://example.com/docs`.
+Never set `url` to a localhost address.
+
+#### Hosting under a path
+
+When `url` has a path, the portal is built to be served under it: every page, asset, `sitemap.xml`, and `llms.txt` lives below `https://example.com/docs/`. Rules for the path:
+
+- Each part between `/`s uses only letters, digits, `.`, `_`, `~`, and `-`, and cannot be `.` or `..`. No empty parts (`//`).
+- No `?`, `#`, or `\`.
+- It cannot end in a page name such as `index.html`.
+
+What changes:
+
+- Links in pages and in `navigation.links` stay portal-relative (`/guides/quickstart`); the build adds the path.
+- No `robots.txt` is generated, since crawlers read it only at a host's root. If the user controls the root, add `Sitemap: https://example.com/docs/sitemap.xml` to its `robots.txt`.
+- The host must serve the build at the path and serve `404.html` for missing pages under it.
+- The preview is served under the path too (e.g. `http://localhost:23513/docs/`). **Changing the path needs the preview restarted.**
+- The OAuth redirect URI for the API playground is `https://example.com/docs/oauth/callback`.
+
+```json
+"site": {
+  "name": "Acme Payments",
+  "url": "https://acme.com/docs"
+}
+```
 
 ### portal.brand
 
@@ -163,7 +186,7 @@ The project's SDK languages. Keys must be one of:
 `csharp` · `python` · `typescript`
 
 A portal needs **at least one** language. Each language gets:
-- a card on the **SDKs** tab with a download link
+- a card on the **SDKs** page with a download link
 - a page with that SDK's getting-started guide
 - a code sample in that language on every API reference page
 
@@ -181,7 +204,7 @@ The order of keys is the order of the SDK cards and language tabs. Adding a lang
 
 ## plugin
 
-The Context Plugin's identity. `apimatic plugin generate` asks for these values on its first run and writes them here. Adding a `plugin` block adds a **Context Plugin** tab to the portal (restart the preview after adding it).
+The Context Plugin's identity. `apimatic plugin generate` asks for these values on its first run and writes them here. Adding a `plugin` block adds a **Context Plugin** page to the portal — a tab when `apimatic:plugin` is in the root `nav.json`'s `tabs` (restart the preview after adding it).
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
@@ -239,7 +262,8 @@ Unknown properties are not allowed on links.
 | "Dark mode only" / "remove the theme toggle" | `portal.brand.colorMode` → `"dark"` or `"light"` |
 | "Add a link to our dashboard in the header" | Append to `portal.navigation.links` |
 | "Remove the Ask AI / open in ChatGPT buttons" | `portal.ai.pageActions` → `false` |
-| "Set up SEO" / "fix the sitemap URLs" | `portal.site.url` → production origin |
+| "Set up SEO" / "fix the sitemap URLs" | `portal.site.url` → production address |
+| "Host the portal at example.com/docs" | `portal.site.url` → `https://example.com/docs`, then restart the preview and rebuild |
 | "Only show Python SDK" | `languages` → `{ "python": {} }` |
 | "Change fonts" / "custom CSS" / "API Copilot" / "recipes" | Not available in CLI v2 — tell the user; do not add keys |
 

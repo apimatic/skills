@@ -84,7 +84,7 @@ fi
 # ─────────────────────────────────────────────
 separator "QUAL-03 — v2 configuration model"
 
-for token in "src/apimatic.json" "nav.json" "front matter" "apimatic:api" "apimatic:sdks" "apimatic:plugin" "pageActions" "colorMode"; do
+for token in "src/apimatic.json" "nav.json" "front matter" "apimatic:api" "apimatic:sdks" "apimatic:plugin" "pageActions" "colorMode" "\"tabs\"" "/oauth/callback" "Hosting under a path"; do
   if grep -qF "$token" "$SKILL_DIR/SKILL.md"; then
     pass "SKILL.md mentions $token"
   else
@@ -127,8 +127,17 @@ else
   fail "examples/apimatic.json is invalid"
 fi
 
+# `tabs` is read only in the root nav.json, and may not hold "..." or a name that is also in `pages`.
+ROOT_NAV="$SKILL_DIR/examples/content/nav.json"
+if "$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); t=d.get('tabs'); assert isinstance(t, list) and t; assert '...' not in t; assert not set(t) & set(d.get('pages', []))" "$ROOT_NAV"; then
+  pass "examples/content/nav.json uses tabs"
+else
+  fail "examples/content/nav.json has no valid tabs list"
+fi
+
 while IFS= read -r nav; do
-  if "$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8-sig')); assert set(d) <= {'title','pages'}; assert all('.' not in p.replace('...','') and '/' not in p for p in d.get('pages', []))" "$nav"; then
+  if [ "$nav" = "$ROOT_NAV" ]; then allowed="{'title','pages','tabs'}"; else allowed="{'title','pages'}"; fi
+  if "$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); assert set(d) <= $allowed; assert all('.' not in p.replace('...','') and '/' not in p for p in d.get('pages', []) + d.get('tabs', []))" "$nav"; then
     pass "$(realpath --relative-to="$SKILL_DIR" "$nav") is valid"
   else
     fail "$(realpath --relative-to="$SKILL_DIR" "$nav") is invalid"

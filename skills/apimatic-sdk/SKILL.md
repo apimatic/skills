@@ -336,7 +336,7 @@ The CLI prints `SDK generated successfully.` and where the SDK was saved.
 1. **Authentication error:** Re-run `apimatic auth status` to verify. If expired, re-authenticate (Step 1).
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
 3. **Missing `src/` folder or spec file:** Check that the input directory contains a `src/` folder with the API spec in `src/spec/`.
-4. **Errors in the API definition:** Run `apimatic api validate --file=src/spec/<spec-file>` and explain the reported errors (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). Errors must be fixed before an SDK can be generated; warnings can lower SDK quality but do not block generation.
+4. **Errors in the API definition:** Run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the reported errors (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). Errors must be fixed before an SDK can be generated; warnings can lower SDK quality but do not block generation.
 5. **Language not available:** If the CLI says the language is not available, only `csharp`, `python`, and `typescript` are supported — see Step 3.
 6. **SDK already exists at destination:** The CLI will refuse to overwrite. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
 7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`.
@@ -365,9 +365,13 @@ Use these when the user asks to check or convert their API definition, or when S
 **Validate** — checks syntax and semantics against APIMatic's validation and linting rules:
 
 ```
+apimatic api validate
+apimatic api validate --input=<path-to-parent-of-src>
 apimatic api validate --file=<path-to-spec>
 apimatic api validate --url=<public-url-to-spec>
 ```
+
+With no flags it validates the API definition in `./src/spec/`; `--input` points at another project root. `--file`, `--url`, and `--input` cannot be combined.
 
 Messages are reported as **Blocking** or **Error** (must be fixed before anything is generated), **Warning** (does not block, but can lower SDK quality), or **Information** (suggestions). For validation while editing, suggest the APIMatic extension for VS Code.
 

@@ -31,7 +31,7 @@ Read `src/APIMATIC-BUILD.json` and map what has a v2 equivalent:
 
 | v1 setting (under `generatePortal`) | v2 setting |
 |-------------------------------------|------------|
-| `baseUrl` | `portal.site.url` (origin only, no path) |
+| `baseUrl` | `portal.site.url` — the full address, including a path if the portal is hosted under one (e.g. `https://example.com/docs`) |
 | `pageTitle` / `navTitle` | `portal.site.name` |
 | `logoUrl` (+ `logoUrlDark`) | `portal.brand.logo` — a single `static/...` path, or `{ "light": ..., "dark": ... }`. Remove a leading `/` (e.g. `/static/images/logo.png` → `static/images/logo.png`) |
 | `faviconUrl` | `portal.brand.favicon` (a `static/...` path) |
@@ -109,12 +109,12 @@ toc:
 
 ```json
 // v2 src/content/nav.json
-{ "pages": ["index", "guides", "apimatic:api", "apimatic:sdks"] }
+{ "tabs": ["guides", "apimatic:api", "apimatic:sdks"], "pages": ["index", "..."] }
 ```
 
 - `generate: ... from: endpoints` / `models` / SDK sections are replaced by the tokens `apimatic:api` and `apimatic:sdks`.
 - A group that did not match a folder becomes a folder: move its pages into a directory named after it (update any links to them), or use a `(group)` folder to keep the URLs unchanged.
-- Folders listed in the root `nav.json` become top-level tabs.
+- Only what the root `nav.json` lists in `tabs` becomes a top-level tab. Everything else, including folders in `pages`, stays in Home's sidebar.
 
 Then delete `src/content/toc.yml`. See `content-and-navigation.md` for all `nav.json` rules.
 
@@ -127,5 +127,7 @@ Then delete `src/content/toc.yml`. See `content-and-navigation.md` for all `nav.
 ## Step 5: Preview and fix
 
 Upgrade the CLI (`npm install -g @apimatic/cli@beta`, Node 24+) — tell the user first, using the upgrade message in `SKILL.md` Prerequisites — then start the preview with `serve.mjs start --input ./`. Fix each problem the CLI reports, then continue with Path B in `SKILL.md`.
+
+If the API playground used OAuth sign-in, tell the user to register `<portal address>/oauth/callback` as a redirect URI with their OAuth provider (see `SKILL.md`, OAuth sign-in in the API playground).
 
 If the user uses shell completion, suggest `apimatic autocomplete --refresh-cache` to drop the removed commands.

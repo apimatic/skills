@@ -27,11 +27,13 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to run `apimatic portal toc new`, `apimatic portal recipe new`, or `apimatic portal copilot` → these commands were removed in CLI v2
 - About to create a page without front matter, or with no `title` in it → every page in `src/content/` must start with front matter that includes `title`
 - About to write `.md` or `.mdx` extensions in `nav.json`, or a nested path like `guides/intro` → entries are bare file or folder names from the same directory; each folder orders its own pages with its own `nav.json`
-- About to put a page at `src/content/sdks/...` or `src/content/context-plugin/...` → those addresses are reserved for pages the portal generates
+- About to make a folder, the SDKs, the API Reference, or the Context Plugin a tab by listing it in `pages` → only the `tabs` list in `src/content/nav.json` makes tabs; `pages` puts it in Home's sidebar (see `references/content-and-navigation.md`)
+- The CLI warns that `src/content/nav.json` has no `tabs`, so nothing is a tab → add the `"tabs": [...]` line it prints to keep a tab bar (or `"tabs": []` if the user wants a single sidebar). Projects created before CLI 2.0.0-beta.3 need this
+- About to put a page at `src/content/sdks/...`, `src/content/context-plugin/...`, or `src/content/oauth/callback.md` → those addresses are reserved for pages the portal generates
 - About to use a language key other than `csharp`, `python`, or `typescript` in `languages` → only these three are available
 - About to leave the `languages` block empty or remove it → a portal needs at least one SDK language
 - About to reference a logo or favicon outside `src/static/` (e.g. `images/logo.png`) → paths are written relative to `src` and must start with `static/`
-- About to add a page, add a language, add a `plugin` block, create `src/static/`, or change which files are in `src/spec/` while the preview is running, and then just wait for the browser to refresh → these changes need the preview **restarted** (see Portal Configuration)
+- About to add a page, add a language, add a `plugin` block, create `src/static/`, change which files are in `src/spec/`, or change the path in `portal.site.url` while the preview is running, and then just wait for the browser to refresh → these changes need the preview **restarted** (see Portal Configuration)
 - About to edit, create, or delete any file inside `src/` during first-time setup before the first portal preview → do not modify the scaffolded `src/` directory except for replacing the sample spec with the user's spec. Start the portal first, then make changes if the user asks.
 
 ## Communication Guidelines
@@ -174,7 +176,7 @@ Store the spec path. You will need it to bootstrap the portal.
 
 Read `references/first-time-setup.md` and follow every step in order. Do not skip steps or summarize — execute each step exactly as written.
 
-The CLI also has an interactive wizard, `apimatic quickstart`, but it prompts in the terminal and cannot be driven by an agent. Use the scripted setup in `references/first-time-setup.md`. Only mention `apimatic quickstart` if the user asks for a wizard they can run themselves.
+The CLI also has an interactive wizard, `apimatic quickstart`, but it prompts in the terminal and cannot be driven by an agent. Use the scripted setup in `references/first-time-setup.md`. Only mention `apimatic quickstart` if the user asks for a wizard they can run themselves. In a directory whose `src/spec/` already holds files, `apimatic quickstart` needs an existing `src/apimatic.json` and only adds what is missing; in an empty directory it writes one.
 
 ---
 
@@ -227,7 +229,7 @@ The script spawns `apimatic portal serve` and streams its output live. The first
 
 1. **Not signed in:** The CLI says you need to be signed in to generate a portal. Go back to Step 1.
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
-3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI reports problems with the spec, run `apimatic api validate --file=src/spec/<file>` and explain the errors to the user.
+3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI reports problems with the spec, run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the errors to the user.
 4. **Problems in `apimatic.json`, a page, or a `nav.json`:** The CLI lists each problem with the file it is in. Fix each one using `references/apimatic-json.md` and `references/content-and-navigation.md`, then retry.
 5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`, then retry.
 6. **Permission error or script cannot run:** If the error cannot be resolved automatically, tell the user:
@@ -260,7 +262,22 @@ apimatic portal generate --destination=./portal
 | `--zip` | Write the portal as a `.zip` archive instead of a folder. |
 | `-k, --auth-key` | Authenticate with an API key instead of the signed-in session. |
 
-**Deploying:** Upload the destination folder to any static host that serves files over HTTPS — Netlify, Cloudflare Pages, Vercel, Azure Static Web Apps or Blob Storage, AWS S3 behind CloudFront, or GitHub Pages. Point unknown paths at `404.html`; nothing else needs configuring. Then set the production address in `portal.site.url` in `src/apimatic.json` (no path, e.g. `https://docs.example.com`) — this adds canonical links and absolute sitemap URLs for search engines.
+**Deploying:** Upload the destination folder to any static host that serves files over HTTPS — Netlify, Cloudflare Pages, Vercel, Azure Static Web Apps or Blob Storage, AWS S3 behind CloudFront, or GitHub Pages. Point unknown paths at `404.html`; nothing else needs configuring. Set the production address in `portal.site.url` in `src/apimatic.json` (e.g. `https://docs.example.com`) — this adds canonical links and absolute sitemap URLs for search engines.
+
+### Hosting under a path
+
+To host the portal under a path of a site (e.g. `https://example.com/docs`) instead of on its own domain, put the full address, path included, in `portal.site.url` and rebuild. The build then serves every page, asset, `sitemap.xml`, and `llms.txt` under that path. Keep writing page links and header links as `/guides/quickstart` — the build adds the path. Then tell the user:
+
+- Upload the build so its contents are served at that path (for example, into a `docs/` folder at the host's root).
+- Serve `404.html` for missing pages under the path, so deep links resolve.
+- No `robots.txt` is generated, because crawlers read it only at the root of a host. If they control the root, add `Sitemap: https://example.com/docs/sitemap.xml` to its `robots.txt`.
+- To check the build locally, serve it under the same path; served from the root of a local server, its pages load without styles and scripts.
+
+The preview uses the path too (e.g. `http://localhost:23513/docs/`), so always use the URL `serve.mjs` reports. Changing the path needs the preview restarted.
+
+### OAuth sign-in in the API playground
+
+If the API uses OAuth 2 sign-in, every endpoint page in the playground returns to one page: `/oauth/callback` under the portal's address. Tell the user to register that redirect URI with their OAuth provider — e.g. `https://docs.example.com/oauth/callback`, or `https://example.com/docs/oauth/callback` when the portal is hosted under a path. Until they do, the provider refuses the sign-in. Portals built before CLI 2.0.0-beta.5 used each endpoint page's address instead, so this changes after an upgrade.
 
 **CI/CD:** Regenerate and redeploy whenever the API definition or guides change. In CI, use Node 24 and sign in with an API key stored as a secret, not a browser session:
 
@@ -289,11 +306,14 @@ Then deploy `./portal` with the host's CLI or Git integration. A complete sample
 | "Open in AI assistant" page actions | `portal.ai.pageActions` in `src/apimatic.json` |
 | SDK languages shown in the portal | `languages` in `src/apimatic.json` (`csharp`, `python`, `typescript`) |
 | Custom page | `.md` or `.mdx` file with `title` front matter in `src/content/` |
-| Sidebar order, folder titles, tabs | `nav.json` in each folder of `src/content/` |
+| Sidebar order, folder titles | `nav.json` in each folder of `src/content/` |
+| Tabs | `tabs` in `src/content/nav.json` |
+| Host under a path (e.g. `/docs`) | `portal.site.url` → full address with the path — see [Hosting under a path](#hosting-under-a-path) |
+| OAuth redirect URI for the playground | `<portal address>/oauth/callback` |
 | Images for pages | `src/static/` (written as `/images/x.png` in pages) |
 | Context Plugin page | `plugin` block (via `apimatic plugin generate`) or `portal.pluginUrl` |
 | LLMs.txt, sitemap, robots.txt | Generated automatically; set `portal.site.url` for absolute sitemap URLs and canonical links |
-| Validate the API spec | `apimatic api validate --file=src/spec/<file>` |
+| Validate the API spec | `apimatic api validate` (checks `src/spec/`) |
 
 ---
 
@@ -327,6 +347,7 @@ These edits need the preview **restarted**:
 - Adding a language to `languages`, or adding a `plugin` block
 - Creating `src/static/` when it did not exist
 - Adding, removing, or replacing files in `src/spec/`
+- Changing the path in `portal.site.url`
 
 If the change needs a restart, run `node {skill_dir}/scripts/serve.mjs restart --input ./`, surface the URL, and skip Step 3.
 
@@ -343,7 +364,7 @@ Apply this protocol after every configuration change in any sub-section below.
 
 ### Portal name, address, and description
 
-Set `portal.site.name`, `portal.site.url`, and `portal.site.description`. By default the portal takes its name and description from the API spec. `site.name` is **required** when `src/spec/` holds more than one spec. `site.url` is the production address without a path — never `http://localhost:...`.
+Set `portal.site.name`, `portal.site.url`, and `portal.site.description`. By default the portal takes its name and description from the API spec. `site.name` is **required** when `src/spec/` holds more than one spec. `site.url` is the production address — the origin (`https://docs.example.com`) or, when the portal is hosted under a path, the full address (`https://example.com/docs`, see [Hosting under a path](#hosting-under-a-path)). Never `http://localhost:...`.
 
 ### Branding: logo, favicon, colors, color mode
 
@@ -363,17 +384,24 @@ Add entries to `portal.navigation.links`. Each link has a `label` and a `url` th
 
 Create a `.md` or `.mdx` file anywhere under `src/content/` that starts with front matter giving its `title`, then add its file name (without extension) to the `nav.json` in the same folder if that file lists pages explicitly. Restart the preview after adding or removing a page.
 
-The top level of the portal is shown as tabs: **Home** holds `index.md` and the other top-level pages, each folder listed in `src/content/nav.json` becomes its own tab, and the generated tabs (SDKs, Context Plugin, API Reference) are positioned with the tokens `apimatic:sdks`, `apimatic:plugin`, and `apimatic:api`.
+Tabs come only from the `tabs` list in `src/content/nav.json`. **Home** is always the first tab and holds `index.md` and everything `tabs` does not name. `tabs` lists the tabs after Home, in order: folders directly under `src/content/`, and the generated sections `apimatic:sdks`, `apimatic:plugin`, and `apimatic:api`. Anything left out of `tabs` — the generated sections included — is a folder in Home's sidebar. Without a `tabs` key there is no tab bar, and the CLI warns about it.
+
+```json
+{
+  "tabs": ["guides", "apimatic:sdks", "apimatic:api"],
+  "pages": ["index", "..."]
+}
+```
 
 Read `references/content-and-navigation.md` for front matter, `nav.json` rules, tabs, folders, images, links, and the available MDX components (`Callout`, `Cards`/`Card`).
 
 ### SDK languages
 
-Each language in the `languages` block (`csharp`, `python`, `typescript`) gets a card on the SDKs tab with a download link, a page with its getting-started guide, and code samples on every API reference page. Declare a language with an empty object, e.g. `"python": {}`. Once `apimatic sdk publish` records a release, the card also shows the install command, package, and source repository. Do not hand-write the `publishing` part of a language entry — `apimatic sdk publish` writes it. Restart the preview after adding a language.
+Each language in the `languages` block (`csharp`, `python`, `typescript`) gets a card on the SDKs page with a download link, a page with its getting-started guide, and code samples on every API reference page. Declare a language with an empty object, e.g. `"python": {}`. Once `apimatic sdk publish` records a release, the card also shows the install command, package, and source repository. Do not hand-write the `publishing` part of a language entry — `apimatic sdk publish` writes it. Restart the preview after adding a language.
 
 ### Context Plugins
 
-A Context Plugin gives AI coding assistants (Claude Code, Cursor, VS Code) accurate context about the API and its SDKs. The portal shows a **Context Plugin** tab with install instructions when `apimatic.json` has a `plugin` block, or a `portal.pluginUrl` for a plugin hosted elsewhere.
+A Context Plugin gives AI coding assistants (Claude Code, Cursor, VS Code) accurate context about the API and its SDKs. The portal shows a **Context Plugin** page with install instructions (a tab when `apimatic:plugin` is in `tabs`) when `apimatic.json` has a `plugin` block, or a `portal.pluginUrl` for a plugin hosted elsewhere.
 
 Read `references/context-plugins.md` for the publish → generate → publish flow and the `plugin` block.
 
@@ -393,7 +421,9 @@ API Recipes, API Copilot, custom themes and fonts, custom header/footer HTML, `h
 | Page has no front matter or no `title` | Start every page with `---\ntitle: Page title\n---` |
 | `nav.json` entry has an extension or a path (`"guides/intro.md"`) | Use the bare name of a page or folder in the same directory (`"intro"`) |
 | Logo path `images/logo.png` or `/static/logo.png` | Write `static/images/logo.png` (relative to `src`, under `static`) |
-| Setting `site.url` to `http://localhost:23513` or including a path | Use the production origin only, e.g. `https://docs.example.com` |
+| Setting `site.url` to `http://localhost:23513` | Use the production address, e.g. `https://docs.example.com` |
+| Hosting under a path (e.g. `/docs`) but leaving it out of `site.url` | Put the full address in `site.url`, e.g. `https://example.com/docs`, and rebuild — otherwise pages load without styles and scripts |
+| Listing a folder or `apimatic:sdks` in `pages` to make it a tab | Move it to `tabs` in `src/content/nav.json`; a name cannot be in both lists |
 | Adding a page and waiting for live reload | Adding or removing pages needs `serve.mjs restart` |
 | Adding `theme`, `copilot`, or other v1 keys to `portal` | The `portal` block rejects unknown properties. The feature is not available in v2 |
 | Saving `nav.json` with a UTF-8 byte-order mark | Save as UTF-8 without BOM; the build cannot read a BOM |
@@ -403,8 +433,8 @@ API Recipes, API Copilot, custom themes and fonts, custom header/footer HTML, `h
 ## Reference Files
 
 - `references/first-time-setup.md` — Path A: Node 24 check, CLI v2 install, sign-in, scaffolding `src/` from the v2 sample portal, first preview, and the Server Briefing.
-- `references/apimatic-json.md` — Every `src/apimatic.json` setting: `portal.site`, `portal.brand`, `portal.navigation`, `portal.ai`, `portal.pluginUrl`, `languages`, `plugin`, and value formats (static paths, colors, links).
-- `references/content-and-navigation.md` — `src/content/` layout, page front matter, `nav.json` (ordering, `...`, titles, tabs, generated-section tokens, `(group)` folders), page URLs, images, reserved addresses, and MDX components.
+- `references/apimatic-json.md` — Every `src/apimatic.json` setting: `portal.site` (including hosting under a path), `portal.brand`, `portal.navigation`, `portal.ai`, `portal.pluginUrl`, `languages`, `plugin`, and value formats (static paths, colors, links).
+- `references/content-and-navigation.md` — `src/content/` layout, page front matter, `nav.json` (ordering, `...`, titles, `tabs`, generated-section tokens, `(group)` folders), page URLs, images, reserved addresses, and MDX components.
 - `references/context-plugins.md` — Generating and publishing a Context Plugin, the `plugin` block, and `pluginUrl`.
 - `references/upgrading-from-v1.md` — Moving a CLI v1 project (`APIMATIC-BUILD.json`, `toc.yml`) to CLI v2.
 - `examples/apimatic.json` — A complete `src/apimatic.json` using every portal setting.
