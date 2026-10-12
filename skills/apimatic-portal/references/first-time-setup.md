@@ -17,7 +17,19 @@ Run `node --version` and read the output.
 
 First run `apimatic --version`. If the output starts with `@apimatic/cli/2.`, CLI v2 is already installed — skip to Step A3.
 
-Otherwise, use AskUserQuestion:
+If the output starts with `@apimatic/cli/1.`, CLI v1 is installed and must be upgraded. Use AskUserQuestion (substituting the version it printed):
+
+```
+question: "You have APIMatic CLI v1 (<version>) installed, and this portal needs CLI v2. OK to upgrade it by running: npm install -g @apimatic/cli@beta? This replaces v1 on this machine; you can switch back later with npm install -g @apimatic/cli@1."
+options:
+  - "Yes, upgrade it"
+  - "No, I'll upgrade it myself"
+```
+
+- "Yes" → output: "Upgrading your APIMatic CLI to v2 now." Then follow the "Yes" branch below.
+- "No" → follow the "No" branch below.
+
+If the command is not found, use AskUserQuestion:
 
 ```
 question: "APIMatic CLI v2 needs to be installed globally. OK to run: npm install -g @apimatic/cli@beta?"

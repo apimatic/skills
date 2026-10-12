@@ -126,6 +126,6 @@ Then delete `src/content/toc.yml`. See `content-and-navigation.md` for all `nav.
 
 ## Step 5: Preview and fix
 
-Upgrade the CLI (`npm install -g @apimatic/cli@beta`, Node 24+), then start the preview with `serve.mjs start --input ./`. Fix each problem the CLI reports, then continue with Path B in `SKILL.md`.
+Upgrade the CLI (`npm install -g @apimatic/cli@beta`, Node 24+) — tell the user first, using the upgrade message in `SKILL.md` Prerequisites — then start the preview with `serve.mjs start --input ./`. Fix each problem the CLI reports, then continue with Path B in `SKILL.md`.
 
 If the user uses shell completion, suggest `apimatic autocomplete --refresh-cache` to drop the removed commands.

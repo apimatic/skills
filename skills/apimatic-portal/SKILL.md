@@ -93,7 +93,13 @@ npm install -g @apimatic/cli@beta
 apimatic --version
 ```
 
-The output should start with `@apimatic/cli/2.`. If the command fails, the CLI is not installed — re-run the install command. If it shows `1.x`, re-run the install command to upgrade.
+The output should start with `@apimatic/cli/2.`. If the command fails, the CLI is not installed — re-run the install command.
+
+If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
+
+> "You have APIMatic CLI v1 (`<version>`) installed, and this portal needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli@beta`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
+
+Then run the install command and check `apimatic --version` again.
 
 ## Step 1: Authenticate with APIMatic
 

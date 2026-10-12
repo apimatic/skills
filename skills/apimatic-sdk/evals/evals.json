@@ -1166,6 +1166,37 @@
           ]
         }
       ]
+    },
+    {
+      "id": 49,
+      "prompt": "Generate a TypeScript SDK for my project at ./ts-api/. I'm already authenticated. When I run apimatic --version it prints @apimatic/cli/1.5.0 win32-x64 node-v24.12.0.",
+      "expected_output": "The agent tells the user that CLI v1 (1.5.0) is installed and that it is upgrading the APIMatic CLI to v2 with `npm install -g @apimatic/cli@beta`, mentions how to switch back to v1, then verifies `apimatic --version` before generating.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "tells-user-upgrading",
+          "description": "Response tells the user the CLI is being upgraded",
+          "type": "contains_any",
+          "value": [
+            "upgrading your apimatic cli",
+            "upgrading the apimatic cli",
+            "upgrade your apimatic cli",
+            "upgrading it"
+          ]
+        },
+        {
+          "id": "installs-beta",
+          "description": "Response upgrades with npm install -g @apimatic/cli@beta",
+          "type": "contains",
+          "value": "npm install -g @apimatic/cli@beta"
+        },
+        {
+          "id": "verifies-version",
+          "description": "Response re-checks apimatic --version",
+          "type": "contains",
+          "value": "apimatic --version"
+        }
+      ]
     }
   ]
 }
