@@ -8,32 +8,48 @@ Use this path when no build directory (`src/`) exists yet. **You run every comma
 
 Run `node --version` and read the output.
 
-- v20.x.x or higher → proceed to Step A2
-- Lower than v20, or command not found → stop and output exactly: "Node.js 20 or higher is required. Please install it from https://nodejs.org/en/download/ then come back." Do not proceed.
+- v24.x.x or higher → proceed to Step A2
+- Lower than v24, or command not found → stop and output exactly: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back." Do not proceed.
 
 ---
 
 ## Step A2: Install the APIMatic CLI
 
-Before installing, use AskUserQuestion:
+First run `apimatic --version`. If the output starts with `@apimatic/cli/2.`, CLI v2 is already installed — skip to Step A3.
+
+If the output starts with `@apimatic/cli/1.`, CLI v1 is installed and must be upgraded. Use AskUserQuestion (substituting the version it printed):
 
 ```
-question: "APIMatic CLI needs to be installed globally. OK to run: npm install -g @apimatic/cli?"
+question: "You have APIMatic CLI v1 (<version>) installed, and this portal needs CLI v2. OK to upgrade it by running: npm install -g @apimatic/cli@beta? This replaces v1 on this machine; you can switch back later with npm install -g @apimatic/cli@1."
+options:
+  - "Yes, upgrade it"
+  - "No, I'll upgrade it myself"
+```
+
+- "Yes" → output: "Upgrading your APIMatic CLI to v2 now." Then follow the "Yes" branch below.
+- "No" → follow the "No" branch below.
+
+If the command is not found, use AskUserQuestion:
+
+```
+question: "APIMatic CLI v2 needs to be installed globally. OK to run: npm install -g @apimatic/cli@beta?"
 options:
   - "Yes, go ahead"
   - "No, I'll install it myself"
 ```
 
-- "Yes" → run `npm install -g @apimatic/cli`, then run `apimatic --version`
-  - Version string appears in output → proceed to Step A3
-  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli`. Verify with `apimatic --version`, then come back here." Do not proceed.
-- "No" → output: "When you're ready, run `npm install -g @apimatic/cli`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
+- "Yes" → run `npm install -g @apimatic/cli@beta`, then run `apimatic --version`
+  - Output starts with `@apimatic/cli/2.` → proceed to Step A3
+  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli@beta` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli@beta`. Verify with `apimatic --version`, then come back here." Do not proceed.
+- "No" → output: "When you're ready, run `npm install -g @apimatic/cli@beta`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
 
 ---
 
 ## Step A3: Authenticate
 
-Run `apimatic auth login`. The command opens a browser OAuth flow.
+Run `apimatic auth status`. If it shows an account email, proceed to Step A4.
+
+Otherwise run `node {skill_dir}/scripts/auth-login.mjs`, which opens the browser sign-in flow without blocking the terminal. `{skill_dir}` is the absolute path to the directory containing this skill's `SKILL.md`.
 
 Because you cannot observe whether the user completed browser sign-in, use AskUserQuestion:
 
@@ -54,19 +70,23 @@ options:
 
 ---
 
-## Step A4: Scaffold the project and start the portal
+## Step A4: Choose SDK languages
 
-First check whether a server is already running to avoid stale port conflicts:
+A portal needs at least one SDK language. The sample project lists all three available languages: C#, TypeScript, and Python. Unless the user already said which languages they want, keep all three — do not ask. The user can remove languages later.
+
+---
+
+## Step A5: Scaffold the project and start the portal
+
+First check whether a server is already running to avoid a second instance:
 
 ```
 node {skill_dir}/scripts/serve.mjs status
 ```
 
-Where `{skill_dir}` is the absolute path to the directory containing this skill file.
+If a running server is detected in the output, ask the user whether to reuse it or restart — do not blindly start a second instance.
 
-If a running process is detected in the output, ask the user whether to reuse it or stop and restart — do not blindly start a second instance.
-
-If no server is running, create the project directory and scaffold it from the sample portal:
+If no server is running, create the project directory:
 
 ```
 mkdir my-portal
@@ -75,23 +95,41 @@ cd my-portal
 
 Replace `my-portal` with the user's preferred project name.
 
-Download the sample portal repository and extract the `src/` directory:
+Download the **v2** branch of the sample portal repository and extract its `src/` directory. The `master` branch holds the CLI v1 sample and will not work with CLI v2.
 
 ```
-curl -L -o /tmp/sample-portal.zip https://github.com/apimatic/sample-docs-as-code-portal/archive/refs/heads/master.zip
-unzip -o /tmp/sample-portal.zip "sample-docs-as-code-portal-master/src/*" -d /tmp/sample-portal-extracted
-cp -r /tmp/sample-portal-extracted/sample-docs-as-code-portal-master/src ./src
+curl -L -o /tmp/sample-portal.zip https://github.com/apimatic/sample-docs-as-code-portal/archive/refs/heads/v2.zip
+unzip -o /tmp/sample-portal.zip "sample-docs-as-code-portal-2/src/*" -d /tmp/sample-portal-extracted
+cp -r /tmp/sample-portal-extracted/sample-docs-as-code-portal-2/src ./src
 rm -rf /tmp/sample-portal.zip /tmp/sample-portal-extracted
 ```
 
-On Windows or if `unzip` is unavailable, adapt using `tar`, PowerShell `Expand-Archive`, or a Node.js/Python script to extract the zip.
+GitHub names the folder inside the zip `sample-docs-as-code-portal-2`. If the extract finds nothing, list the zip's top-level folder and use that name. On Windows, or if `unzip` is unavailable, adapt using `tar`, PowerShell `Expand-Archive`, or a Node.js/Python script.
+
+The scaffold contains:
+
+```
+src/
+├── apimatic.json          # portal settings and SDK languages
+├── content/
+│   ├── index.mdx          # home page
+│   └── nav.json           # the tabs, and Home's sidebar order
+├── spec/
+│   └── openapi.json       # sample API definition
+└── static/
+    └── images/            # placeholder logos and favicon
+```
 
 **Spec replacement (conditional):** If the user provided a spec path in Step 2, or if a spec file is available in the current working directory (look for `*.json`, `*.yaml`, `*.yml` files that appear to be OpenAPI, Swagger, or Postman specs):
 
 - Remove the sample spec: `rm src/spec/openapi.json`
 - Copy the user's spec into `src/spec/`
 
-**DO NOT MAKE ANY OTHER CHANGES TO ANY FILE IN THE SRC FOLDER BEFORE GENERATING THE PORTAL**
+The spec's file name becomes the URL segment of its operation pages (below `/api/`), so keep a short, readable file name.
+
+**Language selection (conditional):** Only if the user named specific languages in Step A4, edit the `languages` block of `src/apimatic.json` to list just those (e.g. `"languages": { "python": {} }`).
+
+**DO NOT MAKE ANY OTHER CHANGES TO ANY FILE IN THE SRC FOLDER BEFORE STARTING THE PORTAL**
 
 If no user spec is available, skip spec replacement — the sample spec works as-is for preview.
 
@@ -101,23 +139,21 @@ Start the server:
 node {skill_dir}/scripts/serve.mjs start --input ./
 ```
 
-The script streams `apimatic portal serve` output live and exits once the local URL is detected. When a URL appears, output the **server briefing** below verbatim.
+The script streams `apimatic portal serve` output live and exits once the line `The portal is running at <url>` appears. The first start fetches the generated SDKs and code samples, so it can take a minute or two. When the URL appears, output the **Server Briefing** below verbatim, substituting the real URL.
 
-**If the script exits with code 1 or times out (120s) without a URL:** check for a debug report before prompting the user.
+**If the script exits with code 1 or times out without a URL:** read the CLI output it printed. CLI v2 explains each problem and names the file it is in — common causes are an invalid spec, a mistake in `src/apimatic.json`, or a page without a `title` in its front matter. Fix the specific problem (see `references/apimatic-json.md` and `references/content-and-navigation.md`; for spec errors run `apimatic api validate`), then retry `node {skill_dir}/scripts/serve.mjs start --input ./`.
 
-**Debug report check:** Look for `./portal/apimatic-debug/apimatic-report.html`. If this file exists, read it — it contains the errors and failures that occurred during portal generation. Diagnose the issues from the report and attempt to fix them (common causes: malformed spec, invalid `APIMATIC-BUILD.json` fields, missing required files). After fixing, retry `node {skill_dir}/scripts/serve.mjs start --input ./`.
+If fixes do not resolve the issue, prompt the user to run the command manually:
 
-If no debug report exists, or if fixes do not resolve the issue, prompt the user to run the command manually:
-
-"The server manager did not start. Please run `apimatic portal serve` yourself, then tell me what URL appears in the terminal."
+"The server manager did not start. Please run `apimatic portal serve --open` yourself, then tell me what URL appears in the terminal."
 
 Use AskUserQuestion:
 
 ```
 question: "Is the server running? What URL do you see?"
 options:
-  - "Yes — http://localhost:3000"
-  - "Yes — different port"
+  - "Yes — http://localhost:23513"
+  - "Yes — a different URL"
   - "No — I got an error"
 ```
 
@@ -126,18 +162,18 @@ options:
 ## Server Briefing — output this verbatim when the server is confirmed running
 
 ```
-Your portal is live at: http://localhost:3000
+Your portal is live at: <url>
 
-Hot reloading is active. Every time you save a file in src/, the portal
-regenerates automatically. This typically takes 15–60 seconds depending
-on portal size. The browser will refresh once it is ready.
+Live reload is active. Edits to your pages, nav.json files, and the portal
+settings in src/apimatic.json show up in the browser within a second or two.
+Adding or removing pages, adding an SDK language, or changing the API spec
+needs a quick restart, which I'll handle for you.
 
 What you can do now:
-- Open http://localhost:3000 in your browser to view the portal
-- Edit src/APIMATIC-BUILD.json to change theme, navigation, or features
+- Open <url> in your browser to view the portal
+- Edit src/apimatic.json to change the name, logo, colors, or header links
 - Add .md files to src/content/ to create new pages
 
-The server is tracked via PID (scripts/serve.pid).
 It will stop automatically after 30 minutes of inactivity.
 To stop it now, tell me: "shut down the portal"
 ```
@@ -146,4 +182,4 @@ At the end of every subsequent response while the server is running, append:
 
 > Portal server is running. It will stop automatically after 30 minutes of inactivity. To stop it now, tell me: **"shut down the portal"**
 
-Read `references/build-directory.md` to understand the directory structure and `APIMATIC-BUILD.json` that is created during Portal setup.
+Read `references/apimatic-json.md` and `references/content-and-navigation.md` to understand the files created during setup before making changes.

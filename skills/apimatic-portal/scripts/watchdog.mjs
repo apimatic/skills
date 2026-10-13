@@ -12,6 +12,7 @@
  * No external dependencies — Node.js built-ins only.
  */
 
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
@@ -46,22 +47,25 @@ function isRunning(pid) {
   }
 }
 
-function killServer() {
-  // Kill the process group (same pattern as serve.mjs stop)
+// Kill the whole process tree (same pattern as serve.mjs stop): on Windows the
+// server PID is the shell that runs the CLI, and the CLI starts its own children.
+function killTree(force) {
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/PID", String(serverPid), "/T", ...(force ? ["/F"] : [])], { stdio: "ignore" });
+    return;
+  }
   try {
-    process.kill(process.platform === "win32" ? serverPid : -serverPid, "SIGTERM");
+    process.kill(-serverPid, force ? "SIGKILL" : "SIGTERM");
   } catch {
     // already dead
   }
+}
+
+function killServer() {
+  killTree(false);
   // Force-kill after 3 s if still running
   setTimeout(() => {
-    if (isRunning(serverPid)) {
-      try {
-        process.kill(process.platform === "win32" ? serverPid : -serverPid, "SIGKILL");
-      } catch {
-        // already dead
-      }
-    }
+    if (isRunning(serverPid)) killTree(true);
     process.exit(0);
   }, 3000);
 }

@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# apimatic-portal skill regression checks
-# Verifies QUAL-01 through QUAL-04 are still satisfied after any edits to skill files.
+# apimatic-portal skill regression checks (APIMatic CLI v2 / docs.apimatic.io/v4)
 # Run from the repo root: bash skills/apimatic-portal/check.sh
 #
-# For AI evals (QUAL-03a/03b), see: skills/apimatic-portal/evals/evals.json
+# For AI evals, see: skills/apimatic-portal/evals/evals.json
 # Run those via /skill-creator in the Claude interface.
 
 set -euo pipefail
@@ -17,224 +16,218 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
 separator() { echo ""; echo "--- $1 ---"; }
 
-# ─────────────────────────────────────────────
-separator "QUAL-01 — Compatibility is >=20, not >=16"
+# upgrading-from-v1.md documents the v1 setup on purpose, so it is left out of the v2-only checks.
+DOCS=("$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md" "$SKILL_DIR/references/apimatic-json.md" "$SKILL_DIR/references/content-and-navigation.md" "$SKILL_DIR/references/context-plugins.md")
 
-if grep -r ">=16" "$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/"*.md > /dev/null 2>&1; then
-  fail ">=16 still present in skill files (should be >=20)"
-else
-  pass "No >=16 references found — compatibility is >=20"
-fi
-
-if grep -q ">=20" "$SKILL_DIR/SKILL.md"; then
-  pass "SKILL.md contains >=20 in compatibility field"
-else
-  fail "SKILL.md missing >=20 in compatibility field"
-fi
+# Probe rather than `command -v`: Windows ships a python3 stub that only opens the Store.
+PY=""
+for candidate in python3 python; do
+  if "$candidate" -c "import sys" > /dev/null 2>&1; then PY="$candidate"; break; fi
+done
+if [ -z "$PY" ]; then echo "python3 (or python) is required"; exit 1; fi
 
 # ─────────────────────────────────────────────
-separator "QUAL-02a — CLI audit: all 13 flag gaps filled"
+# REMINDER: CLI v2 is pinned to the npm `beta` dist-tag. When CLI v2 goes GA, these checks
+# must change with the skills — see "When APIMatic CLI v2 goes GA" in MAINTAINING.md.
+separator "QUAL-01 — Node.js 24+ and @apimatic/cli@beta"
 
-# portal toc new flags (QUAL-02b)
-for flag in "expand-endpoints" "expand-models" "expand-webhooks" "expand-callbacks" "force" "destination" "input"; do
-  if grep -qF -- "--$flag" "$SKILL_DIR/references/navigation-and-content.md"; then
-    pass "navigation-and-content.md: --$flag (toc new)"
+for f in "$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md"; do
+  if grep -qE "Node(\.js)? 24|v24" "$f"; then
+    pass "$(basename "$f"): requires Node 24"
   else
-    fail "navigation-and-content.md: --$flag missing (toc new)"
+    fail "$(basename "$f"): Node 24 requirement missing"
   fi
 done
 
-# portal serve flags (QUAL-02c)
-for flag in "open" "no-reload" "ignore" "port" "auth-key"; do
-  if grep -qF -- "--$flag" "$SKILL_DIR/references/navigation-and-content.md"; then
-    pass "navigation-and-content.md: --$flag (serve)"
+if grep -nE "Node(\.js)? (16|18|20)(\+| or (higher|later))|>= ?(16|18|20)\b|v20\.x" "${DOCS[@]}" > /dev/null 2>&1; then
+  fail "An old Node.js requirement (16/18/20) is still present"
+else
+  pass "No old Node.js requirements"
+fi
+
+if grep -nE "@apimatic/cli(@latest)?([^@a-z/]|$)" "${DOCS[@]}" | grep -E "npm install|npx" > /dev/null 2>&1; then
+  fail "An install/npx command uses @apimatic/cli without @beta"
+  grep -nE "@apimatic/cli(@latest)?([^@a-z/]|$)" "${DOCS[@]}" | grep -E "npm install|npx" || true
+else
+  pass "Every install/npx command uses @apimatic/cli@beta"
+fi
+
+if grep -qF "npm install -g @apimatic/cli@beta" "$SKILL_DIR/SKILL.md"; then
+  pass "SKILL.md: install command is npm install -g @apimatic/cli@beta"
+else
+  fail "SKILL.md: npm install -g @apimatic/cli@beta missing"
+fi
+
+# ─────────────────────────────────────────────
+separator "QUAL-02 — CLI v2 flags documented"
+
+for flag in "--destination" "--force" "--zip" "--auth-key" "--input"; do
+  if grep -qF -- "$flag" "$SKILL_DIR/SKILL.md"; then
+    pass "SKILL.md: portal generate $flag"
   else
-    fail "navigation-and-content.md: --$flag missing (serve)"
+    fail "SKILL.md: portal generate $flag missing"
   fi
 done
 
-# portal generate CI flags (QUAL-02d)
-if grep -qF -- "--force" "$SKILL_DIR/SKILL.md"; then
-  pass "SKILL.md: --force (-f) in CI section"
+if grep -qF "apimatic portal serve --open" "$SKILL_DIR/SKILL.md"; then
+  pass "SKILL.md: portal serve --open fallback"
 else
-  fail "SKILL.md: --force/-f missing from CI section"
+  fail "SKILL.md: portal serve --open fallback missing"
 fi
 
-if grep -qF -- "--zip" "$SKILL_DIR/SKILL.md"; then
-  pass "SKILL.md: --zip in CI section"
+if grep -qF "23513" "$SKILL_DIR/SKILL.md"; then
+  pass "SKILL.md: default serve port 23513"
 else
-  fail "SKILL.md: --zip missing from CI section"
-fi
-
-# portal copilot flags (QUAL-02d)
-if grep -qF -- "--disable" "$SKILL_DIR/references/copilot-and-ai.md"; then
-  pass "copilot-and-ai.md: --disable flag present"
-else
-  fail "copilot-and-ai.md: --disable flag missing"
-fi
-
-# portal recipe new flags (QUAL-02d)
-if grep -qF -- "--name" "$SKILL_DIR/references/recipes.md"; then
-  pass "recipes.md: --name flag present"
-else
-  fail "recipes.md: --name flag missing"
+  fail "SKILL.md: default serve port 23513 missing"
 fi
 
 # ─────────────────────────────────────────────
-separator "QUAL-02b — Flags for portal toc new section present"
+separator "QUAL-03 — v2 configuration model"
 
-if grep -q "Flags for portal toc new" "$SKILL_DIR/references/navigation-and-content.md"; then
-  pass "navigation-and-content.md: 'Flags for portal toc new' section exists"
+for token in "src/apimatic.json" "nav.json" "front matter" "apimatic:api" "apimatic:sdks" "apimatic:plugin" "pageActions" "colorMode" "\"tabs\"" "/oauth/callback" "Hosting under a path"; do
+  if grep -qF "$token" "$SKILL_DIR/SKILL.md"; then
+    pass "SKILL.md mentions $token"
+  else
+    fail "SKILL.md does not mention $token"
+  fi
+done
+
+if grep -qF "sample-docs-as-code-portal/archive/refs/heads/v2.zip" "$SKILL_DIR/references/first-time-setup.md"; then
+  pass "first-time-setup.md downloads the v2 sample branch"
 else
-  fail "navigation-and-content.md: 'Flags for portal toc new' section missing"
+  fail "first-time-setup.md does not download the v2 sample branch"
 fi
+
+# v1 portal settings belong only in the upgrade guide (SKILL.md names some of them as unsupported).
+V2_REFS=("$SKILL_DIR/references/apimatic-json.md" "$SKILL_DIR/references/content-and-navigation.md" "$SKILL_DIR/references/first-time-setup.md" "$SKILL_DIR/references/context-plugins.md")
+for token in "toc.yml" "generatePortal" "portalSettings" "APIMATIC-BUILD.json"; do
+  if grep -qF "$token" "${V2_REFS[@]}"; then
+    fail "$token (CLI v1) appears in a v2 reference file"
+  else
+    pass "$token not used in v2 reference files"
+  fi
+done
 
 # ─────────────────────────────────────────────
-separator "QUAL-02c — Flags for portal serve section present"
+separator "QUAL-04 — Examples are valid"
 
-if grep -q "Flags for portal serve" "$SKILL_DIR/references/navigation-and-content.md"; then
-  pass "navigation-and-content.md: 'Flags for portal serve' section exists"
+EXAMPLE="$SKILL_DIR/examples/apimatic.json"
+if "$PY" - "$EXAMPLE" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+assert d.get("schemaVersion") == 1, "schemaVersion must be 1"
+langs = d.get("languages", {})
+assert langs and set(langs) <= {"csharp", "python", "typescript"}, "languages must be a non-empty subset of csharp/python/typescript"
+allowed = {"site", "brand", "navigation", "ai", "pluginUrl"}
+assert set(d.get("portal", {})) <= allowed, "unknown portal keys"
+PY
+then
+  pass "examples/apimatic.json is valid"
 else
-  fail "navigation-and-content.md: 'Flags for portal serve' section missing"
+  fail "examples/apimatic.json is invalid"
 fi
+
+# `tabs` is read only in the root nav.json, and may not hold "..." or a name that is also in `pages`.
+ROOT_NAV="$SKILL_DIR/examples/content/nav.json"
+if "$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); t=d.get('tabs'); assert isinstance(t, list) and t; assert '...' not in t; assert not set(t) & set(d.get('pages', []))" "$ROOT_NAV"; then
+  pass "examples/content/nav.json uses tabs"
+else
+  fail "examples/content/nav.json has no valid tabs list"
+fi
+
+while IFS= read -r nav; do
+  if [ "$nav" = "$ROOT_NAV" ]; then allowed="{'title','pages','tabs'}"; else allowed="{'title','pages'}"; fi
+  if "$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); assert set(d) <= $allowed; assert all('.' not in p.replace('...','') and '/' not in p for p in d.get('pages', []) + d.get('tabs', []))" "$nav"; then
+    pass "$(realpath --relative-to="$SKILL_DIR" "$nav") is valid"
+  else
+    fail "$(realpath --relative-to="$SKILL_DIR" "$nav") is invalid"
+  fi
+done < <(find "$SKILL_DIR/examples/content" -name nav.json)
+
+while IFS= read -r page; do
+  if head -1 "$page" | grep -q '^---$' && sed -n '2,/^---$/p' "$page" | grep -q '^title:'; then
+    pass "$(realpath --relative-to="$SKILL_DIR" "$page") has title front matter"
+  else
+    fail "$(realpath --relative-to="$SKILL_DIR" "$page") is missing title front matter"
+  fi
+done < <(find "$SKILL_DIR/examples/content" -name "*.md" -o -name "*.mdx")
 
 # ─────────────────────────────────────────────
-separator "QUAL-02d — Flag sections present in copilot and recipes files"
-
-if grep -q "Flags for portal copilot" "$SKILL_DIR/references/copilot-and-ai.md"; then
-  pass "copilot-and-ai.md: 'Flags for portal copilot' section exists"
-else
-  fail "copilot-and-ai.md: 'Flags for portal copilot' section missing"
-fi
-
-if grep -q "Flags for portal recipe new" "$SKILL_DIR/references/recipes.md"; then
-  pass "recipes.md: 'Flags for portal recipe new' section exists"
-else
-  fail "recipes.md: 'Flags for portal recipe new' section missing"
-fi
-
-# ─────────────────────────────────────────────
-separator "QUAL-03a/03b — AI eval spec integrity (evals.json)"
-# Note: actual eval execution requires /skill-creator in Claude interface.
-# This check verifies the eval spec is present and structurally sound.
+separator "QUAL-05 — AI eval spec integrity (evals.json)"
 
 EVALS_FILE="$SKILL_DIR/evals/evals.json"
 
 if [ -f "$EVALS_FILE" ]; then
-  pass "evals.json exists at skills/apimatic-portal/evals/evals.json"
+  pass "evals.json exists"
+  EVAL_COUNT=$("$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); print(len(d['evals']))" "$EVALS_FILE" 2>/dev/null || echo "0")
+  if [ "$EVAL_COUNT" -ge 11 ]; then
+    pass "evals.json: $EVAL_COUNT eval cases (expected >=11)"
+  else
+    fail "evals.json: only $EVAL_COUNT eval cases (expected >=11)"
+  fi
+  DUPES=$("$PY" -c "import json,sys,collections; d=json.load(open(sys.argv[1], encoding='utf-8')); c=collections.Counter(e['id'] for e in d['evals']); print(','.join(str(k) for k,v in c.items() if v>1))" "$EVALS_FILE")
+  if [ -z "$DUPES" ]; then
+    pass "evals.json: eval ids are unique"
+  else
+    fail "evals.json: duplicate eval ids: $DUPES"
+  fi
+  PROMPTS=$("$PY" -c "import json,sys; d=json.load(open(sys.argv[1], encoding='utf-8')); [print(e['prompt']) for e in d['evals']]" "$EVALS_FILE" 2>/dev/null || echo "")
+  for pattern in "log in|authentication" "from scratch" "dev server|hot reload|live reload" "GitHub Actions|CI" "nav.json|sidebar" "logo|color" "APIMATIC-BUILD"; do
+    if echo "$PROMPTS" | grep -qiE "$pattern"; then
+      pass "evals.json: workflow covered ($pattern)"
+    else
+      fail "evals.json: workflow not covered ($pattern)"
+    fi
+  done
 else
-  fail "evals.json missing — create it to enable /skill-creator evals"
-fi
-
-if [ -f "$EVALS_FILE" ]; then
-  EVAL_COUNT=$(python3 -c "import json,sys; d=json.load(open('$EVALS_FILE')); print(len(d['evals']))" 2>/dev/null || echo "0")
-  if [ "$EVAL_COUNT" -ge 4 ]; then
-    pass "evals.json: $EVAL_COUNT eval cases (expected >=4)"
-  else
-    fail "evals.json: only $EVAL_COUNT eval cases (expected >=4 covering auth/quickstart/serve/generate)"
-  fi
-
-  ASSERTION_COUNT=$(python3 -c "import json,sys; d=json.load(open('$EVALS_FILE')); print(sum(len(e['assertions']) for e in d['evals']))" 2>/dev/null || echo "0")
-  if [ "$ASSERTION_COUNT" -ge 15 ]; then
-    pass "evals.json: $ASSERTION_COUNT total assertions (expected >=15)"
-  else
-    fail "evals.json: only $ASSERTION_COUNT assertions (expected >=15)"
-  fi
-
-  # Check the 4 required workflows are covered by prompt content
-  PROMPTS=$(python3 -c "import json; d=json.load(open('$EVALS_FILE')); [print(e['prompt']) for e in d['evals']]" 2>/dev/null || echo "")
-  if echo "$PROMPTS" | grep -qi "auth login\|authentication\|log in"; then
-    pass "evals.json: auth workflow covered"
-  else
-    fail "evals.json: auth workflow not covered"
-  fi
-  if echo "$PROMPTS" | grep -qi "quickstart\|from scratch"; then
-    pass "evals.json: quickstart workflow covered"
-  else
-    fail "evals.json: quickstart workflow not covered"
-  fi
-  if echo "$PROMPTS" | grep -qi "portal serve\|dev server\|hot reload"; then
-    pass "evals.json: portal serve workflow covered"
-  else
-    fail "evals.json: portal serve workflow not covered"
-  fi
-  if echo "$PROMPTS" | grep -qi "portal generate\|CI\|GitHub Actions"; then
-    pass "evals.json: portal generate/CI workflow covered"
-  else
-    fail "evals.json: portal generate/CI workflow not covered"
-  fi
-fi
-
-echo ""
-echo "  To run the AI evals: stage skills/apimatic-portal/ to .claude/skills/ and run /skill-creator in Claude"
-
-# ─────────────────────────────────────────────
-separator "QUAL-04 — metadata.status is stable"
-
-if grep -qF "status: stable" "$SKILL_DIR/SKILL.md"; then
-  pass "SKILL.md: metadata.status is stable"
-else
-  fail "SKILL.md: metadata.status is NOT stable (skill not yet promoted)"
+  fail "evals.json missing"
 fi
 
 # ─────────────────────────────────────────────
-separator "QUAL-05 — scripts/ directory and Python scripts present"
+separator "QUAL-06 — scripts present"
 
-if [ -f "$SKILL_DIR/scripts/serve.mjs" ]; then
-  pass "scripts/serve.mjs exists"
-else
-  fail "scripts/serve.mjs missing — create it to enable background portal server management"
-fi
-
-if [ -f "$SKILL_DIR/scripts/auth-login.mjs" ]; then
-  pass "scripts/auth-login.mjs exists"
-else
-  fail "scripts/auth-login.mjs missing — create it to enable non-blocking auth login"
-fi
-
-# ─────────────────────────────────────────────
-separator "QUAL-06 — evals.json has at least 11 eval cases"
-
-EVAL_COUNT=$(python3 -c "import json,sys; data=json.load(open('$SKILL_DIR/evals/evals.json')); print(len(data['evals']))" 2>/dev/null)
-if [ -n "$EVAL_COUNT" ] && [ "$EVAL_COUNT" -ge 11 ]; then
-  pass "evals.json has $EVAL_COUNT evals (>= 11 required)"
-else
-  fail "evals.json has ${EVAL_COUNT:-unknown} evals — need at least 11 (7 existing + 4 onboarding path)"
-fi
-
-# ─────────────────────────────────────────────
-separator "QUAL-07 — Path A contains deterministic onboarding flow markers"
-
-ONBOARDING_MARKERS=("node --version" "npm install -g" "serve.mjs start" "AskUserQuestion")
-for marker in "${ONBOARDING_MARKERS[@]}"; do
-  if grep -qF "$marker" "$SKILL_DIR/references/first-time-setup.md" 2>/dev/null; then
-    pass "first-time-setup.md: Path A contains '$marker'"
+for script in serve.mjs watchdog.mjs auth-login.mjs; do
+  if [ -f "$SKILL_DIR/scripts/$script" ]; then
+    pass "scripts/$script exists"
   else
-    fail "first-time-setup.md: Path A missing '$marker' — deterministic onboarding flow may be incomplete"
+    fail "scripts/$script missing"
   fi
 done
 
-if grep -qF "shut down the portal" "$SKILL_DIR/references/first-time-setup.md" 2>/dev/null; then
-  pass "first-time-setup.md: shutdown reminder present"
-else
-  fail "first-time-setup.md: shutdown reminder 'shut down the portal' missing from server briefing"
-fi
+for cmd in start restart status watch stop; do
+  if grep -qE "case \"$cmd\"" "$SKILL_DIR/scripts/serve.mjs"; then
+    pass "serve.mjs supports $cmd"
+  else
+    fail "serve.mjs does not support $cmd"
+  fi
+done
 
-if grep -qF "first-time-setup.md" "$SKILL_DIR/SKILL.md"; then
-  pass "SKILL.md: references first-time-setup.md in Path A"
+if grep -qF "The portal is running at" "$SKILL_DIR/scripts/serve.mjs"; then
+  pass "serve.mjs detects the CLI v2 ready line"
 else
-  fail "SKILL.md: Path A does not reference first-time-setup.md"
+  fail "serve.mjs does not detect the CLI v2 ready line"
 fi
 
 # ─────────────────────────────────────────────
-separator "All reference files reachable from SKILL.md"
+separator "QUAL-07 — Path A onboarding flow markers"
 
-REFS=("first-time-setup.md" "build-directory.md" "copilot-and-ai.md" "dynamic-configurations.md" "navigation-and-content.md" "recipes.md" "seo-and-discovery.md" "theme-and-appearance.md")
-for ref in "${REFS[@]}"; do
-  if [ -f "$SKILL_DIR/references/$ref" ]; then
-    pass "references/$ref exists"
+for marker in "node --version" "npm install -g @apimatic/cli@beta" "serve.mjs start" "AskUserQuestion" "shut down the portal"; do
+  if grep -qF "$marker" "$SKILL_DIR/references/first-time-setup.md"; then
+    pass "first-time-setup.md contains '$marker'"
   else
-    fail "references/$ref missing"
+    fail "first-time-setup.md missing '$marker'"
+  fi
+done
+
+# ─────────────────────────────────────────────
+separator "All reference files exist and are linked from SKILL.md"
+
+REFS=("first-time-setup.md" "apimatic-json.md" "content-and-navigation.md" "context-plugins.md" "upgrading-from-v1.md")
+for ref in "${REFS[@]}"; do
+  if [ -f "$SKILL_DIR/references/$ref" ] && grep -qF "references/$ref" "$SKILL_DIR/SKILL.md"; then
+    pass "references/$ref exists and is linked"
+  else
+    fail "references/$ref missing or not linked from SKILL.md"
   fi
 done
 
@@ -249,6 +242,6 @@ if [ "$FAIL" -gt 0 ]; then
   echo "REGRESSION DETECTED — $FAIL check(s) failed. Review output above."
   exit 1
 else
-  echo "All checks passed. Skill is production-ready."
+  echo "All checks passed."
   exit 0
 fi

@@ -2,6 +2,8 @@
 
 Use this after the user has made their custom changes to a generated SDK and wants to preserve them across future regenerations.
 
+Only use this file after the Change Tracking Availability Check in `SKILL.md` has confirmed that the installed CLI supports change tracking (`apimatic sdk generate --help` lists `--track-changes`). If it does not, `sdk save-changes` is not available — follow the instructions in that check instead.
+
 ## Step 1: Determine flags
 
 **If `sdk generate` was already run in this session**, carry the values forward — do not ask again:

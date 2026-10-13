@@ -19,6 +19,8 @@ Ask the user: "What is the path to your API specification file? (OpenAPI JSON/YA
 
 Store the spec file path.
 
+APIMatic accepts OpenAPI/Swagger (3.1, 3.0, 2.0, 1.x), RAML (1.0, 0.8), Postman Collection (2.0, 1.0), Insomnia, HAR, API Blueprint, WADL, WSDL, Google Discovery, I/O Docs, and APIMatic format.
+
 ---
 
 ## Step 3: Create the directory structure
@@ -53,29 +55,7 @@ Copy-Item "<spec-file>" -Destination "<project-root>\src\spec\"
 
 ---
 
-## Step 5: Download APIMATIC-META.json
-
-Download the `APIMATIC-META.json` file from the sample portal repository into `src/spec/`:
-
-```bash
-curl -L -o <project-root>/src/spec/APIMATIC-META.json https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json
-```
-
-On Windows PowerShell:
-
-```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json" -OutFile "<project-root>\src\spec\APIMATIC-META.json"
-```
-
-On macOS/Linux if `curl` is unavailable:
-
-```bash
-wget -O <project-root>/src/spec/APIMATIC-META.json https://raw.githubusercontent.com/apimatic/sample-docs-as-code-portal/refs/heads/master/src/spec/APIMATIC-META.json
-```
-
----
-
-## Step 6: Verify the structure
+## Step 5: Verify the structure
 
 After setup, the project directory should look like this:
 
@@ -83,8 +63,9 @@ After setup, the project directory should look like this:
 <project-root>/
 └── src/
     └── spec/
-        ├── <user-spec-file>       (e.g., openapi.json, petstore.yaml)
-        └── APIMATIC-META.json     (downloaded from sample portal)
+        └── <user-spec-file>       (e.g., openapi.json, petstore.yaml)
 ```
+
+Optionally run `apimatic api validate` from the project root to catch spec errors before generating. It checks the definition in `src/spec/`.
 
 Navigate to the project root and continue with the SDK generation workflow.
