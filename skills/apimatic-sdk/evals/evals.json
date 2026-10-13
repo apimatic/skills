@@ -281,7 +281,7 @@
     {
       "id": 6,
       "prompt": "I want to generate a C# SDK and I plan to customize the generated code afterwards. My project is at ./my-csharp-api/ and I'm authenticated.",
-      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent adds the --track-changes flag to enable change tracking so customizations are preserved across regenerations.",
+      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent adds the --track-changes flag to enable change tracking so customizations are preserved across regenerations. If `--help` does not list `--track-changes`, the agent instead tells the user that saving customizations isn't available in the installed CLI and does not run any change-tracking command.",
       "files": [],
       "assertions": [
         {
@@ -298,9 +298,12 @@
         },
         {
           "id": "uses-track-changes",
-          "description": "Response includes --track-changes flag since user wants to customize",
-          "type": "contains",
-          "value": "--track-changes"
+          "description": "Response includes --track-changes flag since user wants to customize, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "--track-changes",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "references-project-dir",
@@ -398,26 +401,32 @@
     {
       "id": 9,
       "prompt": "I already have a TypeScript SDK that I've customized with some extra helper methods. I want to save those changes so they're preserved when I regenerate later. I'm authenticated. My project is at ./ts-api/.",
-      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent recognizes the user already has a customized SDK, skips SDK generation entirely, and runs apimatic sdk save-changes --language=typescript.",
+      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent recognizes the user already has a customized SDK, skips SDK generation entirely, and runs apimatic sdk save-changes --language=typescript. If `--help` does not list `--track-changes`, the agent instead tells the user that saving customizations isn't available in the installed CLI and does not run any change-tracking command.",
       "files": [],
       "assertions": [
         {
           "id": "does-not-regenerate",
-          "description": "Response does NOT run sdk generate since user already has their SDK customized",
+          "description": "Response does NOT run sdk generate since user already has their SDK customized (the `sdk generate --help` check is allowed)",
           "type": "not_contains",
-          "value": "apimatic sdk generate"
+          "value": "apimatic sdk generate --language"
         },
         {
           "id": "runs-save-changes",
-          "description": "Response runs the sdk save-changes command",
-          "type": "contains",
-          "value": "apimatic sdk save-changes"
+          "description": "Response runs the sdk save-changes command, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "apimatic sdk save-changes",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "uses-typescript-language",
-          "description": "Response uses --language=typescript",
-          "type": "contains",
-          "value": "--language=typescript"
+          "description": "Response uses --language=typescript, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "--language=typescript",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "references-project-dir",
@@ -439,14 +448,17 @@
     {
       "id": 10,
       "prompt": "I want to generate a Python SDK for my API project at ./python-api/ and then add some custom utility functions to it. I'm authenticated and have the src/ folder set up already.",
-      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent generates the SDK with --track-changes enabled, then prompts the user to make their customizations, and runs apimatic sdk save-changes --language=python once the user confirms they are done.",
+      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent generates the SDK with --track-changes enabled, then prompts the user to make their customizations, and runs apimatic sdk save-changes --language=python once the user confirms they are done. If `--help` does not list `--track-changes`, the agent instead tells the user that saving customizations isn't available in the installed CLI and does not run any change-tracking command.",
       "files": [],
       "assertions": [
         {
           "id": "generates-with-track-changes",
-          "description": "Response generates the SDK with --track-changes flag",
-          "type": "contains",
-          "value": "--track-changes"
+          "description": "Response generates the SDK with --track-changes flag, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "--track-changes",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "generates-python-sdk",
@@ -456,7 +468,7 @@
         },
         {
           "id": "prompts-user-to-customize",
-          "description": "Response asks the user to make their customizations before saving",
+          "description": "Response asks the user to make their customizations (or who will make them) before saving, or says change tracking isn't available in the installed CLI",
           "type": "contains_any",
           "value": [
             "make your customizations",
@@ -466,14 +478,19 @@
             "let me know when",
             "once you've made",
             "when you're ready",
-            "when you're done"
+            "when you're done",
+            "handle them yourself",
+            "isn't available in the version of the APIMatic CLI you have installed"
           ]
         },
         {
           "id": "runs-save-changes",
-          "description": "Response includes the sdk save-changes command for the next step",
-          "type": "contains",
-          "value": "apimatic sdk save-changes"
+          "description": "Response includes the sdk save-changes command for the next step, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "apimatic sdk save-changes",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "checks-change-tracking-support",
@@ -486,7 +503,7 @@
     {
       "id": 11,
       "prompt": "I have no SDK yet and I want to generate one from scratch and customize it. I don't have a project directory set up. My API spec is at ~/specs/payments.yaml. I'm authenticated.",
-      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent scaffolds the project directory (src/spec/ structure), generates the SDK with --track-changes, prompts the user to make customizations, then runs apimatic sdk save-changes.",
+      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent scaffolds the project directory (src/spec/ structure), generates the SDK with --track-changes, prompts the user to make customizations, then runs apimatic sdk save-changes. If `--help` does not list `--track-changes`, the agent instead tells the user that saving customizations isn't available in the installed CLI and does not run any change-tracking command.",
       "files": [],
       "assertions": [
         {
@@ -502,13 +519,16 @@
         },
         {
           "id": "generates-with-track-changes",
-          "description": "Response generates the SDK with --track-changes flag",
-          "type": "contains",
-          "value": "--track-changes"
+          "description": "Response generates the SDK with --track-changes flag, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "--track-changes",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "prompts-user-to-customize",
-          "description": "Response asks the user to add their customizations before saving",
+          "description": "Response asks the user to make their customizations (or who will make them) before saving, or says change tracking isn't available in the installed CLI",
           "type": "contains_any",
           "value": [
             "make your customizations",
@@ -518,14 +538,19 @@
             "let me know when",
             "once you've made",
             "when you're ready",
-            "when you're done"
+            "when you're done",
+            "handle them yourself",
+            "isn't available in the version of the APIMatic CLI you have installed"
           ]
         },
         {
           "id": "runs-save-changes",
-          "description": "Response includes the sdk save-changes command for the next step",
-          "type": "contains",
-          "value": "apimatic sdk save-changes"
+          "description": "Response includes the sdk save-changes command for the next step, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "apimatic sdk save-changes",
+            "isn't available in the version of the APIMatic CLI you have installed"
+          ]
         },
         {
           "id": "checks-change-tracking-support",
@@ -538,7 +563,7 @@
     {
       "id": 12,
       "prompt": "I have change tracking enabled for my C# SDK but I want to see what the SDK looks like without my customizations applied. I'm authenticated, project is at ./csharp-api/.",
-      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent runs apimatic sdk generate --language=csharp --skip-changes and explains this is non-destructive — saved customizations are not removed.",
+      "expected_output": "The agent first runs `apimatic sdk generate --help` to confirm the installed CLI supports change tracking. The agent runs apimatic sdk generate --language=csharp --skip-changes and explains this is non-destructive — saved customizations are not removed. If `--help` does not list `--skip-changes`, the agent says the installed CLI doesn't include change tracking, runs a plain generation (no --skip-changes) into a folder other than the customized SDK, and explains the customized SDK isn't overwritten.",
       "files": [],
       "assertions": [
         {
@@ -549,13 +574,18 @@
         },
         {
           "id": "uses-skip-changes-flag",
-          "description": "Response includes the --skip-changes flag",
-          "type": "contains",
-          "value": "--skip-changes"
+          "description": "Response includes the --skip-changes flag, or says change tracking isn't available in the installed CLI",
+          "type": "contains_any",
+          "value": [
+            "--skip-changes",
+            "isn't available in the version of the APIMatic CLI you have installed",
+            "doesn't include change tracking",
+            "does not include change tracking"
+          ]
         },
         {
           "id": "non-destructive-explanation",
-          "description": "Response clarifies that saved customizations are not removed",
+          "description": "Response clarifies that saved customizations are not removed, or (without change tracking) that the customized SDK isn't overwritten",
           "type": "contains_any",
           "value": [
             "not modified",
@@ -566,7 +596,13 @@
             "are not modified",
             "are preserved",
             "untouched",
-            "non-destructive"
+            "non-destructive",
+            "isn't overwritten",
+            "not overwritten",
+            "won't be overwritten",
+            "won't overwrite",
+            "doesn't overwrite",
+            "does not overwrite"
           ]
         },
         {
@@ -967,7 +1003,7 @@
     {
       "id": 43,
       "prompt": "Before I generate an SDK, can you check my OpenAPI file at ./src/spec/openapi.yaml for errors? I'm authenticated.",
-      "expected_output": "The agent runs `apimatic api validate --file=./src/spec/openapi.yaml` and explains the severity levels (errors must be fixed; warnings lower quality).",
+      "expected_output": "The agent runs `apimatic api validate` from the project root (which validates the definition in src/spec/) or `apimatic api validate --file=./src/spec/openapi.yaml`, and explains the severity levels (errors must be fixed; warnings lower quality).",
       "files": [],
       "assertions": [
         {
@@ -977,10 +1013,15 @@
           "value": "apimatic api validate"
         },
         {
-          "id": "uses-file-flag",
-          "description": "Response passes the spec with --file",
-          "type": "contains",
-          "value": "--file="
+          "id": "does-not-pass-spec-to-input",
+          "description": "Response does NOT pass the spec path to --input (--input takes the folder that contains src/; plain validate or --file both work)",
+          "type": "not_contains_any",
+          "value": [
+            "--input=./src",
+            "--input=src",
+            "-i ./src",
+            "-i src"
+          ]
         },
         {
           "id": "does-not-generate",
