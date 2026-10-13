@@ -1,6 +1,6 @@
 ---
 name: apimatic-sdk
-description: Use for any task involving APIMatic's SDK generation toolchain (APIMatic CLI v2). Use when a user wants to generate, create, customize, download, or publish a C#, Python, or TypeScript SDK using the APIMatic CLI. Also use when the user has already customized a generated SDK and wants to save those changes, when the user wants to make a specific change to an SDK (e.g. "change the analyzer", "switch the linter", "disable linting"), when the user wants to validate or transform an API definition before generating, or when the user wants to publish an SDK to a package registry (NuGet, PyPI, npm) or source repository, or wants to list publishing profiles.
+description: Use for any task involving APIMatic's SDK generation toolchain (APIMatic CLI v2). Use when a user wants to generate, create, customize, download, or publish a C#, Python, or TypeScript SDK using the APIMatic CLI. Also use when the user has already customized a generated SDK and wants to save those changes, when the user wants to make a specific change to an SDK (e.g. "change the analyzer", "switch the linter", "disable linting"), when the user wants to validate, check, lint, or review an API definition or OpenAPI/Swagger spec for errors or problems (e.g. "check my spec", "what's wrong with my OpenAPI file"), even if they don't mention SDKs, when the user wants to transform or convert an API definition to another format, or when the user wants to publish an SDK to a package registry (NuGet, PyPI, npm) or source repository, or wants to list publishing profiles.
 ---
 
 # APIMatic SDK
@@ -16,7 +16,8 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - User mentions `sdk save-changes` or asks how to save SDK changes
 - User says they have already customized a generated SDK and want to save or commit those changes
 - User asks to customize an SDK in a specific way (e.g. "change the analyzer", "switch the linter", "update the test framework in the TypeScript SDK")
-- User wants to validate their API definition or convert it to another format before generating
+- User wants to validate, check, lint, or review their API definition or OpenAPI spec for errors or problems (e.g. "check my spec", "something seems off with my API spec", "what's wrong with my OpenAPI file"), even if they don't mention SDKs or generation
+- User wants to convert their API definition to another format
 - User wants to publish an SDK to a package registry (NuGet, PyPI, npm) or source code repository (GitHub)
 - User wants to list publishing profiles or find a profile ID for publishing
 - User mentions `sdk publish` or `publishing profile list`
@@ -26,6 +27,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to install `@apimatic/cli` or `@apimatic/cli@latest` → those install CLI v1. Install `@apimatic/cli@beta`, which needs Node.js 24 or later
 - About to generate or publish a Java, PHP, Ruby, or Go SDK → CLI v2 supports only `csharp`, `python`, and `typescript`. Tell the user the language is not available yet and offer the supported ones; do not run the command
 - About to pass the spec file path to `--input` → `--input` must point to the parent directory that contains `src/`, not the spec file itself (e.g., `--input=./my-project`, not `--input=./openapi.yaml`) → commands run from project root, never from inside `src/`
+- About to check an API definition for problems by reading the file yourself → run `apimatic api validate` (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)); reading the file misses APIMatic's validation and linting rules
 - About to add `--zip` when the user didn't ask for it → only include `--zip` if the user explicitly requested a zip download
 - About to rerun `sdk generate` with `--force` without asking → when the CLI shows the "destination … is not empty, do you want to overwrite?" prompt (or exits right after it), ask the user before adding `--force`
 - About to `cd src/` before running generate → run from the project root (the directory that _contains_ `src/`), never from inside `src/`
@@ -371,6 +373,8 @@ Run `apimatic sdk generate --help` to see every option the installed CLI support
 ## Validate or Transform the API Definition
 
 Use these when the user asks to check or convert their API definition, or when SDK generation reports spec errors.
+
+When the user asks what is wrong with their spec, run `apimatic api validate` instead of only reading the file. Reading the file catches structural mistakes such as a broken `$ref` or a misspelled type, but misses APIMatic's linting rules (for example, `Server URLs should not point to example.com` and `Operation must have a summary` are Errors).
 
 **Validate** — checks syntax and semantics against APIMatic's validation and linting rules:
 

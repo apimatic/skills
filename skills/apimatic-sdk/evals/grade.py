@@ -7,15 +7,49 @@ import os
 WORKSPACE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "workspace")
 EVALS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "evals.json")
 
-with open(EVALS_FILE) as f:
+with open(EVALS_FILE, encoding="utf-8") as f:
     evals_data = json.load(f)
 
-def check_assertion(text, assertion):
+def load_commands(eval_id):
+    """Shell commands the agent ran, from a `claude -p --output-format stream-json --verbose` transcript.
+
+    Returns None when the eval has no transcript file.
+    """
+    transcript_path = os.path.join(WORKSPACE, f"eval-{eval_id}-transcript.jsonl")
+    if not os.path.exists(transcript_path):
+        return None
+
+    commands = []
+    with open(transcript_path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if event.get("type") != "assistant":
+                continue
+            content = event.get("message", {}).get("content", [])
+            if not isinstance(content, list):
+                continue
+            for block in content:
+                if block.get("type") == "tool_use" and block.get("name") in ("Bash", "PowerShell"):
+                    commands.append(block.get("input", {}).get("command", ""))
+    return commands
+
+def check_assertion(text, assertion, commands):
     t = assertion["type"]
     v = assertion["value"]
     text_lower = text.lower()
 
-    if t == "contains":
+    if t == "ran_command":
+        if commands is None:
+            passed = False
+            evidence = "NO TRANSCRIPT: cannot tell whether the command ran"
+        else:
+            matched = [c for c in commands if v.lower() in c.lower()]
+            passed = len(matched) > 0
+            evidence = f"Ran: {matched[0]!r}" if passed else f"NEVER RAN: '{v}'"
+    elif t == "contains":
         passed = v.lower() in text_lower
         evidence = f"Found '{v}'" if passed else f"NOT FOUND: '{v}'"
     elif t == "contains_any":
@@ -49,14 +83,15 @@ for eval_item in evals_data["evals"]:
         failed_evals.append(eval_id)
         continue
 
-    with open(response_path) as f:
+    with open(response_path, encoding="utf-8") as f:
         response_text = f.read()
 
+    commands = load_commands(eval_id)
     assertions = eval_item.get("assertions", [])
     results = []
     eval_passed = 0
     for assertion in assertions:
-        passed, evidence = check_assertion(response_text, assertion)
+        passed, evidence = check_assertion(response_text, assertion, commands)
         results.append({
             "id": assertion["id"],
             "passed": passed,

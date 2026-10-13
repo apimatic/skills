@@ -1228,6 +1228,32 @@
           "value": "apimatic sdk generate --language"
         }
       ]
+    },
+    {
+      "id": 51,
+      "prompt": "Something seems off with my API spec. Can you check it and tell me what I need to fix?",
+      "expected_output": "Run from a project root whose src/spec/openapi.yaml has an unresolved $ref, an invalid type (`type: intger`), an api.example.com server URL, and operations with no summary or description; the user is authenticated. The skill loads even though the prompt never mentions SDKs or generation. The agent actually runs `apimatic api validate` (not just suggests it) and explains the Blocking/Error/Warning results, including the APIMatic-only errors such as `Server URLs should not point to example.com`. It does not generate an SDK.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "ran-validate",
+          "description": "Transcript shows api validate was actually executed (directly or through npx)",
+          "type": "ran_command",
+          "value": "api validate"
+        },
+        {
+          "id": "explains-warnings",
+          "description": "Response separates warnings from errors",
+          "type": "contains",
+          "value": "warning"
+        },
+        {
+          "id": "does-not-generate",
+          "description": "Response does NOT generate an SDK",
+          "type": "not_contains",
+          "value": "apimatic sdk generate --language"
+        }
+      ]
     }
   ]
 }
