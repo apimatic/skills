@@ -131,7 +131,7 @@
     {
       "id": 3,
       "prompt": "I'm configuring a GitHub Actions CI pipeline to build and deploy my APIMatic portal. I have an API key from the APIMatic dashboard. How do I run the portal build step without requiring browser-based login?",
-      "expected_output": "The agent recommends `apimatic portal generate --auth-key=...` with the key from a repository secret, sets up Node 24 in the workflow, and uses @apimatic/cli@beta. It does not suggest browser-based login.",
+      "expected_output": "The agent recommends `apimatic portal generate --auth-key=\"$APIMATIC_API_KEY\"` with the variable set from a repository secret, sets up Node 24 in the workflow, and uses @apimatic/cli@beta. It does not suggest browser-based login.",
       "files": [],
       "assertions": [
         {
@@ -355,7 +355,7 @@
     {
       "id": 8,
       "prompt": "I ran npm install -g @apimatic/cli but when I run apimatic --version it still says command not found.",
-      "expected_output": "The agent tells the user to install the v2 CLI with @beta (retrying with sudo on macOS/Linux) and does NOT proceed to authentication or portal generation until the CLI is verified.",
+      "expected_output": "The agent tells the user to install the v2 CLI with @beta (running it in their own terminal, without the agent retrying under sudo) and does NOT proceed to authentication or portal generation until the CLI is verified.",
       "files": [],
       "assertions": [
         {
@@ -365,13 +365,10 @@
           "value": "npm install -g @apimatic/cli@beta"
         },
         {
-          "id": "suggests-elevated-retry",
-          "description": "Response suggests retrying with elevated privileges",
-          "type": "contains_any",
-          "value": [
-            "sudo",
-            "Administrator"
-          ]
+          "id": "does-not-escalate-privileges",
+          "description": "Response does NOT run or suggest the install with sudo",
+          "type": "not_contains",
+          "value": "sudo"
         },
         {
           "id": "does-not-proceed-to-auth",
@@ -390,7 +387,7 @@
     {
       "id": 9,
       "prompt": "I completed browser sign-in for APIMatic but when I run apimatic auth status it doesn't show my email.",
-      "expected_output": "The agent offers the API key fallback (`apimatic auth login --auth-key=YOUR_API_KEY`) and does NOT proceed to portal generation until authentication is confirmed.",
+      "expected_output": "The agent offers the API key fallback: the user runs `apimatic auth login --auth-key=\"$APIMATIC_API_KEY\"` in their own terminal, without pasting the key into the chat. It does NOT proceed to portal generation until authentication is confirmed.",
       "files": [],
       "assertions": [
         {

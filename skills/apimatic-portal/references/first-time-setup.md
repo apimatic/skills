@@ -40,7 +40,7 @@ options:
 
 - "Yes" → run `npm install -g @apimatic/cli@beta`, then run `apimatic --version`
   - Output starts with `@apimatic/cli/2.` → proceed to Step A3
-  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli@beta` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli@beta`. Verify with `apimatic --version`, then come back here." Do not proceed.
+  - Command not found or error → do not retry the install with elevated privileges yourself. Stop and output exactly: "The install did not complete. Please run `npm install -g @apimatic/cli@beta` in your own terminal. If npm reports a permissions error (EACCES), follow npm's guide to fix it: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally. Verify with `apimatic --version`, then come back here." Do not proceed.
 - "No" → output: "When you're ready, run `npm install -g @apimatic/cli@beta`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
 
 ---
@@ -65,8 +65,14 @@ options:
 
 - "Yes" → run `apimatic auth status` and read the output
   - Output contains an email address → proceed to Step A4
-  - No email in output → output: "Sign-in may not have completed. Please try again, or use the API key fallback: `apimatic auth login --auth-key=YOUR_API_KEY`. Your API key is at: APIMatic Dashboard > Account > API Keys."
-- "No" or "I got an error" → output: "Use `apimatic auth login --auth-key=YOUR_API_KEY` instead. Your API key is at: APIMatic Dashboard > Account > API Keys." Then run `apimatic auth status`. If still no email → stop: "Authentication failed. Do not proceed until authenticated."
+  - No email in output → output: "Sign-in may not have completed. Please try again, or sign in with an API key instead." Then follow the API key fallback below.
+- "No" or "I got an error" → follow the API key fallback below.
+
+**API key fallback.** The user signs in from their own terminal, so the key never passes through this conversation. Never ask the user to paste the key into the chat, and never put a key's value in a command. Output exactly:
+
+"Open a terminal, set the `APIMATIC_API_KEY` environment variable to your API key, and run `apimatic auth login --auth-key="$APIMATIC_API_KEY"` (in PowerShell: `--auth-key="$env:APIMATIC_API_KEY"`). Your API key is at: APIMatic Dashboard > Account > API Keys. Please don't paste the key here. Let me know when you're signed in."
+
+When the user confirms, run `apimatic auth status`. If it shows an email → proceed to Step A4. If not → stop: "Authentication failed. Do not proceed until authenticated."
 
 ---
 
