@@ -34,7 +34,6 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to leave the `languages` block empty or remove it → a portal needs at least one SDK language
 - About to reference a logo or favicon outside `src/static/` (e.g. `images/logo.png`) → paths are written relative to `src` and must start with `static/`
 - About to add a page, add a language, add a `plugin` block, create `src/static/`, change which files are in `src/spec/`, or change the path in `portal.site.url` while the preview is running, and then just wait for the browser to refresh → these changes need the preview **restarted** (see Portal Configuration)
-- About to ask the user to paste their API key into the chat, or to write a key's value into a command or file → API keys are secrets; refer to them only through the `APIMATIC_API_KEY` environment variable (see the API key fallback in [Step 1](#step-1-authenticate-with-apimatic))
 - About to edit, create, or delete any file inside `src/` during first-time setup before the first portal preview → do not modify the scaffolded `src/` directory except for replacing the sample spec with the user's spec. Start the portal first, then make changes if the user asks.
 
 ## Communication Guidelines
@@ -138,17 +137,17 @@ The output should show the account email and the SDK languages available on the 
 
 **Fallback flow (API key):**
 
-Use this when browser auth is not available (CI environment, headless system) or when the user prefers a key-based approach. API keys are generated at: APIMatic Dashboard > Account > API Keys.
+Use this when browser auth is not available (CI environment, headless system) or when the user prefers a key-based approach.
 
-An API key is a secret. Never ask the user to paste it into the chat, and never write a key's value into a command, file, or reply — always refer to it through the `APIMATIC_API_KEY` environment variable. If the user pastes a key anyway, do not repeat it or use it; suggest they regenerate it in the Dashboard, since it is now in the chat history.
+Option 1 — CLI flag:
 
-**On the user's machine:** the user signs in from their own terminal, so the key never passes through this conversation. Tell the user:
+```
+apimatic auth login --auth-key=YOUR_API_KEY
+```
 
-> "Open a terminal, set the `APIMATIC_API_KEY` environment variable to your API key, and run `apimatic auth login --auth-key="$APIMATIC_API_KEY"` (in PowerShell: `--auth-key="$env:APIMATIC_API_KEY"`). Your API key is at: APIMatic Dashboard > Account > API Keys. Please don't paste the key here. Let me know when you're signed in."
+Option 2 — pass the key to each command with `--auth-key=YOUR_API_KEY` (supported by `portal serve` and `portal generate`).
 
-When they confirm, run `apimatic auth status` to check that it shows their account email. The sign-in is saved, so later commands need no key.
-
-**In CI:** store the key as a secret, expose it as the `APIMATIC_API_KEY` environment variable, and either sign in once with `apimatic auth login --auth-key="$APIMATIC_API_KEY"` or pass `--auth-key="$APIMATIC_API_KEY"` to `portal serve` and `portal generate`. CLI v2 does not read the variable on its own. See [CI/CD](#build-and-host-the-portal) for a workflow step.
+API keys are generated at: APIMatic Dashboard > Account > API Keys.
 
 **If both methods fail:**
 
@@ -286,9 +285,7 @@ If the API uses OAuth 2 sign-in, every endpoint page in the playground returns t
 - uses: actions/setup-node@v4
   with:
     node-version: "24"
-- run: npx @apimatic/cli@beta portal generate --auth-key="$APIMATIC_API_KEY" --destination=./portal --force
-  env:
-    APIMATIC_API_KEY: ${{ secrets.APIMATIC_API_KEY }}
+- run: npx @apimatic/cli@beta portal generate --auth-key="${{ secrets.APIMATIC_API_KEY }}" --destination=./portal --force
 ```
 
 Then deploy `./portal` with the host's CLI or Git integration. A complete sample workflow is in the `v2` branch of github.com/apimatic/sample-docs-as-code-portal (`.github/workflows/DeployStaticPortal.yml`).
@@ -302,7 +299,7 @@ Then deploy `./portal` with the host's CLI or Git integration. A complete sample
 | First-time setup | Download the v2 sample `src/` — see [Path A](#path-a-first-time-setup-guided-onboarding) |
 | Start local preview | `node {skill_dir}/scripts/serve.mjs start --input ./` |
 | Server status / restart / stop | `node {skill_dir}/scripts/serve.mjs status` / `restart --input ./` / `stop` |
-| Build for hosting / CI | `apimatic portal generate --destination=./portal --auth-key="$APIMATIC_API_KEY"` |
+| Build for hosting / CI | `apimatic portal generate --destination=./portal --auth-key=KEY` |
 | Portal name, address, description | `portal.site` in `src/apimatic.json` |
 | Logo, favicon, primary color, light/dark mode | `portal.brand` in `src/apimatic.json` |
 | Header links | `portal.navigation.links` in `src/apimatic.json` |

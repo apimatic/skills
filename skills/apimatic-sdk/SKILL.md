@@ -29,7 +29,6 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to add `--zip` when the user didn't ask for it → only include `--zip` if the user explicitly requested a zip download
 - About to rerun `sdk generate` with `--force` without asking → when the CLI reports an SDK already exists, ask the user before adding `--force`
 - About to `cd src/` before running generate → run from the project root (the directory that _contains_ `src/`), never from inside `src/`
-- About to ask the user to paste their API key into the chat, or to write a key's value into a command or file → API keys are secrets; refer to them only through the `APIMATIC_API_KEY` environment variable (see the API key fallback in [Step 1](#step-1-authenticate-with-apimatic))
 - About to proceed to SDK generation before the user confirms browser auth → wait for user confirmation after launching browser login, then verify with `apimatic auth status`
 - About to use `--track-changes`, `--skip-changes`, or `sdk save-changes` without checking that the installed CLI supports them → run the [Change Tracking Availability Check](#change-tracking-availability-check) first
 - About to run `sdk save-changes` without `--track-changes` having been enabled → change tracking must be initialized during generation; regenerate with `--track-changes` first
@@ -215,27 +214,19 @@ The output should show the account email. If it does not, authentication did not
 
 Use this when browser auth is not available (CI environment, Docker, headless system) or when the user prefers a key-based approach. API keys are generated at: APIMatic Dashboard > Account > API Keys.
 
-An API key is a secret. Never ask the user to paste it into the chat, and never write a key's value into a command, file, or reply — always refer to it through the `APIMATIC_API_KEY` environment variable. If the user pastes a key anyway, do not repeat it or use it; suggest they regenerate it in the Dashboard, since it is now in the chat history.
-
-**On the user's machine:** the user signs in from their own terminal, so the key never passes through this conversation. Tell the user:
-
-> "Open a terminal, set the `APIMATIC_API_KEY` environment variable to your API key, and run `apimatic auth login --auth-key="$APIMATIC_API_KEY"` (in PowerShell: `--auth-key="$env:APIMATIC_API_KEY"`). Your API key is at: APIMatic Dashboard > Account > API Keys. Please don't paste the key here. Let me know when you're signed in."
-
-When they confirm, run `apimatic auth status` to check that it shows their account email. The sign-in is saved, so later commands need no key.
-
-**In CI or containers:** store the key as a secret, expose it as the `APIMATIC_API_KEY` environment variable, and expand it into the flag. CLI v2 does not read the variable on its own. In PowerShell, write `"$env:APIMATIC_API_KEY"` instead of `"$APIMATIC_API_KEY"`.
-
 Option 1 — sign in once with the key (works for every command, including `sdk publish`):
 
 ```
-apimatic auth login --auth-key="$APIMATIC_API_KEY"
+apimatic auth login --auth-key=YOUR_API_KEY
 ```
 
 Option 2 — pass the key to each command with `--auth-key` (supported by `sdk generate`, `api validate`, `api transform`, and `plugin generate`; **not** by `sdk publish`):
 
 ```
-apimatic sdk generate --language=<language> --auth-key="$APIMATIC_API_KEY"
+apimatic sdk generate --language=<language> --auth-key=YOUR_API_KEY
 ```
+
+In CI or containers, keep the key in a secret or environment variable and expand it into the flag, e.g. `--auth-key="$APIMATIC_API_KEY"` (bash) or `--auth-key="$env:APIMATIC_API_KEY"` (PowerShell). CLI v2 does not read an API key from the environment on its own.
 
 **If both methods fail:**
 
@@ -335,7 +326,7 @@ apimatic sdk generate --input=path/to/parent-of-src --language=<language>
 **With an API key directly (recommended for CI — no interactive auth needed):**
 
 ```
-apimatic sdk generate --input=path/to/parent-of-src --language=<language> --auth-key="$APIMATIC_API_KEY"
+apimatic sdk generate --input=path/to/parent-of-src --language=<language> --auth-key=YOUR_API_KEY
 ```
 
 The CLI prints `SDK generated successfully.` and where the SDK was saved.
@@ -406,7 +397,7 @@ Publish an SDK to a package registry or source code repository (GitHub) using a 
 
 ### Step 1: Authenticate with APIMatic
 
-Follow [Step 1: Authenticate with APIMatic](#step-1-authenticate-with-apimatic) above. `sdk publish` has no `--auth-key` flag, so in CI run `apimatic auth login --auth-key="$APIMATIC_API_KEY"` first.
+Follow [Step 1: Authenticate with APIMatic](#step-1-authenticate-with-apimatic) above. `sdk publish` has no `--auth-key` flag, so in CI run `apimatic auth login --auth-key=...` first.
 
 ### Step 2: Find the Publishing Profile ID
 

@@ -250,7 +250,7 @@
     {
       "id": 5,
       "prompt": "I completed browser sign-in for APIMatic but apimatic auth status doesn't show my email. How do I fix this?",
-      "expected_output": "The agent offers the API key fallback: the user runs apimatic auth login --auth-key=\"$APIMATIC_API_KEY\" in their own terminal, without pasting the key into the chat. It tells the user where to find API keys and does NOT proceed to SDK generation until auth is confirmed.",
+      "expected_output": "The agent offers the API key fallback (apimatic auth login --auth-key=YOUR_API_KEY), tells the user where to find API keys, and does NOT proceed to SDK generation until auth is confirmed.",
       "files": [],
       "assertions": [
         {
@@ -322,7 +322,7 @@
     {
       "id": 7,
       "prompt": "I'm setting up a CI/CD pipeline with GitHub Actions to generate a C# SDK on every push. I have an API key stored as a secret. How do I run the SDK generation non-interactively?",
-      "expected_output": "The agent recommends apimatic sdk generate --language=csharp --auth-key=\"$APIMATIC_API_KEY\", with the variable set from the repository secret, as the CI-appropriate pattern. Does NOT suggest browser-based login.",
+      "expected_output": "The agent recommends apimatic sdk generate --language=csharp --auth-key=YOUR_API_KEY as the CI-appropriate pattern. Does NOT suggest browser-based login.",
       "files": [],
       "assertions": [
         {

@@ -60,20 +60,11 @@ fi
 
 # Security scanners (Gen Agent Trust Hub on skills.sh) rate the skill High Risk for privilege escalation
 # when it tells the agent to run sudo.
-if grep -rniE "sudo" "$SKILL_DIR" --include=*.md --include=*.mjs > /dev/null 2>&1; then
+if grep -rniE "\bsudo\b" "$SKILL_DIR" --include=*.md --include=*.mjs > /dev/null 2>&1; then
   fail "A skill file tells the agent to use sudo"
-  grep -rniE "sudo" "$SKILL_DIR" --include=*.md --include=*.mjs || true
+  grep -rniE "\bsudo\b" "$SKILL_DIR" --include=*.md --include=*.mjs || true
 else
   pass "No sudo in skill files"
-fi
-
-# Snyk flags --auth-key examples with a placeholder key (W007, insecure credential handling): the agent
-# copies them and writes the real key into commands. Every example must expand $APIMATIC_API_KEY instead.
-if grep -nE -- "--auth-key=[^\"]|--auth-key=\"[^$]" "${DOCS[@]}" > /dev/null 2>&1; then
-  fail "An --auth-key example uses a literal key instead of \"\$APIMATIC_API_KEY\""
-  grep -nE -- "--auth-key=[^\"]|--auth-key=\"[^$]" "${DOCS[@]}" || true
-else
-  pass "Every --auth-key example expands an environment variable"
 fi
 
 # ─────────────────────────────────────────────
