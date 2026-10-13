@@ -78,15 +78,9 @@ A portal needs at least one SDK language. The sample project lists all three ava
 
 ## Step A5: Scaffold the project and start the portal
 
-First check whether a server is already running to avoid a second instance:
+A new project has no preview yet, so there is nothing to check first. `serve.mjs` keeps each project's preview separate, and a preview of another project on this machine is left running.
 
-```
-node {skill_dir}/scripts/serve.mjs status
-```
-
-If a running server is detected in the output, ask the user whether to reuse it or restart — do not blindly start a second instance.
-
-If no server is running, create the project directory:
+Create the project directory:
 
 ```
 mkdir my-portal
@@ -123,7 +117,15 @@ src/
 **Spec replacement (conditional):** If the user provided a spec path in Step 2, or if a spec file is available in the current working directory (look for `*.json`, `*.yaml`, `*.yml` files that appear to be OpenAPI, Swagger, or Postman specs):
 
 - Remove the sample spec: `rm src/spec/openapi.json`
-- Copy the user's spec into `src/spec/`
+- Check the spec's format. The portal reads **only OpenAPI 3.x** — a JSON or YAML document whose top-level `openapi` field starts with `3.`.
+  - OpenAPI 3.x → copy the user's spec into `src/spec/`.
+  - Anything else (a `swagger: "2.0"` document, a Postman collection, RAML, WSDL, …) → convert it, writing the result outside `src/spec/`:
+
+    ```
+    apimatic api transform --format=openapi3yaml --file=<path to user's spec> --destination=./converted-spec --force
+    ```
+
+    It writes `./converted-spec/transformations/<name>_OpenApi3Yaml.yaml`. Move that file into `src/spec/` under a short name (e.g. `src/spec/api.yaml`), then delete `./converted-spec`. Tell the user their spec was converted to OpenAPI 3.x and that their original file is unchanged.
 
 The spec's file name becomes the URL segment of its operation pages (below `/api/`), so keep a short, readable file name.
 

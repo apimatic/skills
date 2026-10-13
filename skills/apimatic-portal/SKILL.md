@@ -166,9 +166,9 @@ If you do not know whether the user is starting from scratch or has an existing 
    - **`src/` exists and contains `apimatic.json` → follow Path B**
    - **`src/` exists but has `APIMATIC-BUILD.json` and no `apimatic.json` → it is a CLI v1 project. Read `references/upgrading-from-v1.md` and follow it, then continue with Path B**
 
-2. If following Path A, ask: "What is the path to your API specification file? (OpenAPI JSON/YAML, Postman collection, or other supported format)"
+2. If following Path A, ask: "What is the path to your API specification file? (OpenAPI JSON/YAML, Swagger, Postman collection, or another format APIMatic can convert)"
 
-Store the spec path. You will need it to bootstrap the portal.
+Store the spec path. You will need it to bootstrap the portal. A portal reads **OpenAPI 3.x only** — a spec in any other format is converted with `apimatic api transform` during setup (see `references/first-time-setup.md`, Step A5).
 
 ---
 
@@ -197,18 +197,18 @@ cd your-project-directory
 First check whether a server is already running from a previous session:
 
 ```
-node {skill_dir}/scripts/serve.mjs status
+node {skill_dir}/scripts/serve.mjs status --input ./
 ```
 
-If a running server is detected, ask the user whether to reuse it or restart it — do not blindly start a second instance.
+If this project's server is running (`Running for <project root>`), ask the user whether to reuse it or restart it — do not blindly start a second instance. A `Note: a preview of a different project` line is about another project: never show its URL for this one, and leave it running unless the user asks to stop it.
 
-If no server is running, start it:
+If no server is running for this project, start it:
 
 ```
 node {skill_dir}/scripts/serve.mjs start --input ./
 ```
 
-Where `{skill_dir}` is the absolute path to the directory containing this skill file, and `--input` is the project root (the directory containing `src/`).
+Where `{skill_dir}` is the absolute path to the directory containing this skill file, and `--input` is the project root (the directory containing `src/`). Every `serve.mjs` command acts only on the preview of the project `--input` names (it defaults to the current directory), so pass the same project root to each one.
 
 The script spawns `apimatic portal serve` and streams its output live. The first start downloads the generated SDKs and code samples and can take a minute or two. The script exits automatically once the line `The portal is running at <url>` appears. The CLI's default port is 23513; if it is taken, the CLI picks another free port on its own, so always use the URL the script reports. Surface that URL to the user and append the shutdown reminder at the end of this response and every subsequent response while the server is running:
 
@@ -220,16 +220,16 @@ The script spawns `apimatic portal serve` and streams its output live. The first
 
 | Command | What it does |
 |---------|--------------|
-| `node {skill_dir}/scripts/serve.mjs status` | Check whether the server is running and show recent output |
-| `node {skill_dir}/scripts/serve.mjs watch` | After an edit, wait briefly and report whether the preview accepted it |
+| `node {skill_dir}/scripts/serve.mjs status --input ./` | Check whether the server is running and show recent output |
+| `node {skill_dir}/scripts/serve.mjs watch --input ./` | After an edit, wait briefly and report whether the preview accepted it |
 | `node {skill_dir}/scripts/serve.mjs restart --input ./` | Stop and start the server (needed after some edits — see Portal Configuration) |
-| `node {skill_dir}/scripts/serve.mjs stop` | Stop the server |
+| `node {skill_dir}/scripts/serve.mjs stop --input ./` | Stop the server |
 
 **If portal serve fails:**
 
 1. **Not signed in:** The CLI says you need to be signed in to generate a portal. Go back to Step 1.
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
-3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI reports problems with the spec, run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the errors to the user.
+3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI says `No OpenAPI 3.x document found`, the spec is in another format (Swagger 2.0, Postman, …): run the `apimatic api transform` command it prints, move the converted file up into `src/spec/` as it says, and delete the original and the `transformations/` folder. If the CLI reports problems with the spec, run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the errors to the user.
 4. **Problems in `apimatic.json`, a page, or a `nav.json`:** The CLI lists each problem with the file it is in. Fix each one using `references/apimatic-json.md` and `references/content-and-navigation.md`, then retry.
 5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`, then retry.
 6. **Permission error or script cannot run:** If the error cannot be resolved automatically, tell the user:
@@ -298,7 +298,7 @@ Then deploy `./portal` with the host's CLI or Git integration. A complete sample
 |------|-------------------|
 | First-time setup | Download the v2 sample `src/` — see [Path A](#path-a-first-time-setup-guided-onboarding) |
 | Start local preview | `node {skill_dir}/scripts/serve.mjs start --input ./` |
-| Server status / restart / stop | `node {skill_dir}/scripts/serve.mjs status` / `restart --input ./` / `stop` |
+| Server status / restart / stop | `node {skill_dir}/scripts/serve.mjs status` / `restart` / `stop`, each with `--input ./` |
 | Build for hosting / CI | `apimatic portal generate --destination=./portal --auth-key=KEY` |
 | Portal name, address, description | `portal.site` in `src/apimatic.json` |
 | Logo, favicon, primary color, light/dark mode | `portal.brand` in `src/apimatic.json` |
@@ -326,11 +326,12 @@ After the portal is running (Path A or B), configure it by editing `src/apimatic
 **Step 1 — Check that the server is running:**
 
 ```
-node {skill_dir}/scripts/serve.mjs status
+node {skill_dir}/scripts/serve.mjs status --input ./
 ```
 
-- Output contains `Running` → server is live. Continue to Step 2.
-- Output contains `No server running` or `no longer running` → ask the user: "No preview server is running. Would you like me to start it now so you can preview your changes?"
+- Output starts with `Running for` → this project's server is live. Continue to Step 2.
+- A `Note: a preview of a different project` line is about another project's server — it does not mean this project's preview is running.
+- Output starts with `No server running` or `Process … is no longer running` → ask the user: "No preview server is running. Would you like me to start it now so you can preview your changes?"
   - User says yes → run `node {skill_dir}/scripts/serve.mjs start --input ./`. Once the URL appears, surface it, append the shutdown reminder, then stop here — a fresh start already includes the change.
   - User says no → skip the rest of this protocol.
 
@@ -354,7 +355,7 @@ If the change needs a restart, run `node {skill_dir}/scripts/serve.mjs restart -
 **Step 3 — Confirm the preview accepted the change:**
 
 ```
-node {skill_dir}/scripts/serve.mjs watch
+node {skill_dir}/scripts/serve.mjs watch --input ./
 ```
 
 - Exit code 0 → tell the user: "Your changes are live. Refresh <url> in your browser if it hasn't updated."

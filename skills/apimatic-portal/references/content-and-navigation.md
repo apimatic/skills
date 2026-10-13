@@ -29,7 +29,9 @@ src/
 └── static/           # images and other files pages and apimatic.json use
 ```
 
-- **`spec/`** — OpenAPI (3.1, 3.0, 2.0), RAML, Postman, and other formats APIMatic accepts. The API reference, playground, SDKs, and code samples are generated from it. Each spec's file name becomes the URL segment of its operation pages, below `/api/`. With more than one spec, set `portal.site.name` in `apimatic.json`.
+- **`spec/`** — OpenAPI 3.x documents (3.0 or 3.1) as `.json`, `.yaml`, or `.yml` files. The API reference, playground, SDKs, and code samples are generated from them. Each spec's file name becomes the URL segment of its operation pages, below `/api/`. With more than one spec, set `portal.site.name` in `apimatic.json`.
+  - Only the top level of `spec/` is read. Other formats — Swagger/OpenAPI 2.0, Postman, RAML, WSDL — are not read: when `spec/` holds no OpenAPI 3.x document the build fails with `No OpenAPI 3.x document found`, and when it holds one, files in other formats are **skipped without a warning**.
+  - Convert another format with `apimatic api transform --format=openapi3yaml --file=<spec> --destination=<dir> --force`. It writes `<dir>/transformations/<name>_OpenApi3Yaml.yaml`; move that file into `src/spec/` under a short name (e.g. `api.yaml`), then delete the original and the `transformations/` folder.
 - **`content/`** — your guides. Only `.md` and `.mdx` files and `nav.json` files are read.
 - **`static/`** — images, PDFs, and other files, served from the site root.
 
