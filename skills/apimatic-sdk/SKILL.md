@@ -35,7 +35,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to use `--track-changes`, `--skip-changes`, or `sdk save-changes` without checking that the installed CLI supports them → run the [Change Tracking Availability Check](#change-tracking-availability-check) first
 - About to run `sdk save-changes` without `--track-changes` having been enabled → change tracking must be initialized during generation; regenerate with `--track-changes` first
 - About to add `--api-version` when user hasn't mentioned a specific API version → only include `--api-version` when the user explicitly names a version
-- About to ask for information the user already stated in their prompt → use what was given; only ask for genuinely unknown values
+- About to ask for information the user already stated in their prompt → use what was given; only ask for genuinely unknown values, and ask all of them together in one message instead of one per turn
 - About to change the SDK through a CodeGen settings file → Codegen v4, the only generator in CLI v2, supports no CodeGen settings. Follow [CodeGen Settings](#codegen-settings) instead
 - About to open, read, or edit the `.<language>` files inside `sdk-source-tree/` (e.g., `.typescript`, `.python`) → these files are managed exclusively by the CLI; never touch them directly under any circumstance
 - About to manually compare or inspect customizations by reading `sdk-source-tree/` → if the user wants to see what changed between a plain generation and their customized one, regenerate using `--skip-changes` to produce a clean copy, then compare that against the customized SDK; do not manipulate or read the source tree files
@@ -289,7 +289,7 @@ Check whether the user wants to generate the SDK for a specific API version. Loo
 
 If the user has already described a specific change they want (e.g., "remove the docs folder", "disable documentation", "set the project name", "disable linting"), it is a code customization (see [CodeGen Settings](#codegen-settings)). Treat it as "User says yes" below.
 
-If not already known from context, ask: "Would you like to customize the SDK after generating it? (e.g., add custom code, modify generated files)"
+If the user hasn't said they want to customize the SDK, treat it as "User says no" below and do not ask. That includes requests that only ask to generate or regenerate (e.g. "just overwrite the old one", "use the default location, no zip"), fully specified commands, and CI pipelines. If the user decides to customize later, the [Already-Customized SDK](#fast-path--already-customized-sdk) fast path sets up change tracking without losing their changes.
 
 - **User says yes →** Run the [Change Tracking Availability Check](#change-tracking-availability-check). If change tracking is not available, ask whether Claude or the user will make the changes (unless already known), follow the matching case there, and skip the rest of this step.
 
@@ -437,10 +437,11 @@ If the user has no profile yet, tell them to create one in the Publishing Center
 
 ### Step 3: Choose the destination
 
-If the destination is not already known from context, ask: "Do you have a specific path where you want the SDK to be generated, or should I use the default location?"
+Do not ask for a destination by default:
 
 - **User provides a path →** Use the `--destination` flag with the given path.
-- **User says default / no preference →** Omit the `--destination` flag. The SDK will be generated at `<input>/sdk/<language>` (or `<input>/sdk/<api-version>/<language>` if multiple API versions exist).
+- **User doesn't mention a destination →** Omit the `--destination` flag. The SDK will be generated at `<input>/sdk/<language>` (or `<input>/sdk/<api-version>/<language>` if multiple API versions exist).
+- **Exception: that default folder already has files and this is not a dry run →** Step 4 always adds `--force`, which replaces the folder without asking and would erase any changes the user made there. Ask first: "There's already an SDK at `<path>`. Should I overwrite it, or generate the SDK for publishing somewhere else?" Skip this question in CI pipelines, where the folder holds only earlier builds.
 
 ### Step 4: Run SDK Publish
 
