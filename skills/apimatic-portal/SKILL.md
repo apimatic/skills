@@ -23,6 +23,7 @@ Guide a user from zero to a running local developer portal. Execute these steps 
 - About to use an absolute URL (`/guides/...` or `https://...`) in a `<Card>` internal link → use `page:` prefix (e.g., `url="page:guides/getting-started"`)
 - About to show `"enableConsoleCalls": true` while describing how to disable the playground → the value to show is `false`
 - About to use raw language names (`"python"`, `"typescript"`, `"csharp"`) as `languageSettings` keys → use template name identifiers only (e.g., `python_generic_lib`, `typescript_generic_lib`)
+- About to ask the user to paste their API key into the chat, or to write a key's value into a command or file → API keys are secrets; refer to them only through the `APIMATIC_API_KEY` environment variable (see the API key fallback in [Step 1](#step-1-authenticate-with-apimatic))
 - About to edit, create, or delete any file inside `src/` during first-time setup before the first portal generation → do not modify the scaffolded `src/` directory in any way except replacing the sample spec with the user's spec. Generate the portal first, then make changes if the user asks.
 
 
@@ -113,28 +114,29 @@ The output should show the account email. If it does not, authentication did not
 
 **Fallback flow (API key):**
 
-Use this when browser auth is not available (CI environment, headless system) or when the user prefers a key-based approach.
+Use this when browser auth is not available (CI environment, headless system) or when the user prefers a key-based approach. API keys are generated at: APIMatic Dashboard > Account > API Keys.
 
-Option 1 — CLI flag:
+An API key is a secret. Never ask the user to paste it into the chat, and never write a key's value into a command, file, or reply — always refer to it through the `APIMATIC_API_KEY` environment variable. If the user pastes a key anyway, do not repeat it or use it; suggest they regenerate it in the Dashboard, since it is now in the chat history.
+
+**On the user's machine:** the user signs in from their own terminal, so the key never passes through this conversation. Tell the user:
+
+> "Open a terminal, set the `APIMATIC_API_KEY` environment variable to your API key, and run `apimatic auth login --auth-key="$APIMATIC_API_KEY"` (in PowerShell: `--auth-key="$env:APIMATIC_API_KEY"`). Your API key is at: APIMatic Dashboard > Account > API Keys. Please don't paste the key here. Let me know when you're signed in."
+
+When they confirm, run `apimatic auth status` to check that it shows their account email. The sign-in is saved, so later commands need no key.
+
+**In CI or containers:** store the key as a secret, expose it as the `APIMATIC_API_KEY` environment variable, and expand it into the `--auth-key` flag. The CLI does not read the variable on its own, so setting it without passing it to `--auth-key` does not sign in. In PowerShell, write `"$env:APIMATIC_API_KEY"` instead of `"$APIMATIC_API_KEY"`.
+
+Option 1 — sign in once with the key (works for every command):
 
 ```
-apimatic auth login --auth-key=YOUR_API_KEY
+apimatic auth login --auth-key="$APIMATIC_API_KEY"
 ```
 
-Option 2 — environment variable (no login command needed):
+Option 2 — pass the key to each command with `--auth-key` (supported by `portal serve`, `portal generate`, and `portal copilot`):
 
-```bash
-# macOS / Linux / bash / zsh:
-export APIMATIC_API_KEY=YOUR_API_KEY
-
-# Windows PowerShell:
-$env:APIMATIC_API_KEY = "YOUR_API_KEY"
-
-# Windows Command Prompt:
-set APIMATIC_API_KEY=YOUR_API_KEY
 ```
-
-API keys are generated at: APIMatic Dashboard > Account > API Keys.
+apimatic portal generate --auth-key="$APIMATIC_API_KEY"
+```
 
 **If both methods fail:**
 
@@ -247,7 +249,7 @@ apimatic portal generate
 **With an API key directly (recommended for CI — no interactive auth needed):**
 
 ```
-apimatic portal generate --auth-key=YOUR_API_KEY
+apimatic portal generate --auth-key="$APIMATIC_API_KEY"
 ```
 
 The generated portal files are written to `./portal/` by default. Use `--destination` to specify a different output directory:
@@ -258,7 +260,15 @@ apimatic portal generate --destination=./dist/portal
 
 **GitHub Actions pattern:**
 
-Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in your workflow step. A complete sample workflow is available at: github.com/apimatic/sample-docs-as-code-portal
+Set `APIMATIC_API_KEY` as a repository secret, expose it to the step as an environment variable, and expand it into `--auth-key`:
+
+```yaml
+- run: apimatic portal generate --auth-key="$APIMATIC_API_KEY" --force
+  env:
+    APIMATIC_API_KEY: ${{ secrets.APIMATIC_API_KEY }}
+```
+
+A complete sample workflow is available at: github.com/apimatic/sample-docs-as-code-portal
 
 **Additional flags:**
 - `--force, -f` : Overwrite if a portal already exists in the destination. Use for repeated CI builds.
@@ -273,7 +283,7 @@ Set `APIMATIC_API_KEY` as a repository secret, then pass it via `--auth-key` in 
 | First-time setup | Download sample portal and scaffold `src/` — see [Path A](#path-a-first-time-setup-guided-onboarding) |
 | Start local dev server | `node {skill_dir}/scripts/serve.mjs start --input ./` |
 | Server status / stop | `node {skill_dir}/scripts/serve.mjs status` / `stop` |
-| Build for CI/production | `apimatic portal generate --auth-key=KEY` |
+| Build for CI/production | `apimatic portal generate --auth-key="$APIMATIC_API_KEY"` |
 | Regenerate toc.yml | `apimatic portal toc new` |
 | Configure API Copilot | `apimatic portal copilot` (wizard) |
 | Scaffold a recipe | Follow the [API Recipes](#api-recipes) section below |

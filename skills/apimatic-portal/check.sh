@@ -33,6 +33,18 @@ else
 fi
 
 # ─────────────────────────────────────────────
+separator "QUAL-01b — API keys stay out of commands"
+
+# Snyk flags --auth-key examples with a placeholder key (W007, insecure credential handling): the agent
+# copies them and writes the real key into commands. Every example must expand $APIMATIC_API_KEY instead.
+if grep -nE -- "--auth-key=[^\"<]|--auth-key=\"[^$]" "$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/"*.md > /dev/null 2>&1; then
+  fail "An --auth-key example uses a literal key instead of \"\$APIMATIC_API_KEY\""
+  grep -nE -- "--auth-key=[^\"<]|--auth-key=\"[^$]" "$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/"*.md || true
+else
+  pass "Every --auth-key example expands an environment variable"
+fi
+
+# ─────────────────────────────────────────────
 separator "QUAL-02a — CLI audit: all 13 flag gaps filled"
 
 # portal toc new flags (QUAL-02b)

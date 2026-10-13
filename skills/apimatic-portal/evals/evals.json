@@ -4,7 +4,7 @@
     {
       "id": 0,
       "prompt": "I need to log in to APIMatic CLI so I can build my developer portal. Can you walk me through the authentication process?",
-      "expected_output": "The agent runs `apimatic auth login`, explicitly tells the user a browser window has opened and waits for the user to confirm sign-in is complete before proceeding, then verifies with `apimatic auth status`.",
+      "expected_output": "The agent runs the auth-login.mjs launcher (which runs `apimatic auth login` in the background), explicitly tells the user a browser window has opened and waits for the user to confirm sign-in is complete before proceeding, then verifies with `apimatic auth status`.",
       "files": [],
       "assertions": [
         {
@@ -128,7 +128,7 @@
     {
       "id": 3,
       "prompt": "I'm configuring a GitHub Actions CI pipeline to build and deploy my APIMatic portal. I have an API key from the APIMatic dashboard. How do I run the portal build step without requiring browser-based login?",
-      "expected_output": "The agent recommends `apimatic portal generate --auth-key=YOUR_API_KEY` as the CI-appropriate pattern. The --auth-key flag is documented and presented as the recommended non-interactive auth approach for CI.",
+      "expected_output": "The agent recommends `apimatic portal generate --auth-key=\"$APIMATIC_API_KEY\"`, with the variable set from the repository secret, as the CI-appropriate pattern. The --auth-key flag is documented and presented as the recommended non-interactive auth approach for CI.",
       "files": [],
       "assertions": [
         {
@@ -308,7 +308,7 @@
     {
       "id": 7,
       "prompt": "I'm completely new to APIMatic and want to build my first developer portal from scratch.",
-      "expected_output": "The agent follows Path A: runs `node --version` directly (does not ask the user to run it), asks permission before installing the CLI, then runs `apimatic auth login` and waits for browser sign-in confirmation before proceeding.",
+      "expected_output": "The agent follows Path A: runs `node --version` directly (does not ask the user to run it), asks permission before installing the CLI, then signs in with the auth-login.mjs launcher (which runs `apimatic auth login`) and waits for browser sign-in confirmation before proceeding.",
       "files": [],
       "assertions": [
         {
@@ -379,7 +379,7 @@
     {
       "id": 9,
       "prompt": "I completed browser sign-in for APIMatic but when I run apimatic auth status it doesn't show my email.",
-      "expected_output": "The agent offers the API key fallback (`apimatic auth login --auth-key=YOUR_API_KEY`) and does NOT proceed to portal generation until authentication is confirmed.",
+      "expected_output": "The agent offers the API key fallback: the user runs `apimatic auth login --auth-key=\"$APIMATIC_API_KEY\"` in their own terminal, without pasting the key into the chat. It does NOT proceed to portal generation until authentication is confirmed.",
       "files": [],
       "assertions": [
         {

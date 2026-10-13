@@ -33,7 +33,9 @@ options:
 
 ## Step A3: Authenticate
 
-Run `apimatic auth login`. The command opens a browser OAuth flow.
+Run `apimatic auth status`. If it shows an account email, proceed to Step A4.
+
+Otherwise run `node {skill_dir}/scripts/auth-login.mjs`, which opens the browser sign-in flow without blocking the terminal. `{skill_dir}` is the absolute path to the directory containing this skill's `SKILL.md`. Do not run `apimatic auth login` directly: it waits up to 5 minutes for the browser sign-in to finish.
 
 Because you cannot observe whether the user completed browser sign-in, use AskUserQuestion:
 
@@ -49,8 +51,14 @@ options:
 
 - "Yes" → run `apimatic auth status` and read the output
   - Output contains an email address → proceed to Step A4
-  - No email in output → output: "Sign-in may not have completed. Please try again, or use the API key fallback: `apimatic auth login --auth-key=YOUR_API_KEY`. Your API key is at: APIMatic Dashboard > Account > API Keys."
-- "No" or "I got an error" → output: "Use `apimatic auth login --auth-key=YOUR_API_KEY` instead. Your API key is at: APIMatic Dashboard > Account > API Keys." Then run `apimatic auth status`. If still no email → stop: "Authentication failed. Do not proceed until authenticated."
+  - No email in output → output: "Sign-in may not have completed. Please try again, or sign in with an API key instead." Then follow the API key fallback below.
+- "No" or "I got an error" → follow the API key fallback below.
+
+**API key fallback.** The user signs in from their own terminal, so the key never passes through this conversation. Never ask the user to paste the key into the chat, and never put a key's value in a command. Output exactly:
+
+"Open a terminal, set the `APIMATIC_API_KEY` environment variable to your API key, and run `apimatic auth login --auth-key="$APIMATIC_API_KEY"` (in PowerShell: `--auth-key="$env:APIMATIC_API_KEY"`). Your API key is at: APIMatic Dashboard > Account > API Keys. Please don't paste the key here. Let me know when you're signed in."
+
+When the user confirms, run `apimatic auth status`. If it shows an email → proceed to Step A4. If not → stop: "Authentication failed. Do not proceed until authenticated."
 
 ---
 
