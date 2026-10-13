@@ -1003,7 +1003,7 @@
     {
       "id": 43,
       "prompt": "Before I generate an SDK, can you check my OpenAPI file at ./src/spec/openapi.yaml for errors? I'm authenticated.",
-      "expected_output": "The agent runs `apimatic api validate` from the project root (which validates the definition in src/spec/) or `apimatic api validate --file=./src/spec/openapi.yaml`, and explains the severity levels (errors must be fixed; warnings lower quality).",
+      "expected_output": "The agent runs `apimatic api validate` from the project root (which validates the definition in src/spec/) or `apimatic api validate --file=./src/spec/openapi.yaml`, and explains the severity levels (Blocking issues and Errors should be fixed, though only a definition that can't be parsed stops generation; warnings lower quality).",
       "files": [],
       "assertions": [
         {
@@ -1242,7 +1242,7 @@
     {
       "id": 50,
       "prompt": "Check the API definition in my project for errors before I generate anything. The project root is ./payments/ and it has src/spec/ set up. I'm authenticated.",
-      "expected_output": "The agent runs `apimatic api validate` against the project (from ./payments/, or with `--input=./payments`) so it checks the definition in src/spec/, and explains that errors must be fixed while warnings only lower quality. It does not generate an SDK.",
+      "expected_output": "The agent runs `apimatic api validate` against the project (from ./payments/, or with `--input=./payments`) so it checks the definition in src/spec/, and explains that Blocking issues and Errors should be fixed (only a definition that can't be parsed stops generation) while warnings only lower quality. It does not generate an SDK.",
       "files": [],
       "assertions": [
         {

@@ -348,7 +348,7 @@ The CLI prints `SDK generated successfully.` and where the SDK was saved.
 1. **Authentication error:** Re-run `apimatic auth status` to verify. If expired, re-authenticate (Step 1).
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
 3. **Missing `src/` folder or spec file:** Check that the input directory contains a `src/` folder with the API spec in `src/spec/`.
-4. **Errors in the API definition:** Run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the reported errors (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). Errors must be fixed before an SDK can be generated; warnings can lower SDK quality but do not block generation.
+4. **Errors in the API definition:** If the CLI reports `SDK Generation failed.` with a message such as `Unable to parse file.`, the CLI could not read the API definition. Run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the reported problems (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). The parsing problem is reported as **Blocking** with the line it fails on; fix it and re-run. A successful generation does not mean the definition is clean: Blocking issues and Errors that the CLI can still parse are generated as degraded code.
 5. **Language not available:** If the CLI says the language is not available, only `csharp`, `python`, and `typescript` are supported — see Step 3.
 6. **SDK already exists at destination:** Without `--force`, the CLI stops and asks `The destination '<path>' is not empty, do you want to overwrite?` (`○ Yes / ● No`). A non-interactive shell cannot answer it: the command exits right after the prompt, often with only a Node `Warning: Detected unsettled top-level await`, and no SDK is generated. Treat that output as "SDK already exists" — do not answer the prompt or retry. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
 7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`.
@@ -385,9 +385,19 @@ apimatic api validate --file=<path-to-spec>
 apimatic api validate --url=<public-url-to-spec>
 ```
 
-With no flags it validates the API definition in `./src/spec/`; `--input` points at another project root. `--file`, `--url`, and `--input` cannot be combined.
+With no flags it validates everything in `./src/spec/` together, which is exactly what `sdk generate` uses; `--input` points at another project root. `--file` validates a single file. `--file`, `--url`, and `--input` cannot be combined.
 
-Messages are reported as **Blocking** or **Error** (must be fixed before anything is generated), **Warning** (does not block, but can lower SDK quality), or **Information** (suggestions). For validation while editing, suggest the APIMatic extension for VS Code.
+When the user names a spec file:
+- **The file is in the project's `src/spec/`** → use the no-flag form (or `--input` for another project root). It checks what generation will use.
+- **The file is outside `src/spec/`, or the user wants only that one file checked** → use `--file=<path>`.
+
+Messages are reported as:
+- **Blocking**: the definition is broken, for example an unresolved `$ref` or a file that can't be parsed.
+- **Error**: an invalid definition or a broken APIMatic rule, for example an invalid schema type, a server URL pointing to `example.com`, or an operation with no summary.
+- **Warning**: can lower SDK quality.
+- **Information**: suggestions.
+
+Only a definition the CLI cannot parse stops SDK generation. Other Blocking issues and Errors do not: the SDK is still generated, but the affected parts are degraded (for example, a parameter with an invalid type or an unresolved `$ref` becomes an untyped `Any`). Do not tell the user that Errors prevent generation. Tell them to fix Blocking issues and Errors before relying on or publishing the SDK. For validation while editing, suggest the APIMatic extension for VS Code.
 
 **Transform** — converts between formats (OpenAPI 3.x/2.0, RAML, Postman, API Blueprint, WSDL, WADL, GraphQL schema, APIMatic):
 
