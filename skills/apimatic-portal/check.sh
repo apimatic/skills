@@ -58,6 +58,15 @@ else
   fail "SKILL.md: npm install -g @apimatic/cli@beta missing"
 fi
 
+# Security scanners (Gen Agent Trust Hub on skills.sh) rate the skill High Risk for privilege escalation
+# when it tells the agent to run sudo.
+if grep -rniE "\bsudo\b" "$SKILL_DIR" --include=*.md --include=*.mjs > /dev/null 2>&1; then
+  fail "A skill file tells the agent to use sudo"
+  grep -rniE "\bsudo\b" "$SKILL_DIR" --include=*.md --include=*.mjs || true
+else
+  pass "No sudo in skill files"
+fi
+
 # ─────────────────────────────────────────────
 separator "QUAL-02 — CLI v2 flags documented"
 

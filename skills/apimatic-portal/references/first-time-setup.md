@@ -40,7 +40,7 @@ options:
 
 - "Yes" → run `npm install -g @apimatic/cli@beta`, then run `apimatic --version`
   - Output starts with `@apimatic/cli/2.` → proceed to Step A3
-  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli@beta` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli@beta`. Verify with `apimatic --version`, then come back here." Do not proceed.
+  - Command not found or error → do not retry the install with elevated privileges yourself. Stop and output exactly: "The install did not complete. Please run `npm install -g @apimatic/cli@beta` in your own terminal. If npm reports a permissions error (EACCES), follow npm's guide to fix it: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally. Verify with `apimatic --version`, then come back here." Do not proceed.
 - "No" → output: "When you're ready, run `npm install -g @apimatic/cli@beta`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
 
 ---

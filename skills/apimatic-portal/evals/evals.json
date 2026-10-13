@@ -355,7 +355,7 @@
     {
       "id": 8,
       "prompt": "I ran npm install -g @apimatic/cli but when I run apimatic --version it still says command not found.",
-      "expected_output": "The agent tells the user to install the v2 CLI with @beta (retrying with sudo on macOS/Linux) and does NOT proceed to authentication or portal generation until the CLI is verified.",
+      "expected_output": "The agent tells the user to install the v2 CLI with @beta (running it in their own terminal, without the agent retrying under sudo) and does NOT proceed to authentication or portal generation until the CLI is verified.",
       "files": [],
       "assertions": [
         {
@@ -365,13 +365,10 @@
           "value": "npm install -g @apimatic/cli@beta"
         },
         {
-          "id": "suggests-elevated-retry",
-          "description": "Response suggests retrying with elevated privileges",
-          "type": "contains_any",
-          "value": [
-            "sudo",
-            "Administrator"
-          ]
+          "id": "does-not-escalate-privileges",
+          "description": "Response does NOT run or suggest the install with sudo",
+          "type": "not_contains",
+          "value": "sudo"
         },
         {
           "id": "does-not-proceed-to-auth",
