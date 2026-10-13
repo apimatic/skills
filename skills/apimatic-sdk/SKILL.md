@@ -27,7 +27,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to generate or publish a Java, PHP, Ruby, or Go SDK → CLI v2 supports only `csharp`, `python`, and `typescript`. Tell the user the language is not available yet and offer the supported ones; do not run the command
 - About to pass the spec file path to `--input` → `--input` must point to the parent directory that contains `src/`, not the spec file itself (e.g., `--input=./my-project`, not `--input=./openapi.yaml`) → commands run from project root, never from inside `src/`
 - About to add `--zip` when the user didn't ask for it → only include `--zip` if the user explicitly requested a zip download
-- About to rerun `sdk generate` with `--force` without asking → when the CLI reports an SDK already exists, ask the user before adding `--force`
+- About to rerun `sdk generate` with `--force` without asking → when the CLI shows the "destination … is not empty, do you want to overwrite?" prompt (or exits right after it), ask the user before adding `--force`
 - About to `cd src/` before running generate → run from the project root (the directory that _contains_ `src/`), never from inside `src/`
 - About to proceed to SDK generation before the user confirms browser auth → wait for user confirmation after launching browser login, then verify with `apimatic auth status`
 - About to use `--track-changes`, `--skip-changes`, or `sdk save-changes` without checking that the installed CLI supports them → run the [Change Tracking Availability Check](#change-tracking-availability-check) first
@@ -48,7 +48,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 
 This skill is used by developers of all experience levels. All messages shown to the user must be clear, non-technical, and action-oriented. Follow these rules in every response:
 
-- **Show CLI output in a code block:** After a command finishes, display the final terminal output to the user wrapped in a fenced code block. Before rendering, strip ANSI escape codes and remove duplicate consecutive lines caused by spinner animation (keep only the last occurrence of each repeated line). Do not summarize or paraphrase — show the cleaned output as-is inside the code block.
+- **Show CLI output in a code block:** After a command finishes, display the final terminal output to the user wrapped in a fenced code block. Before rendering, strip ANSI escape codes and remove duplicate consecutive lines caused by spinner animation (keep only the last occurrence of each repeated line). Do not summarize or paraphrase — show the cleaned output as-is inside the code block. The one exception is `apimatic publishing profile list`, which is summarized instead (see [Publish Step 2](#step-2-find-the-publishing-profile-id)).
 - **Use the verbatim blocks provided:** When this skill provides a specific message to show, output it exactly as written. Do not paraphrase or add technical context around it.
 - **Keep error guidance actionable:** When something fails, show the cleaned CLI output in a code block, then tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
 - **When in doubt, less is more:** If you are unsure whether a detail is useful to the user, leave it out.
@@ -96,11 +96,21 @@ apimatic sdk generate --help
 ```
 
 - **The output lists `--track-changes`** → change tracking is available. Continue with the [SDK Source Tree Check](#sdk-source-tree-check) and `references/save-changes.md`.
-- **The output does not list `--track-changes`** → change tracking is not available in the installed CLI. Do not run `--track-changes`, `--skip-changes`, or `sdk save-changes`. Tell the user:
+- **The output does not list `--track-changes`** → change tracking is not available in the installed CLI. Do not run `--track-changes`, `--skip-changes`, or `sdk save-changes`, and skip `references/save-changes.md`. Trust the `--help` output even if the user says change tracking is already enabled — tell them the installed CLI version doesn't include it, then continue with the case below that matches their request.
 
-  > "Saving customizations so they're reapplied on every regeneration isn't available in the version of the APIMatic CLI you have installed. I can still make the change, but it will be overwritten the next time the SDK is regenerated. To keep it safe, I'll put custom logic in new files where possible and note every change in the SDK's README so it's easy to reapply."
+  - **Claude is applying a customization** (Fast Path — Apply a Specific Customization, or Step 6 when the user wants Claude to make the changes). Tell the user:
 
-  If the user wants to proceed, apply the change following the [Customization Guidelines](#customization-guidelines) and stop there — skip `references/save-changes.md`.
+    > "Saving customizations so they're reapplied on every regeneration isn't available in the version of the APIMatic CLI you have installed. I can still make the change, but it will be overwritten the next time the SDK is regenerated. To keep it safe, I'll put custom logic in new files where possible and note every change in the SDK's README so it's easy to reapply."
+
+    If the user wants to proceed, apply the change following the [Customization Guidelines](#customization-guidelines) and stop there.
+
+  - **The user has already customized an SDK and wants to save it, or will make the customizations themselves** (Fast Path — Already-Customized SDK, or Step 6 when the user handles the changes). Do not regenerate. Tell the user:
+
+    > "Saving customizations so they're reapplied on every regeneration isn't available in the version of the APIMatic CLI you have installed. Your changes are safe in the SDK folder as long as the SDK isn't regenerated into that same folder. To keep them, commit the SDK to version control and list each change in the SDK's README so it's easy to reapply after a regeneration."
+
+    If the user asks, help document their changes in the README following the [Customization Guidelines](#customization-guidelines), then stop.
+
+  - **The user wants to see the SDK without their customizations** (the `--skip-changes` case). With no change tracking, nothing is reapplied, so a plain generation already produces the uncustomized SDK. Run Steps 4–7 without `--skip-changes`, and make sure `--destination` is not the user's customized SDK folder so it isn't overwritten — ask for a path or use `<input>/sdk/plain`.
 
 ---
 
@@ -186,7 +196,7 @@ First check whether the user is already authenticated:
 apimatic auth status
 ```
 
-If the output shows an account email, authentication is already in place — skip to Step 2. The output also lists the SDK languages available on the user's plan.
+If the output shows an account email, authentication is already in place — skip to Step 2. The output also has an `Allowed Languages` line: these are the languages the user's plan is entitled to, not the languages CLI v2 can generate. It can list `go`, `java`, `php`, or `ruby`, but only `csharp`, `python`, and `typescript` can be generated today (see Step 3).
 
 **Primary flow (browser-based):**
 
@@ -279,7 +289,7 @@ If the user has already described a specific change they want (e.g., "remove the
 
 If not already known from context, ask: "Would you like to customize the SDK after generating it? (e.g., add custom code, modify generated files)"
 
-- **User says yes →** Run the [Change Tracking Availability Check](#change-tracking-availability-check). If change tracking is not available, follow the instructions there and skip the rest of this step.
+- **User says yes →** Run the [Change Tracking Availability Check](#change-tracking-availability-check). If change tracking is not available, ask whether Claude or the user will make the changes (unless already known), follow the matching case there, and skip the rest of this step.
 
   Ask: "Do you already have a generated SDK you've customized, or are you starting fresh?"
   - **Already has a customized SDK →** Skip generation entirely. Ask: "Would you like me to apply the customizations, or will you handle them yourself?" then follow the appropriate path below.
@@ -338,7 +348,7 @@ The CLI prints `SDK generated successfully.` and where the SDK was saved.
 3. **Missing `src/` folder or spec file:** Check that the input directory contains a `src/` folder with the API spec in `src/spec/`.
 4. **Errors in the API definition:** Run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the reported errors (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). Errors must be fixed before an SDK can be generated; warnings can lower SDK quality but do not block generation.
 5. **Language not available:** If the CLI says the language is not available, only `csharp`, `python`, and `typescript` are supported — see Step 3.
-6. **SDK already exists at destination:** The CLI will refuse to overwrite. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
+6. **SDK already exists at destination:** Without `--force`, the CLI stops and asks `The destination '<path>' is not empty, do you want to overwrite?` (`○ Yes / ● No`). A non-interactive shell cannot answer it: the command exits right after the prompt, often with only a Node `Warning: Detected unsettled top-level await`, and no SDK is generated. Treat that output as "SDK already exists" — do not answer the prompt or retry. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
 7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`.
 8. **Unknown flag `--track-changes` / `--skip-changes`, or unknown command `save-changes`:** The installed CLI does not include change tracking — follow the [Change Tracking Availability Check](#change-tracking-availability-check).
 9. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
@@ -381,7 +391,7 @@ Messages are reported as **Blocking** or **Error** (must be fixed before anythin
 apimatic api transform --format=<format> --file=<path-to-spec> --destination=<dir>
 ```
 
-`--format` values: `openapi3yaml`, `oas3`, `swaggeryaml`, `swagger20`, `swagger10`, `raml`, `raml10`, `postman20`, `postman10`, `apiblueprint`, `wsdl`, `wadl2009`, `graphqlschema`, `apimatic`. Add `--url` instead of `--file` for a public URL, and `-f, --force` to overwrite. Transforming does not add the API to the APIMatic Dashboard.
+`--format` values: `openapi3yaml`, `oas3`, `swaggeryaml`, `swagger20`, `swagger10`, `raml`, `raml10`, `postman20`, `postman10`, `apiblueprint`, `wsdl`, `wadl2009`, `graphqlschema`, `apimatic`. Add `--url` instead of `--file` for a public URL. If the output file already exists, the CLI asks `A specification file already exists at '<path>'. Do you want to overwrite the existing file?` and, in a non-interactive shell, exits without transforming (as in [Step 7 failure item 6](#step-7-generate-the-sdk)); ask the user before re-running with `-f, --force`. Transforming does not add the API to the APIMatic Dashboard.
 
 ## Publish an SDK
 
@@ -407,7 +417,7 @@ If the user does not already know their profile ID, run:
 apimatic publishing profile list
 ```
 
-This lists all publishing profiles with their names, IDs, and enabled languages. Do not forward the raw table output to the user — summarize the available profiles and their IDs in plain language so the user can identify the one they want.
+This lists all publishing profiles with their names, IDs, and enabled languages, grouped by API with one table per API. This command is the exception to the "show CLI output in a code block" rule: do not forward the raw tables — summarize the available profiles in plain language (API, profile name, profile ID, enabled languages) so the user can identify the one they want.
 
 If the user has no profile yet, tell them to create one in the Publishing Center on the APIMatic Dashboard: give it a name, enter the package details (name, description, authors), review each language's package settings, and save. Registry and GitHub credentials are added from the **Credentials** menu with **+ Add Credential**.
 
@@ -428,7 +438,7 @@ See `examples/publish-sdk.md` for the expected command and output — flags and 
 apimatic sdk publish --profile-id=<profile-id> --language=<language> --version=<version> --publish-type=<type> --force
 ```
 
-Always include `--force` to avoid the CLI prompting about an existing destination.
+Always include `--force` (except with `--dry-run`, see [Dry Run](#dry-run)). Without it, an existing SDK at the destination triggers the overwrite prompt described in [Step 7 failure item 6](#step-7-generate-the-sdk), which a non-interactive shell cannot answer.
 
 #### Flags
 
@@ -465,6 +475,8 @@ Use `--dry-run` to generate the SDK locally and inspect it before publishing:
 ```
 apimatic sdk publish --dry-run --profile-id=<id> --language=python --version=1.0.0 --publish-type=package
 ```
+
+A dry run always writes the SDK to a new folder under `~/Downloads/apimatic-sdk` (`apimatic-sdk (1)`, `apimatic-sdk (2)`, … when earlier runs exist) and ignores `--destination`, so it never hits the overwrite prompt and `--force` is not needed. Tell the user where the SDK was saved using the path the CLI prints.
 
 ### After SDK Publish Completes (Success or Failure)
 

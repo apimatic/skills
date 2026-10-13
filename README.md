@@ -61,6 +61,7 @@ Or clone that branch (`git clone --branch v1 https://github.com/apimatic/skills`
 
 ```bash
 npx skills add apimatic/skills --skill apimatic-portal
+npx skills add apimatic/skills --skill apimatic-sdk
 ```
 
 ### Option 2 — Prompt your agent to install it
