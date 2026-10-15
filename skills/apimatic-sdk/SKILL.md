@@ -174,13 +174,15 @@ Confirm these are in place before starting:
   npm install -g @apimatic/cli@beta
   ```
 
+  Always keep the `@beta` tag in every install or reinstall command you run or suggest. Without it, npm resolves the package to CLI v1: `@apimatic/cli` and `@apimatic/cli@latest` both still point to v1. If the user says they installed the CLI without `@beta`, tell them that command installs CLI v1, not the v2 that SDK generation needs, and give them the `@beta` command. Say this even when `apimatic --version` shows v2 is already installed: running their command again later would replace v2 with v1.
+
   Verify the CLI is available:
 
   ```
   apimatic --version
   ```
 
-  The output should start with `@apimatic/cli/2.`. If the command fails, the CLI is not installed — re-run the install command.
+  The output should start with `@apimatic/cli/2.`. If the command fails, CLI v2 is not installed — run the `@beta` install command above. Do not continue to authentication or SDK generation until `apimatic --version` prints `@apimatic/cli/2.`.
 
   If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 
@@ -351,7 +353,7 @@ The CLI prints `SDK generated successfully.` and where the SDK was saved.
 4. **Errors in the API definition:** If the CLI reports `SDK Generation failed.` with a message such as `Unable to parse file.`, the CLI could not read the API definition. Run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the reported problems (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). The parsing problem is reported as **Blocking** with the line it fails on; fix it and re-run. A successful generation does not mean the definition is clean: Blocking issues and Errors that the CLI can still parse are generated as degraded code.
 5. **Language not available:** If the CLI says the language is not available, only `csharp`, `python`, and `typescript` are supported — see Step 3.
 6. **SDK already exists at destination:** Without `--force`, the CLI stops and asks `The destination '<path>' is not empty, do you want to overwrite?` (`○ Yes / ● No`). A non-interactive shell cannot answer it: the command exits right after the prompt, often with only a Node `Warning: Detected unsettled top-level await`, and no SDK is generated. Treat that output as "SDK already exists" — do not answer the prompt or retry. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
-7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`.
+7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` (always with `@beta`; without it npm installs CLI v1) and verify with `apimatic --version`.
 8. **Unknown flag `--track-changes` / `--skip-changes`, or unknown command `save-changes`:** The installed CLI does not include change tracking — follow the [Change Tracking Availability Check](#change-tracking-availability-check).
 9. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
 

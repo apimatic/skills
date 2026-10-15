@@ -40,31 +40,35 @@ def load_commands(eval_id):
                     commands.append(block.get("input", {}).get("command", ""))
     return commands
 
+def normalize(s):
+    """Lowercase and use forward slashes, so `src\\spec` on Windows matches `src/spec`."""
+    return s.lower().replace("\\", "/")
+
 def check_assertion(text, assertion, commands):
     t = assertion["type"]
     v = assertion["value"]
-    text_lower = text.lower()
+    text_lower = normalize(text)
 
     if t == "ran_command":
         if commands is None:
             passed = False
             evidence = "NO TRANSCRIPT: cannot tell whether the command ran"
         else:
-            matched = [c for c in commands if v.lower() in c.lower()]
+            matched = [c for c in commands if normalize(v) in normalize(c)]
             passed = len(matched) > 0
             evidence = f"Ran: {matched[0]!r}" if passed else f"NEVER RAN: '{v}'"
     elif t == "contains":
-        passed = v.lower() in text_lower
+        passed = normalize(v) in text_lower
         evidence = f"Found '{v}'" if passed else f"NOT FOUND: '{v}'"
     elif t == "contains_any":
-        matched = [item for item in v if item.lower() in text_lower]
+        matched = [item for item in v if normalize(item) in text_lower]
         passed = len(matched) > 0
         evidence = f"Found: {matched}" if passed else f"NONE FOUND: {v}"
     elif t == "not_contains":
-        passed = v.lower() not in text_lower
+        passed = normalize(v) not in text_lower
         evidence = f"Correctly absent: '{v}'" if passed else f"SHOULD NOT CONTAIN: '{v}'"
     elif t == "not_contains_any":
-        found = [item for item in v if item.lower() in text_lower]
+        found = [item for item in v if normalize(item) in text_lower]
         passed = len(found) == 0
         evidence = f"Correctly absent" if passed else f"SHOULD NOT CONTAIN: {found}"
     else:

@@ -11,23 +11,27 @@ EVALS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "evals.jso
 with open(EVALS_FILE) as f:
     evals_data = json.load(f)
 
+def normalize(s):
+    """Lowercase and use forward slashes, so `src\\content` on Windows matches `src/content`."""
+    return s.lower().replace("\\", "/")
+
 def check_assertion(text, assertion):
     t = assertion["type"]
     v = assertion["value"]
-    text_lower = text.lower()
+    text_lower = normalize(text)
 
     if t == "contains":
-        passed = v.lower() in text_lower
+        passed = normalize(v) in text_lower
         evidence = f"Found '{v}'" if passed else f"NOT FOUND: '{v}'"
     elif t == "contains_any":
-        matched = [item for item in v if item.lower() in text_lower]
+        matched = [item for item in v if normalize(item) in text_lower]
         passed = len(matched) > 0
         evidence = f"Found: {matched}" if passed else f"NONE FOUND: {v}"
     elif t == "not_contains":
-        passed = v.lower() not in text_lower
+        passed = normalize(v) not in text_lower
         evidence = f"Correctly absent: '{v}'" if passed else f"SHOULD NOT CONTAIN: '{v}'"
     elif t == "not_contains_any":
-        found = [item for item in v if item.lower() in text_lower]
+        found = [item for item in v if normalize(item) in text_lower]
         passed = len(found) == 0
         evidence = f"Correctly absent" if passed else f"SHOULD NOT CONTAIN: {found}"
     else:

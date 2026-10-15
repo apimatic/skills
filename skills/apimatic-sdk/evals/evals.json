@@ -15,9 +15,12 @@
         },
         {
           "id": "runs-auth-login",
-          "description": "Response includes the auth login command",
-          "type": "contains",
-          "value": "apimatic auth login"
+          "description": "Response starts the browser sign-in (the auth-login.mjs launcher, which runs `apimatic auth login`)",
+          "type": "contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "waits-for-user-confirmation",
@@ -67,8 +70,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user said they are already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "uses-correct-directory",
@@ -174,8 +180,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user said they are logged in",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "generates-csharp-sdk",
@@ -215,8 +224,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "generates-python-sdk",
@@ -287,8 +299,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "generates-csharp-sdk",
@@ -361,8 +376,11 @@
         {
           "id": "no-browser-login-for-ci",
           "description": "Response does NOT recommend browser-based login for CI",
-          "type": "not_contains",
-          "value": "apimatic auth login\n"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login\n",
+            "auth-login.mjs"
+          ]
         }
       ]
     },
@@ -387,8 +405,11 @@
         {
           "id": "does-not-proceed-to-auth",
           "description": "Response does NOT proceed to authentication while CLI is missing",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "mentions-version-check",
@@ -628,8 +649,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user said they are authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "generates-typescript-sdk",
@@ -731,8 +755,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         }
       ]
     },
@@ -781,8 +808,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         }
       ]
     },
@@ -825,8 +855,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         }
       ]
     },
@@ -845,8 +878,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "does-not-run-sdk-generate",
@@ -880,8 +916,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         }
       ]
     },
@@ -1073,7 +1112,14 @@
             "doesn't support codegen settings",
             "does not support codegen settings",
             "no codegen settings",
-            "not supported"
+            "not supported",
+            "no config settings",
+            "no configuration settings",
+            "doesn't support config settings",
+            "does not support config settings",
+            "no setting for",
+            "isn't a setting for",
+            "is no setting"
           ]
         },
         {
@@ -1119,7 +1165,14 @@
             "doesn't support codegen settings",
             "does not support codegen settings",
             "no codegen settings",
-            "not supported"
+            "not supported",
+            "no config settings",
+            "no configuration settings",
+            "doesn't support config settings",
+            "does not support config settings",
+            "no setting for",
+            "isn't a setting for",
+            "is no setting"
           ]
         },
         {
@@ -1142,8 +1195,8 @@
     },
     {
       "id": 47,
-      "prompt": "Remove the docs folder from my generated Python SDK. My project is at ./my-sdk/ and I'm already authenticated.",
-      "expected_output": "The agent explains there is no CodeGen setting for this in Codegen v4 and treats the request as a code customization of the generated SDK, checking change tracking support first. It does NOT set DisableDocs in APIMATIC-META.json.",
+      "prompt": "Turn off documentation generation for my Python SDK. I don't want api-reference.md and raw-api-reference.md in it. My project is at ./my-sdk/ and I'm already authenticated.",
+      "expected_output": "The agent explains that Codegen v4 has no CodeGen setting to turn off documentation and treats removing the API reference Markdown files as a code customization of the generated SDK, checking change tracking support first. It does NOT set DisableDocs in APIMATIC-META.json.",
       "files": [],
       "assertions": [
         {
@@ -1156,7 +1209,14 @@
             "doesn't support codegen settings",
             "does not support codegen settings",
             "no codegen settings",
-            "not supported"
+            "not supported",
+            "no config settings",
+            "no configuration settings",
+            "doesn't support config settings",
+            "does not support config settings",
+            "no setting for",
+            "isn't a setting for",
+            "is no setting"
           ]
         },
         {
@@ -1171,8 +1231,11 @@
         {
           "id": "skips-auth",
           "description": "Response does NOT run auth login since user is already authenticated",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         }
       ]
     },

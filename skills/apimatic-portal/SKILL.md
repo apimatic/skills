@@ -89,13 +89,15 @@ Confirm these are in place before starting:
 npm install -g @apimatic/cli@beta
 ```
 
+  Always keep the `@beta` tag in every install or reinstall command you run or suggest. Without it, npm resolves the package to CLI v1: `@apimatic/cli` and `@apimatic/cli@latest` both still point to v1. If the user says they installed the CLI without `@beta`, tell them that installed CLI v1 (or nothing), not the v2 this portal needs.
+
 - Verify the CLI is available and on v2:
 
 ```
 apimatic --version
 ```
 
-The output should start with `@apimatic/cli/2.`. If the command fails, the CLI is not installed — re-run the install command.
+The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the `@beta` install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`.
 
 If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 
@@ -231,7 +233,7 @@ The script spawns `apimatic portal serve` and streams its output live. The first
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
 3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI reports problems with the spec, run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the errors to the user.
 4. **Problems in `apimatic.json`, a page, or a `nav.json`:** The CLI lists each problem with the file it is in. Fix each one using `references/apimatic-json.md` and `references/content-and-navigation.md`, then retry.
-5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` and verify with `apimatic --version`, then retry.
+5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` (always with `@beta`; without it npm installs CLI v1) and verify with `apimatic --version`, then retry. 
 6. **Permission error or script cannot run:** If the error cannot be resolved automatically, tell the user:
 
    > "I was unable to start the portal server automatically due to a permissions or environment issue. To start it manually, run this command in your project root (the directory that contains `src/`):
