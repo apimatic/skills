@@ -4,14 +4,17 @@
     {
       "id": 0,
       "prompt": "I need to log in to APIMatic CLI so I can build my developer portal. Can you walk me through the authentication process?",
-      "expected_output": "The agent runs `apimatic auth login`, explicitly tells the user a browser window has opened and waits for the user to confirm sign-in is complete before proceeding, then verifies with `apimatic auth status`.",
+      "expected_output": "The agent runs the `auth-login.mjs` launcher (which starts `apimatic auth login`), explicitly tells the user a browser window has opened and waits for the user to confirm sign-in is complete before proceeding, then verifies with `apimatic auth status`.",
       "files": [],
       "assertions": [
         {
           "id": "runs-auth-login",
-          "description": "Response includes the command `apimatic auth login`",
-          "type": "contains",
-          "value": "apimatic auth login"
+          "description": "Response starts the browser sign-in (the auth-login.mjs launcher, which runs `apimatic auth login`)",
+          "type": "contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "browser-window-notification",
@@ -105,6 +108,8 @@
           "type": "contains_any",
           "value": [
             "serve.mjs start",
+            "serve.mjs\" start",
+            "serve.mjs' start",
             "apimatic portal serve"
           ]
         },
@@ -334,9 +339,12 @@
         },
         {
           "id": "runs-auth-login",
-          "description": "Response includes running `apimatic auth login`",
-          "type": "contains",
-          "value": "apimatic auth login"
+          "description": "Response starts the browser sign-in (the auth-login.mjs launcher, which runs `apimatic auth login`)",
+          "type": "contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "waits-for-browser-confirmation",
@@ -373,8 +381,11 @@
         {
           "id": "does-not-proceed-to-auth",
           "description": "Response does NOT proceed to authentication",
-          "type": "not_contains",
-          "value": "apimatic auth login"
+          "type": "not_contains_any",
+          "value": [
+            "apimatic auth login",
+            "auth-login.mjs"
+          ]
         },
         {
           "id": "does-not-proceed-to-quickstart",
@@ -424,8 +435,12 @@
         {
           "id": "runs-serve-stop",
           "description": "Response includes serve.mjs stop command",
-          "type": "contains",
-          "value": "serve.mjs stop"
+          "type": "contains_any",
+          "value": [
+            "serve.mjs stop",
+            "serve.mjs\" stop",
+            "serve.mjs' stop"
+          ]
         },
         {
           "id": "does-not-ask-user-to-stop",
@@ -706,7 +721,12 @@
             "isn't supported",
             "no longer",
             "was removed",
-            "were removed"
+            "were removed",
+            "isn't one of them",
+            "is not one of them",
+            "no java option",
+            "isn't something i can add",
+            "is not something i can add"
           ]
         },
         {
