@@ -6,4 +6,8 @@ skills/apimatic-portal/evals/results.json
 apimatic-sdk-workspace/
 skills/apimatic-sdk/evals/workspace/
 skills/apimatic-sdk/evals/results.json
+# serve.mjs state written by older versions of the apimatic-portal skill
 skills/apimatic-portal/scripts/serve.log
+skills/apimatic-portal/scripts/serve.pid
+skills/apimatic-portal/scripts/serve.url
+skills/apimatic-portal/scripts/serve.heartbeat

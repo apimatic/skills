@@ -33,9 +33,10 @@ Read `src/APIMATIC-BUILD.json` and map what has a v2 equivalent:
 |-------------------------------------|------------|
 | `baseUrl` | `portal.site.url` — the full address, including a path if the portal is hosted under one (e.g. `https://example.com/docs`) |
 | `pageTitle` / `navTitle` | `portal.site.name` |
-| `logoUrl` (+ `logoUrlDark`) | `portal.brand.logo` — a single `static/...` path, or `{ "light": ..., "dark": ... }`. Remove a leading `/` (e.g. `/static/images/logo.png` → `static/images/logo.png`) |
-| `faviconUrl` | `portal.brand.favicon` (a `static/...` path) |
-| `portalSettings.theme.colors.primaryColor` | `portal.brand.colors.primary` (hex, single value or `{ light, dark }` — both required in the object form) |
+| `logoUrl` (+ `logoUrlDark`) | `portal.brand.logo` — a single `static/...` path, or `{ "light": ..., "dark": ... }`. See [Logo and favicon files](#logo-and-favicon-files) |
+| `faviconUrl` | `portal.brand.favicon` (a `static/...` path). See [Logo and favicon files](#logo-and-favicon-files) |
+| `portalSettings.theme.colors.primaryColor` (`{ light, dark }`) | `portal.brand.colors.primary` (hex, single value or `{ light, dark }` — both required in the object form) |
+| `portalSettings.themeOverrides.palette.primaryColor` (older, single hex string) | `portal.brand.colors.primary` as a single value |
 | `portalSettings.theme.colorMode.defaultMode` + `disableSwitch: true` | `portal.brand.colorMode` → `"light"` or `"dark"` |
 | Header links in `src/components/header.html` | `portal.navigation.links` |
 | `languageConfig` keys (`csharp`, `python`, `typescript`) and `portalSettings.languageSettings` (`cs_net_standard_lib`, `python_generic_lib`, `ts_generic_lib`) | `languages` → `"csharp": {}`, `"python": {}`, `"typescript": {}`. `http` has no equivalent |
@@ -43,6 +44,15 @@ Read `src/APIMATIC-BUILD.json` and map what has a v2 equivalent:
 | `src/plugin-config.json` | Re-run `apimatic sdk publish` and `apimatic plugin generate`, which write `languages` and `plugin`; then delete `plugin-config.json` |
 
 A portal needs at least one language. Languages other than C#, Python, and TypeScript (Java, PHP, Ruby, Go) are not available in CLI v2 yet — tell the user which ones will be dropped.
+
+### Logo and favicon files
+
+In v2, `portal.brand.logo` and `portal.brand.favicon` must name a file inside `src/static/`, written relative to `src/` (`static/images/logo.png` or `./static/images/logo.png`). URLs are not accepted. Convert each v1 value:
+
+- `/static/...` → remove the leading `/` (`/static/images/logo.png` → `static/images/logo.png`).
+- `static/...` or `./static/...` → keep it as is.
+- An absolute `https://` URL → download the file into `src/static/images/` and use that path, e.g. `curl -L -o src/static/images/logo.svg <url>`. If the download fails or the response is not an image (check the file type, not just the extension), leave the setting out and tell the user which logo or favicon was dropped and why.
+- Without `faviconUrl`, v1 used `static/images/favicon.ico`; set `portal.brand.favicon` to it if that file exists. Without a favicon, v2 uses the light logo.
 
 Start from this template and fill in the mapped values:
 
@@ -64,7 +74,8 @@ Settings with **no v2 equivalent** — tell the user they will no longer apply:
 
 - API Recipes (`recipes.workflows`) and their scripts
 - API Copilot (`apiCopilotConfig`, `portalSettings.copilot`)
-- Theme fonts, typography, and colors other than the primary color
+- Theme fonts, typography, and colors other than the primary color. In `portalSettings.theme`: `fontSource`, `cssStyles`, `colors.linkColor`, `baseTheme`. In `portalSettings.themeOverrides`: `fontSource`, `cssStyles`, `themeType`, `palette.secondaryColor`, `palette.linkColor`, `palette.colors`
+- Layout settings (`portalSettings.theme.layout` — sidebar mode, size, and resizing; content and container widths)
 - `headIncludes`, `tailIncludes`, and `src/components/header.html` / `footer.html`
 - Dynamic configuration (`APIMaticDevPortal.ready` / `setConfig`) and the Theme Control Hook
 - `indexable` / SEO mode and `llmsContextGeneration` — v2 always publishes `sitemap.xml`, `robots.txt`, `llms.txt`, and `llms-full.txt`

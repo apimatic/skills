@@ -2,12 +2,17 @@
 /**
  * APIMatic portal preview server manager (APIMatic CLI v2).
  *
- * Usage (run from any directory — the project root is passed via --input):
+ * Usage (run from any directory — the project root is passed via --input, and
+ * defaults to the current directory):
  *   node serve.mjs start   [--port 23513] [--input ./]
  *   node serve.mjs restart [--port 23513] [--input ./]
- *   node serve.mjs status
- *   node serve.mjs watch
- *   node serve.mjs stop
+ *   node serve.mjs status  [--input ./]
+ *   node serve.mjs watch   [--input ./]
+ *   node serve.mjs stop    [--input ./]
+ *
+ * Each project keeps its own server state (PID, log, URL, heartbeat) in a folder of
+ * the system temp directory named after a hash of the project's resolved path, so
+ * every command acts only on the preview of the project it is given.
  *
  * `start` runs `apimatic portal serve` in the background with its output written
  * straight to a log file, so the server keeps logging after this script exits.
@@ -25,16 +30,15 @@
  */
 
 import { spawn, spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const PID_FILE = path.join(SCRIPT_DIR, "serve.pid");
-const LOG_FILE = path.join(SCRIPT_DIR, "serve.log");
-const URL_FILE = path.join(SCRIPT_DIR, "serve.url");
-const HEARTBEAT_FILE = path.join(SCRIPT_DIR, "serve.heartbeat");
 const WATCHDOG_SCRIPT = path.join(SCRIPT_DIR, "watchdog.mjs");
+const STATE_ROOT = path.join(os.tmpdir(), "apimatic-portal-preview");
 
 const IS_WINDOWS = process.platform === "win32";
 const DEFAULT_PORT = 23513;
@@ -58,6 +62,31 @@ const PROBLEM_MARKERS = [
   "stopped unexpectedly",
 ];
 
+// ── per-project state ──────────────────────────────────────────────────────
+
+/** The state files kept in one project's state folder. */
+function stateIn(dir) {
+  return {
+    dir,
+    pidFile: path.join(dir, "serve.pid"),
+    logFile: path.join(dir, "serve.log"),
+    urlFile: path.join(dir, "serve.url"),
+    heartbeatFile: path.join(dir, "serve.heartbeat"),
+    inputFile: path.join(dir, "serve.input"),
+  };
+}
+
+function projectState(inputPath) {
+  const project = path.resolve(inputPath);
+  // Windows paths ignore case, so two spellings of one path are the same project.
+  const key = crypto
+    .createHash("sha256")
+    .update(IS_WINDOWS ? project.toLowerCase() : project)
+    .digest("hex")
+    .slice(0, 16);
+  return { ...stateIn(path.join(STATE_ROOT, key)), project };
+}
+
 // ── helpers ────────────────────────────────────────────────────────────────
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -71,11 +100,11 @@ function isRunning(pid) {
   }
 }
 
-function readPidLines() {
-  if (!fs.existsSync(PID_FILE)) return [];
+function readPidLines(state) {
+  if (!fs.existsSync(state.pidFile)) return [];
   try {
     return fs
-      .readFileSync(PID_FILE, "utf8")
+      .readFileSync(state.pidFile, "utf8")
       .trim()
       .split("\n")
       .map((line) => parseInt(line, 10));
@@ -84,27 +113,27 @@ function readPidLines() {
   }
 }
 
-function readPid() {
-  const pid = readPidLines()[0];
+function readPid(state) {
+  const pid = readPidLines(state)[0];
   return Number.isInteger(pid) ? pid : null;
 }
 
-function readWatchdogPid() {
-  const pid = readPidLines()[1];
+function readWatchdogPid(state) {
+  const pid = readPidLines(state)[1];
   return Number.isInteger(pid) ? pid : null;
 }
 
-function readUrl() {
+function readUrl(state) {
   try {
-    return fs.readFileSync(URL_FILE, "utf8").trim() || null;
+    return fs.readFileSync(state.urlFile, "utf8").trim() || null;
   } catch {
     return null;
   }
 }
 
 /** Silent best-effort — write errors should never abort a command. */
-function touchHeartbeat() {
-  try { fs.writeFileSync(HEARTBEAT_FILE, String(Date.now())); } catch { /* best effort */ }
+function touchHeartbeat(state) {
+  try { fs.writeFileSync(state.heartbeatFile, String(Date.now())); } catch { /* best effort */ }
 }
 
 /** Safe unlink — ignores missing file or permission errors. */
@@ -114,10 +143,42 @@ function safeUnlink(filePath) {
   } catch { /* best effort */ }
 }
 
-function cleanUp() {
-  safeUnlink(PID_FILE);
-  safeUnlink(URL_FILE);
-  safeUnlink(HEARTBEAT_FILE);
+function cleanUp(state) {
+  safeUnlink(state.pidFile);
+  safeUnlink(state.urlFile);
+  safeUnlink(state.heartbeatFile);
+}
+
+/** Running previews of other projects, so one is never mistaken for this project's. */
+function otherPreviews(state) {
+  let entries;
+  try {
+    entries = fs.readdirSync(STATE_ROOT, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const others = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const other = stateIn(path.join(STATE_ROOT, entry.name));
+    if (other.dir === state.dir) continue;
+    const pid = readPid(other);
+    if (!pid || !isRunning(pid)) continue;
+    let project = null;
+    try { project = fs.readFileSync(other.inputFile, "utf8").trim() || null; } catch { /* unknown */ }
+    others.push({ pid, project, url: readUrl(other) });
+  }
+  return others;
+}
+
+function printOtherPreviews(state) {
+  for (const { pid, project, url } of otherPreviews(state)) {
+    console.log(
+      `\nNote: a preview of a different project${project ? ` (${project})` : ""} is also running` +
+        ` (PID ${pid})${url ? ` at ${url}` : ""}. It is not the preview of ${state.project}.`
+    );
+    if (project) console.log(`To stop it: node serve.mjs stop --input "${project}"`);
+  }
 }
 
 /** Strips ANSI colour codes, OSC 8 hyperlinks, spinner redraws, and blank lines. */
@@ -137,11 +198,11 @@ function clean(text) {
 }
 
 /** Reads what was appended to the log since `offset`. */
-function readLogFrom(offset) {
+function readLogFrom(state, offset) {
   try {
-    const size = fs.statSync(LOG_FILE).size;
+    const size = fs.statSync(state.logFile).size;
     if (size <= offset) return { text: "", offset: size };
-    const fd = fs.openSync(LOG_FILE, "r");
+    const fd = fs.openSync(state.logFile, "r");
     const buf = Buffer.alloc(size - offset);
     fs.readSync(fd, buf, 0, buf.length, offset);
     fs.closeSync(fd);
@@ -151,21 +212,21 @@ function readLogFrom(offset) {
   }
 }
 
-function logSize() {
+function logSize(state) {
   try {
-    return fs.statSync(LOG_FILE).size;
+    return fs.statSync(state.logFile).size;
   } catch {
     return 0;
   }
 }
 
-function printLogTail(n = 15) {
-  if (!fs.existsSync(LOG_FILE)) {
+function printLogTail(state, n = 15) {
+  if (!fs.existsSync(state.logFile)) {
     console.log("(no log output yet)");
     return;
   }
   try {
-    const lines = clean(fs.readFileSync(LOG_FILE, "utf8")).split("\n");
+    const lines = clean(fs.readFileSync(state.logFile, "utf8")).split("\n");
     console.log(lines.slice(-n).join("\n"));
   } catch {
     console.log("(log could not be read)");
@@ -217,15 +278,17 @@ function killTree(pid, force) {
 
 // ── commands ───────────────────────────────────────────────────────────────
 
-async function start(port, inputPath) {
-  const pid = readPid();
+async function start(state, port, inputPath) {
+  const pid = readPid(state);
   if (pid && isRunning(pid)) {
-    const url = readUrl();
-    console.log(`Already running (PID ${pid}).${url ? ` Server URL: ${url}` : ""}`);
+    touchHeartbeat(state);
+    const url = readUrl(state);
+    console.log(`Already running for ${state.project} (PID ${pid}).${url ? ` Server URL: ${url}` : ""}`);
     console.log("Use 'node serve.mjs status' to check logs, 'restart' to restart, or 'stop' to stop.");
+    printOtherPreviews(state);
     return 0;
   }
-  cleanUp();
+  cleanUp(state);
 
   if (!fs.existsSync(inputPath)) {
     console.error(`ERROR: Input path not found: "${inputPath}"`);
@@ -244,11 +307,13 @@ async function start(port, inputPath) {
   // The server writes straight to the log file, so it keeps logging after this script exits.
   let logFd;
   try {
-    logFd = fs.openSync(LOG_FILE, "w");
+    fs.mkdirSync(state.dir, { recursive: true });
+    fs.writeFileSync(state.inputFile, state.project);
+    logFd = fs.openSync(state.logFile, "w");
   } catch (err) {
-    console.error(`ERROR: Cannot write to scripts directory: ${err.message}`);
-    console.error(`Path: ${SCRIPT_DIR}`);
-    console.error("Fix: check that you have write permission to that directory.");
+    console.error(`ERROR: Cannot write to the preview state directory: ${err.message}`);
+    console.error(`Path: ${state.dir}`);
+    console.error("Fix: check that you have write permission to the system temp directory.");
     console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
     return 1;
   }
@@ -268,7 +333,7 @@ async function start(port, inputPath) {
   // Give a missing executable the chance to surface before anything is written.
   await sleep(POLL_MS);
   if (spawnError) {
-    cleanUp();
+    cleanUp(state);
     if (spawnError.code === "ENOENT") {
       printCliNotFound();
     } else {
@@ -279,17 +344,17 @@ async function start(port, inputPath) {
   }
 
   try {
-    fs.writeFileSync(PID_FILE, String(child.pid));
+    fs.writeFileSync(state.pidFile, String(child.pid));
   } catch (err) {
     console.error(`ERROR: Cannot write PID file: ${err.message}`);
-    console.error("Fix: check that you have write permission to the scripts directory.");
+    console.error(`Fix: check that you have write permission to ${state.dir}.`);
     console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
     killTree(child.pid, true);
     return 1;
   }
-  touchHeartbeat();
+  touchHeartbeat(state);
 
-  console.log(`Starting APIMatic portal preview (PID ${child.pid})...`);
+  console.log(`Starting APIMatic portal preview for ${state.project} (PID ${child.pid})...`);
   console.log("Streaming output from apimatic portal serve:\n");
 
   let offset = 0;
@@ -298,7 +363,7 @@ async function start(port, inputPath) {
 
   while (Date.now() < deadline) {
     await sleep(POLL_MS);
-    const chunk = readLogFrom(offset);
+    const chunk = readLogFrom(state, offset);
     offset = chunk.offset;
     if (chunk.text) {
       seen += chunk.text;
@@ -309,82 +374,83 @@ async function start(port, inputPath) {
     const readyLine = clean(seen).split("\n").find((line) => line.includes(READY_MARKER));
     if (readyLine) {
       const url = (readyLine.match(/https?:\/\/[^\s'"]+/) || [])[0] || `http://localhost:${port}`;
-      try { fs.writeFileSync(URL_FILE, url); } catch { /* best effort */ }
+      try { fs.writeFileSync(state.urlFile, url); } catch { /* best effort */ }
 
       const watchdog = spawn(
         process.execPath,
-        [WATCHDOG_SCRIPT, `--server-pid=${child.pid}`, `--heartbeat=${HEARTBEAT_FILE}`],
+        [WATCHDOG_SCRIPT, `--server-pid=${child.pid}`, `--heartbeat=${state.heartbeatFile}`],
         { detached: true, stdio: "ignore", windowsHide: true }
       );
       watchdog.on("error", () => {
         console.error("WARNING: The portal server is running but will NOT auto-stop after 30 minutes.");
-        console.error("Remember to stop it manually: node serve.mjs stop");
+        console.error("Remember to stop it manually: node serve.mjs stop --input <dir>");
       });
       watchdog.unref();
-      try { fs.writeFileSync(PID_FILE, `${child.pid}\n${watchdog.pid}`); } catch { /* best effort */ }
+      try { fs.writeFileSync(state.pidFile, `${child.pid}\n${watchdog.pid}`); } catch { /* best effort */ }
 
       console.log(`\nPortal is ready: ${url}`);
       console.log("Live reload is active. Some edits need a restart: node serve.mjs restart --input <dir>");
       console.log("Server will auto-stop after 30 minutes of inactivity.");
-      console.log("To stop: node serve.mjs stop\n");
+      console.log("To stop: node serve.mjs stop --input <dir>");
+      printOtherPreviews(state);
+      console.log("");
       child.unref();
       return 0;
     }
 
     if (exitCode !== null || !isRunning(child.pid)) {
-      const rest = clean(readLogFrom(offset).text);
+      const rest = clean(readLogFrom(state, offset).text);
       if (rest) console.log(rest);
       console.error(`\nServer process exited (code ${exitCode ?? "unknown"}) before becoming ready.`);
       console.error("Full output is above. Check the error and retry.");
       console.error('Manual fallback: run "apimatic portal serve" yourself in the project root.');
-      cleanUp();
+      cleanUp(state);
       return 1;
     }
   }
 
   console.log(`\nTimeout after ${STARTUP_TIMEOUT_MS / 1000}s — the portal URL has not appeared yet.`);
-  console.log("The server may still be starting. Check with 'node serve.mjs status'.");
+  console.log("The server may still be starting. Check with 'node serve.mjs status --input <dir>'.");
   child.unref();
   return 0;
 }
 
-function status() {
-  const pid = readPid();
+function status(state) {
+  const pid = readPid(state);
   if (pid === null) {
-    console.log("No server running (no PID file).");
-    return 0;
-  }
-  if (isRunning(pid)) {
-    touchHeartbeat();
-    const url = readUrl();
-    console.log(`Running (PID ${pid}).${url ? ` URL: ${url}` : " URL not detected yet."}`);
+    console.log(`No server running for ${state.project} (no PID file).`);
+  } else if (isRunning(pid)) {
+    touchHeartbeat(state);
+    const url = readUrl(state);
+    console.log(`Running for ${state.project} (PID ${pid}).${url ? ` URL: ${url}` : " URL not detected yet."}`);
     console.log("\nRecent log output:");
-    printLogTail(15);
+    printLogTail(state, 15);
   } else {
     console.log(`Process ${pid} is no longer running. Cleaning stale PID file.`);
-    cleanUp();
+    cleanUp(state);
   }
+  printOtherPreviews(state);
   return 0;
 }
 
-async function stop() {
-  const pid = readPid();
+async function stop(state) {
+  const pid = readPid(state);
   if (pid === null) {
-    console.log("No server running (no PID file).");
+    console.log(`No server running for ${state.project} (no PID file).`);
     return 0;
   }
 
   // Kill the watchdog first so it doesn't race to kill the server independently.
-  const watchdogPid = readWatchdogPid();
+  const watchdogPid = readWatchdogPid(state);
   if (watchdogPid && isRunning(watchdogPid)) {
     try { process.kill(watchdogPid); } catch { /* already dead */ }
   }
   // Deleting the heartbeat also tells a watchdog that missed the signal to exit.
-  safeUnlink(HEARTBEAT_FILE);
+  safeUnlink(state.heartbeatFile);
 
   if (!isRunning(pid)) {
     console.log(`Process ${pid} already stopped. Removing stale PID file.`);
-    cleanUp();
+    cleanUp(state);
     return 0;
   }
 
@@ -401,27 +467,27 @@ async function stop() {
     console.error(IS_WINDOWS ? `Manual fix: taskkill /PID ${pid} /T /F` : `Manual fix: kill -9 -${pid}`);
     return 1;
   }
-  cleanUp();
-  console.log(`Stopped (PID ${pid}).`);
+  cleanUp(state);
+  console.log(`Stopped the preview of ${state.project} (PID ${pid}).`);
   return 0;
 }
 
-async function watch() {
-  const pid = readPid();
+async function watch(state) {
+  const pid = readPid(state);
   if (!pid || !isRunning(pid)) {
-    console.log("No server running — nothing to watch.");
+    console.log(`No server running for ${state.project} — nothing to watch.`);
     return 1;
   }
 
-  let offset = logSize();
+  let offset = logSize(state);
   let seen = "";
   console.log("Watching the preview for the result of the edit...\n");
 
   const deadline = Date.now() + WATCH_WINDOW_MS;
   while (Date.now() < deadline) {
     await sleep(POLL_MS);
-    touchHeartbeat();
-    const chunk = readLogFrom(offset);
+    touchHeartbeat(state);
+    const chunk = readLogFrom(state, offset);
     offset = chunk.offset;
     if (!chunk.text) continue;
     seen += chunk.text;
@@ -430,7 +496,7 @@ async function watch() {
 
     // Wait for the rest of a multi-line report before judging it.
     await sleep(500);
-    const tail = readLogFrom(offset);
+    const tail = readLogFrom(state, offset);
     offset = tail.offset;
     if (tail.text) {
       seen += tail.text;
@@ -450,7 +516,7 @@ async function watch() {
   }
 
   if (!isRunning(pid)) {
-    console.log("The portal server stopped. Start it again with 'node serve.mjs start'.");
+    console.log("The portal server stopped. Start it again with 'node serve.mjs start --input <dir>'.");
     return 1;
   }
   // Valid page and nav.json edits reload the browser without logging anything.
@@ -473,31 +539,30 @@ function parseArgs(args) {
 }
 
 const [, , command, ...rest] = process.argv;
+const { port, input } = parseArgs(rest);
+const state = projectState(input);
 let exitCode;
 
 switch (command) {
-  case "start": {
-    const { port, input } = parseArgs(rest);
-    exitCode = await start(port, input);
+  case "start":
+    exitCode = await start(state, port, input);
     break;
-  }
-  case "restart": {
-    const { port, input } = parseArgs(rest);
-    exitCode = await stop();
-    if (exitCode === 0) exitCode = await start(port, input);
+  case "restart":
+    exitCode = await stop(state);
+    if (exitCode === 0) exitCode = await start(state, port, input);
     break;
-  }
   case "status":
-    exitCode = status();
+    exitCode = status(state);
     break;
   case "stop":
-    exitCode = await stop();
+    exitCode = await stop(state);
     break;
   case "watch":
-    exitCode = await watch();
+    exitCode = await watch(state);
     break;
   default:
     console.log("Usage: node serve.mjs <start|restart|status|watch|stop> [--port 23513] [--input ./]");
+    console.log("       --input is the project root (the directory containing src/); it defaults to ./");
     console.log("       Server auto-stops after 30 minutes of agent inactivity.");
     exitCode = 1;
 }

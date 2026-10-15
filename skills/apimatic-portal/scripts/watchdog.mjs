@@ -24,7 +24,7 @@ function parseArgs() {
   const result = { serverPid: null, heartbeat: null };
   for (const arg of process.argv.slice(2)) {
     if (arg.startsWith("--server-pid=")) result.serverPid = parseInt(arg.split("=")[1], 10);
-    else if (arg.startsWith("--heartbeat=")) result.heartbeat = arg.split("=")[1];
+    else if (arg.startsWith("--heartbeat=")) result.heartbeat = arg.slice("--heartbeat=".length);
   }
   return result;
 }
