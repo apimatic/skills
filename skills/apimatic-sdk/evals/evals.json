@@ -623,7 +623,12 @@
             "won't be overwritten",
             "won't overwrite",
             "doesn't overwrite",
-            "does not overwrite"
+            "does not overwrite",
+            "separate folder",
+            "different folder",
+            "won't touch",
+            "nothing gets overwritten",
+            "nothing is overwritten"
           ]
         },
         {
