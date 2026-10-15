@@ -7,7 +7,7 @@ This example shows how to publish a generated SDK using the APIMatic CLI.
 ## Publish the SDK
 
 ```
-apimatic sdk publish --profile-id=b2c3d4e5f6a1b2c3d4e5f6a1 --language=typescript --version=1.0.0 --publish-type=sourcecode
+apimatic sdk publish --profile-id=b2c3d4e5f6a1b2c3d4e5f6a1 --language=typescript --version=1.0.0 --publish-type=sourcecode --force
 ```
 
 Output:
@@ -18,9 +18,6 @@ T   Publish SDK
 o  Profile search complete.
 |
 •  Version tags will not be created in your Git repository because you have opted to publish Source Code only.
-|
-o  The destination '<project-dir>\sdk' is not empty, do you want to overwrite?
-|  Yes
 |
 o  SDK generated successfully.
 |

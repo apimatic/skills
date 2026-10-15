@@ -18,11 +18,14 @@
 
 import { spawn } from "node:child_process";
 
-const child = spawn("apimatic", ["auth", "login"], {
-  detached: true,
-  stdio: "ignore",
-  shell: process.platform === "win32",
-});
+// On Windows `apimatic` is a .cmd shim, so it needs a shell. Pass the whole
+// command as one string there: Node 24 warns (DEP0190) when args are passed
+// alongside `shell: true`.
+const options = { detached: true, stdio: "ignore" };
+const child =
+  process.platform === "win32"
+    ? spawn("apimatic auth login", { ...options, shell: true })
+    : spawn("apimatic", ["auth", "login"], options);
 child.unref();
 
 console.log(`AUTH_LOGIN_LAUNCHED pid=${child.pid}`);
