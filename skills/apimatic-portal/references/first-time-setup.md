@@ -18,16 +18,16 @@ Run `node --version` and read the output.
 Before installing, use AskUserQuestion:
 
 ```
-question: "APIMatic CLI needs to be installed globally. OK to run: npm install -g @apimatic/cli?"
+question: "APIMatic CLI needs to be installed globally. OK to run: npm install -g @apimatic/cli@1?"
 options:
   - "Yes, go ahead"
   - "No, I'll install it myself"
 ```
 
-- "Yes" → run `npm install -g @apimatic/cli`, then run `apimatic --version`
+- "Yes" → run `npm install -g @apimatic/cli@1`, then run `apimatic --version`
   - Version string appears in output → proceed to Step A3
-  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli`. Verify with `apimatic --version`, then come back here." Do not proceed.
-- "No" → output: "When you're ready, run `npm install -g @apimatic/cli`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
+  - Command not found or error → retry with elevated privileges (`sudo npm install -g @apimatic/cli@1` on macOS/Linux, or platform equivalent). If that also fails, stop and output exactly: "The install did not complete. Please open a terminal with Administrator privileges and run: `npm install -g @apimatic/cli@1`. Verify with `apimatic --version`, then come back here." Do not proceed.
+- "No" → output: "When you're ready, run `npm install -g @apimatic/cli@1`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
 
 ---
 

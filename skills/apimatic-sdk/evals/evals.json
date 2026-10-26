@@ -367,7 +367,7 @@
           "id": "suggests-reinstall",
           "description": "Response suggests reinstalling the CLI",
           "type": "contains",
-          "value": "npm install -g @apimatic/cli"
+          "value": "npm install -g @apimatic/cli@1"
         },
         {
           "id": "does-not-proceed-to-generate",

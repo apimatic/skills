@@ -143,7 +143,7 @@ function start(port, inputPath, retryCount = 0) {
     if (err.code === "ENOENT") {
       console.error("ERROR: 'apimatic' command not found.");
       console.error("The APIMatic CLI is not installed or not on your PATH.");
-      console.error("Fix: npm install -g @apimatic/cli");
+      console.error("Fix: npm install -g @apimatic/cli@1");
       console.error("Then verify: apimatic --version");
       console.error('Manual fallback: once installed, run "apimatic portal serve" in the project root.');
     } else {
