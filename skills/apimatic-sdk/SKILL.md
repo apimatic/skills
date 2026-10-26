@@ -162,7 +162,7 @@ Confirm these are in place before starting:
 - **APIMatic CLI installed globally:**
 
   ```
-  npm install -g @apimatic/cli
+  npm install -g @apimatic/cli@1
   ```
 
   Verify the CLI is available:
@@ -172,6 +172,8 @@ Confirm these are in place before starting:
   ```
 
   If the version command fails, the CLI is not installed. Re-run the install command above.
+
+  The output should start with `@apimatic/cli/1.`. If it starts with `@apimatic/cli/2.`, CLI v2 is installed, and this skill covers CLI v1 projects. Tell the user, and either install CLI v1 with `npm install -g @apimatic/cli@1` or, for a CLI v2 project, use the skills on this repository's `main` branch.
 
 ---
 
@@ -349,7 +351,7 @@ apimatic sdk generate --input=path/to/parent-of-src --language=<language> --auth
 1. **Authentication error:** Re-run `apimatic auth status` to verify. If expired, re-authenticate (Step 1).
 2. **Missing `src/` folder or spec file:** Check that the input directory contains a `src/` folder with the API spec in `src/spec/`.
 3. **SDK already exists at destination:** The CLI will refuse to overwrite. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
-4. **`apimatic` command not found:** Run `npm install -g @apimatic/cli` and verify with `apimatic --version`.
+4. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@1` and verify with `apimatic --version`.
 5. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
 
 ## Additional flags

@@ -76,7 +76,7 @@ Confirm these are in place before starting:
 - APIMatic CLI installed globally:
 
 ```
-npm install -g @apimatic/cli
+npm install -g @apimatic/cli@1
 ```
 
 - Verify the CLI is available:
@@ -86,6 +86,8 @@ apimatic --version
 ```
 
 If the version command fails, the CLI is not installed. Re-run the install command above.
+
+The output should start with `@apimatic/cli/1.`. If it starts with `@apimatic/cli/2.`, CLI v2 is installed, and this skill covers CLI v1 projects (`APIMATIC-BUILD.json`, `toc.yml`). Tell the user, and either install CLI v1 with `npm install -g @apimatic/cli@1` or, for a CLI v2 project, use the skills on this repository's `main` branch.
 
 ## Step 1: Authenticate with APIMatic
 
@@ -220,7 +222,7 @@ node {skill_dir}/scripts/serve.mjs stop
 
 2. **Missing spec file:** Check that `src/spec/` contains the API spec file. If missing, copy the user's spec file there and retry.
 
-3. **`apimatic` command not found:** The script prints install instructions. Run `npm install -g @apimatic/cli` and verify with `apimatic --version`, then retry.
+3. **`apimatic` command not found:** The script prints install instructions. Run `npm install -g @apimatic/cli@1` and verify with `apimatic --version`, then retry.
 
 4. **Permission error or script cannot run:** The script prints the specific error and path. If the error cannot be resolved automatically, tell the user:
 

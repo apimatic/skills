@@ -20,7 +20,7 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 - APIMatic CLI installed globally:
 
 ```bash
-npm install -g @apimatic/cli
+npm install -g @apimatic/cli@1
 ```
 
 ## Installation

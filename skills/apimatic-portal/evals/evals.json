@@ -353,14 +353,14 @@
     {
       "id": 8,
       "prompt": "I ran npm install -g @apimatic/cli but when I run apimatic --version it still says command not found.",
-      "expected_output": "The agent suggests trying `sudo npm install -g @apimatic/cli` and does NOT proceed to authentication or portal generation until the CLI is verified.",
+      "expected_output": "The agent suggests trying `sudo npm install -g @apimatic/cli@1` and does NOT proceed to authentication or portal generation until the CLI is verified.",
       "files": [],
       "assertions": [
         {
           "id": "suggests-sudo-install",
           "description": "Response suggests sudo npm install as a fix",
           "type": "contains",
-          "value": "sudo npm install -g @apimatic/cli"
+          "value": "sudo npm install -g @apimatic/cli@1"
         },
         {
           "id": "does-not-proceed-to-auth",
