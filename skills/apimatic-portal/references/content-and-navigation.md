@@ -165,8 +165,6 @@ Here `index` and `changelog` are pages in Home's sidebar (the root `nav.json` ma
 
 Do not name a top-level page or folder `api` — that is where the API reference is mounted; use `apimatic:api` to position it.
 
-**Projects created before CLI 2.0.0-beta.3** made every folder in the root `pages`, and all three generated sections, tabs. After upgrading, they lose their tab bar until the root `nav.json` gets a `tabs` key: move each folder that should stay a tab from `pages` to `tabs`, and add the tokens. Page URLs do not change.
-
 ---
 
 ## Folders

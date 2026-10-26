@@ -262,7 +262,7 @@ function resolveCli() {
 function printCliNotFound() {
   console.error("ERROR: 'apimatic' command not found.");
   console.error("The APIMatic CLI is not installed or not on your PATH.");
-  console.error("Fix: npm install -g @apimatic/cli@beta");
+  console.error("Fix: npm install -g @apimatic/cli");
   console.error("Then verify: apimatic --version");
   console.error('Manual fallback: once installed, run "apimatic portal serve" in the project root.');
 }

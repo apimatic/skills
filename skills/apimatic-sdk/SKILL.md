@@ -7,7 +7,7 @@ description: Use for any task involving APIMatic's SDK generation toolchain (API
 
 Generate SDKs for your APIs using the APIMatic CLI.
 
-This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at https://docs.apimatic.io/v4. CLI v2 generates SDKs with Codegen v4 in **C#, Python, and TypeScript**.
+This skill targets **APIMatic CLI v2** (`@apimatic/cli` 2.x), documented at https://docs.apimatic.io/v4. CLI v2 generates SDKs with Codegen v4 in **C#, Python, and TypeScript**.
 
 ## When to Use
 
@@ -24,7 +24,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 
 ## Red Flags — STOP and re-read the relevant section
 
-- About to install `@apimatic/cli` or `@apimatic/cli@latest` → those install CLI v1. Install `@apimatic/cli@beta`, which needs Node.js 24 or later
+- About to install `@apimatic/cli@beta`, or `@apimatic/cli@1` when the user hasn't asked for CLI v1 → `@beta` is a prerelease and `@1` is CLI v1. Install `@apimatic/cli`, which needs Node.js 24 or later
 - About to generate or publish a Java, PHP, Ruby, or Go SDK → CLI v2 supports only `csharp`, `python`, and `typescript`. Tell the user the language is not available yet and offer the supported ones; do not run the command
 - About to pass the spec file path to `--input` → `--input` must point to the parent directory that contains `src/`, not the spec file itself (e.g., `--input=./my-project`, not `--input=./openapi.yaml`) → commands run from project root, never from inside `src/`
 - About to check an API definition for problems by reading the file yourself → run `apimatic api validate` (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)); reading the file misses APIMatic's validation and linting rules
@@ -91,7 +91,7 @@ If the user wants to go ahead, treat the request as a code customization: run th
 
 ## Change Tracking Availability Check
 
-Change tracking (`--track-changes`, `--skip-changes`, and `apimatic sdk save-changes`) keeps custom code across regenerations. It is part of the v4 CLI reference, but not every CLI v2 beta release includes it. Before using any of these, check the installed CLI once per session:
+Change tracking (`--track-changes`, `--skip-changes`, and `apimatic sdk save-changes`) keeps custom code across regenerations. It is part of the v4 CLI reference, but CLI 2.0.0 does not include it. Before using any of these, check the installed CLI once per session:
 
 ```
 apimatic sdk generate --help
@@ -171,10 +171,10 @@ Confirm these are in place before starting:
 - **APIMatic CLI v2 installed globally:**
 
   ```
-  npm install -g @apimatic/cli@beta
+  npm install -g @apimatic/cli
   ```
 
-  Always keep the `@beta` tag in every install or reinstall command you run or suggest. Without it, npm resolves the package to CLI v1: `@apimatic/cli` and `@apimatic/cli@latest` both still point to v1. If the user says they installed the CLI without `@beta`, tell them that command installs CLI v1, not the v2 that SDK generation needs, and give them the `@beta` command. Say this even when `apimatic --version` shows v2 is already installed: running their command again later would replace v2 with v1.
+  Install it with no version or tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease. In CI, pin the major version instead (`npx @apimatic/cli@2`), so a later major release doesn't change the pipeline.
 
   Verify the CLI is available:
 
@@ -182,11 +182,11 @@ Confirm these are in place before starting:
   apimatic --version
   ```
 
-  The output should start with `@apimatic/cli/2.`. If the command fails, CLI v2 is not installed — run the `@beta` install command above. Do not continue to authentication or SDK generation until `apimatic --version` prints `@apimatic/cli/2.`.
+  The output should start with `@apimatic/cli/2.`. If the command fails, CLI v2 is not installed — run the install command above. Do not continue to authentication or SDK generation until `apimatic --version` prints `@apimatic/cli/2.`. If it prints a prerelease, such as `@apimatic/cli/2.0.0-beta.8`, tell the user and offer to install the stable release with `npm install -g @apimatic/cli`.
 
   If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 
-  > "You have APIMatic CLI v1 (`<version>`) installed, and SDK generation here needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli@beta`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
+  > "You have APIMatic CLI v1 (`<version>`) installed, and SDK generation here needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
 
   Then run the install command and check `apimatic --version` again.
 
@@ -353,7 +353,7 @@ The CLI prints `SDK generated successfully.` and where the SDK was saved.
 4. **Errors in the API definition:** If the CLI reports `SDK Generation failed.` with a message such as `Unable to parse file.`, the CLI could not read the API definition. Run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the reported problems (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)). The parsing problem is reported as **Blocking** with the line it fails on; fix it and re-run. A successful generation does not mean the definition is clean: Blocking issues and Errors that the CLI can still parse are generated as degraded code.
 5. **Language not available:** If the CLI says the language is not available, only `csharp`, `python`, and `typescript` are supported — see Step 3.
 6. **SDK already exists at destination:** Without `--force`, the CLI stops and asks `The destination '<path>' is not empty, do you want to overwrite?` (`○ Yes / ● No`). A non-interactive shell cannot answer it: the command exits right after the prompt, often with only a Node `Warning: Detected unsettled top-level await`, and no SDK is generated. Treat that output as "SDK already exists" — do not answer the prompt or retry. Immediately ask the user: "An SDK already exists at the destination. Would you like to overwrite it?" If yes, re-run the same command with `--force` appended (see Additional flags). If no, ask for a different destination path and re-run with `--destination=<new-path>`.
-7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` (always with `@beta`; without it npm installs CLI v1) and verify with `apimatic --version`.
+7. **`apimatic` command not found:** Run `npm install -g @apimatic/cli` and verify with `apimatic --version`.
 8. **Unknown flag `--track-changes` / `--skip-changes`, or unknown command `save-changes`:** The installed CLI does not include change tracking — follow the [Change Tracking Availability Check](#change-tracking-availability-check).
 9. **Any other error:** Read the exact error message from the CLI output. Do not retry automatically — diagnose the specific error first.
 

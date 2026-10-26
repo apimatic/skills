@@ -17,7 +17,7 @@ An eval with no response file fails every one of its assertions and is listed un
 
 Results depend on the machine, so record these with every run:
 
-- **CLI version** (`apimatic --version`). The evals target `@apimatic/cli@beta`. Change tracking (`--track-changes`, `--skip-changes`, `sdk save-changes`) isn't in every v2 beta. Evals 6 and 9–12 pass either way: the agent runs the change-tracking commands if `apimatic sdk generate --help` lists them, and otherwise tells the user they aren't available.
+- **CLI version** (`apimatic --version`). The evals target CLI v2 (`@apimatic/cli`). CLI 2.0.0 has no change tracking (`--track-changes`, `--skip-changes`, `sdk save-changes`). Evals 6 and 9–12 pass either way: the agent runs the change-tracking commands if `apimatic sdk generate --help` lists them, and otherwise tells the user they aren't available.
 - **Authentication.** Sign in (`apimatic auth login`) before the run. Eval 0 is the exception: it expects the agent to log in, so run `apimatic auth logout` before that eval.
 - **Commands are executed, not just described.** Let the agent run shell commands (`--allowedTools "Bash,PowerShell"`) so `ran_command` assertions can pass.
 - **Fixtures.** Run each eval in its own empty directory. The project folders that prompts mention don't need to exist; the assertions check what the agent says and runs. Eval 51 is the exception: create the broken `src/spec/openapi.yaml` that its `expected_output` describes in the run directory first.

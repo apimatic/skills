@@ -7,7 +7,7 @@ description: Use when a user wants to build, generate, configure, customize, pre
 
 Guide a user from zero to a running local developer portal, then help them customize and ship it. The skill body IS the instructions — run each command directly; do not ask the user to run CLI commands unless explicitly noted.
 
-This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at https://docs.apimatic.io/v4. In v2 the portal is built on the user's machine from a `src/` directory and configured with `src/apimatic.json`.
+This skill targets **APIMatic CLI v2** (`@apimatic/cli` 2.x), documented at https://docs.apimatic.io/v4. In v2 the portal is built on the user's machine from a `src/` directory and configured with `src/apimatic.json`.
 
 ## When to Use
 
@@ -28,7 +28,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli@beta`), documented at htt
 - About to create a page without front matter, or with no `title` in it → every page in `src/content/` must start with front matter that includes `title`
 - About to write `.md` or `.mdx` extensions in `nav.json`, or a nested path like `guides/intro` → entries are bare file or folder names from the same directory; each folder orders its own pages with its own `nav.json`
 - About to make a folder, the SDKs, the API Reference, or the Context Plugin a tab by listing it in `pages` → only the `tabs` list in `src/content/nav.json` makes tabs; `pages` puts it in Home's sidebar (see `references/content-and-navigation.md`)
-- The CLI warns that `src/content/nav.json` has no `tabs`, so nothing is a tab → add the `"tabs": [...]` line it prints to keep a tab bar (or `"tabs": []` if the user wants a single sidebar). Projects created before CLI 2.0.0-beta.3 need this
+- The CLI warns that `src/content/nav.json` has no `tabs`, so nothing is a tab → add the `"tabs": [...]` line it prints to keep a tab bar (or `"tabs": []` if the user wants a single sidebar)
 - About to put a page at `src/content/sdks/...`, `src/content/context-plugin/...`, or `src/content/oauth/callback.md` → those addresses are reserved for pages the portal generates
 - About to use a language key other than `csharp`, `python`, or `typescript` in `languages` → only these three are available
 - About to leave the `languages` block empty or remove it → a portal needs at least one SDK language
@@ -86,10 +86,10 @@ Confirm these are in place before starting:
 - APIMatic CLI v2 installed globally:
 
 ```
-npm install -g @apimatic/cli@beta
+npm install -g @apimatic/cli
 ```
 
-  Always keep the `@beta` tag in every install or reinstall command you run or suggest. Without it, npm resolves the package to CLI v1: `@apimatic/cli` and `@apimatic/cli@latest` both still point to v1. If the user says they installed the CLI without `@beta`, tell them that installed CLI v1 (or nothing), not the v2 this portal needs.
+  Install it with no version or tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease. In CI, pin the major version instead (`npx @apimatic/cli@2`), so a later major release doesn't change the pipeline.
 
 - Verify the CLI is available and on v2:
 
@@ -97,11 +97,11 @@ npm install -g @apimatic/cli@beta
 apimatic --version
 ```
 
-The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the `@beta` install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`.
+The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`. If it prints a prerelease, such as `@apimatic/cli/2.0.0-beta.8`, tell the user and offer to install the stable release with `npm install -g @apimatic/cli`.
 
 If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 
-> "You have APIMatic CLI v1 (`<version>`) installed, and this portal needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli@beta`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
+> "You have APIMatic CLI v1 (`<version>`) installed, and this portal needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
 
 Then run the install command and check `apimatic --version` again.
 
@@ -233,7 +233,7 @@ The script spawns `apimatic portal serve` and streams its output live. The first
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
 3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI says `No OpenAPI 3.x document found`, the spec is in another format (Swagger 2.0, Postman, …): run the `apimatic api transform` command it prints, move the converted file up into `src/spec/` as it says, and delete the original and the `transformations/` folder. If the CLI reports problems with the spec, run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the errors to the user.
 4. **Problems in `apimatic.json`, a page, or a `nav.json`:** The CLI lists each problem with the file it is in. Fix each one using `references/apimatic-json.md` and `references/content-and-navigation.md`, then retry.
-5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@beta` (always with `@beta`; without it npm installs CLI v1) and verify with `apimatic --version`, then retry. 
+5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli` and verify with `apimatic --version`, then retry. 
 6. **Permission error or script cannot run:** If the error cannot be resolved automatically, tell the user:
 
    > "I was unable to start the portal server automatically due to a permissions or environment issue. To start it manually, run this command in your project root (the directory that contains `src/`):
@@ -279,7 +279,7 @@ The preview uses the path too (e.g. `http://localhost:23513/docs/`), so always u
 
 ### OAuth sign-in in the API playground
 
-If the API uses OAuth 2 sign-in, every endpoint page in the playground returns to one page: `/oauth/callback` under the portal's address. Tell the user to register that redirect URI with their OAuth provider — e.g. `https://docs.example.com/oauth/callback`, or `https://example.com/docs/oauth/callback` when the portal is hosted under a path. Until they do, the provider refuses the sign-in. Portals built before CLI 2.0.0-beta.5 used each endpoint page's address instead, so this changes after an upgrade.
+If the API uses OAuth 2 sign-in, every endpoint page in the playground returns to one page: `/oauth/callback` under the portal's address. Tell the user to register that redirect URI with their OAuth provider — e.g. `https://docs.example.com/oauth/callback`, or `https://example.com/docs/oauth/callback` when the portal is hosted under a path. Until they do, the provider refuses the sign-in.
 
 **CI/CD:** Regenerate and redeploy whenever the API definition or guides change. In CI, use Node 24 and sign in with an API key stored as a secret, not a browser session:
 
@@ -287,7 +287,7 @@ If the API uses OAuth 2 sign-in, every endpoint page in the playground returns t
 - uses: actions/setup-node@v4
   with:
     node-version: "24"
-- run: npx @apimatic/cli@beta portal generate --auth-key="${{ secrets.APIMATIC_API_KEY }}" --destination=./portal --force
+- run: npx @apimatic/cli@2 portal generate --auth-key="${{ secrets.APIMATIC_API_KEY }}" --destination=./portal --force
 ```
 
 Then deploy `./portal` with the host's CLI or Git integration. A complete sample workflow is in the `v2` branch of github.com/apimatic/sample-docs-as-code-portal (`.github/workflows/DeployStaticPortal.yml`).
@@ -419,7 +419,7 @@ API Recipes, API Copilot, custom themes and fonts, custom header/footer HTML, `h
 | Mistake | Fix |
 |---------|-----|
 | Running `apimatic portal serve` from inside `src/` | Run from the project root (the directory that *contains* `src/`) |
-| Installing `@apimatic/cli` or `@apimatic/cli@latest` | Those install CLI v1. Install `@apimatic/cli@beta` |
+| Installing `@apimatic/cli@beta`, or `@apimatic/cli@1` when the user hasn't asked for CLI v1 | `@beta` is a prerelease and `@1` is CLI v1. Install `@apimatic/cli` |
 | Using Node 20 or 22 | CLI v2 needs Node 24 or later, locally and in CI |
 | Page has no front matter or no `title` | Start every page with `---\ntitle: Page title\n---` |
 | `nav.json` entry has an extension or a path (`"guides/intro.md"`) | Use the bare name of a page or folder in the same directory (`"intro"`) |

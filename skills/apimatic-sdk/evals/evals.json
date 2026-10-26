@@ -392,9 +392,28 @@
       "assertions": [
         {
           "id": "suggests-reinstall",
-          "description": "Response suggests installing the v2 CLI with npm install -g @apimatic/cli@beta",
-          "type": "contains",
-          "value": "npm install -g @apimatic/cli@beta"
+          "description": "Response suggests installing the v2 CLI with npm install -g @apimatic/cli",
+          "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli`",
+            "npm install -g @apimatic/cli ",
+            "npm install -g @apimatic/cli\n",
+            "npm install -g @apimatic/cli\r",
+            "npm install -g @apimatic/cli.",
+            "npm install -g @apimatic/cli,",
+            "npm install -g @apimatic/cli\"",
+            "npm install -g @apimatic/cli)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@beta",
+            "npm install -g @apimatic/cli@latest",
+            "npm i -g @apimatic/cli@beta"
+          ]
         },
         {
           "id": "does-not-proceed-to-generate",
@@ -1011,7 +1030,7 @@
     {
       "id": 42,
       "prompt": "I'm new to APIMatic. What do I need installed before I can generate an SDK?",
-      "expected_output": "The agent lists Node.js 24 or later, an APIMatic account, and the v2 CLI installed with `npm install -g @apimatic/cli@beta`, verified with `apimatic --version`.",
+      "expected_output": "The agent lists Node.js 24 or later, an APIMatic account, and the v2 CLI installed with `npm install -g @apimatic/cli`, verified with `apimatic --version`.",
       "files": [],
       "assertions": [
         {
@@ -1021,10 +1040,29 @@
           "value": "24"
         },
         {
-          "id": "installs-beta",
-          "description": "Response installs the v2 CLI with @beta",
-          "type": "contains",
-          "value": "npm install -g @apimatic/cli@beta"
+          "id": "installs-v2",
+          "description": "Response installs the v2 CLI with npm install -g @apimatic/cli",
+          "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli`",
+            "npm install -g @apimatic/cli ",
+            "npm install -g @apimatic/cli\n",
+            "npm install -g @apimatic/cli\r",
+            "npm install -g @apimatic/cli.",
+            "npm install -g @apimatic/cli,",
+            "npm install -g @apimatic/cli\"",
+            "npm install -g @apimatic/cli)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@beta",
+            "npm install -g @apimatic/cli@latest",
+            "npm i -g @apimatic/cli@beta"
+          ]
         },
         {
           "id": "verifies-version",
@@ -1279,7 +1317,7 @@
     {
       "id": 49,
       "prompt": "Generate a TypeScript SDK for my project at ./ts-api/. I'm already authenticated. When I run apimatic --version it prints @apimatic/cli/1.5.0 win32-x64 node-v24.12.0.",
-      "expected_output": "The agent tells the user that CLI v1 (1.5.0) is installed and that it is upgrading the APIMatic CLI to v2 with `npm install -g @apimatic/cli@beta`, mentions how to switch back to v1, then verifies `apimatic --version` before generating.",
+      "expected_output": "The agent tells the user that CLI v1 (1.5.0) is installed and that it is upgrading the APIMatic CLI to v2 with `npm install -g @apimatic/cli`, mentions how to switch back to v1, then verifies `apimatic --version` before generating.",
       "files": [],
       "assertions": [
         {
@@ -1294,10 +1332,29 @@
           ]
         },
         {
-          "id": "installs-beta",
-          "description": "Response upgrades with npm install -g @apimatic/cli@beta",
-          "type": "contains",
-          "value": "npm install -g @apimatic/cli@beta"
+          "id": "installs-v2",
+          "description": "Response upgrades with npm install -g @apimatic/cli",
+          "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli`",
+            "npm install -g @apimatic/cli ",
+            "npm install -g @apimatic/cli\n",
+            "npm install -g @apimatic/cli\r",
+            "npm install -g @apimatic/cli.",
+            "npm install -g @apimatic/cli,",
+            "npm install -g @apimatic/cli\"",
+            "npm install -g @apimatic/cli)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@beta",
+            "npm install -g @apimatic/cli@latest",
+            "npm i -g @apimatic/cli@beta"
+          ]
         },
         {
           "id": "verifies-version",
