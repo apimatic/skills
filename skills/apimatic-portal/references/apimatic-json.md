@@ -24,7 +24,7 @@ Source: https://docs.apimatic.io/v4/generate-developer-portals/apimatic-json-ref
 
 ```json
 {
-  "$schema": "https://cdn.jsdelivr.net/npm/@apimatic/cli@beta/apimatic.schema.json",
+  "$schema": "https://cdn.jsdelivr.net/npm/@apimatic/cli@2/apimatic.schema.json",
   "schemaVersion": 1,
   "portal": {
     "site": {

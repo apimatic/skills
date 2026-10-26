@@ -20,7 +20,7 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 - APIMatic CLI v2 installed globally:
 
 ```bash
-npm install -g @apimatic/cli@beta
+npm install -g @apimatic/cli
 ```
 
 These skills target APIMatic CLI v2, documented at [docs.apimatic.io/v4](https://docs.apimatic.io/v4).
@@ -31,7 +31,7 @@ There are two versions of these skills, one for each major version of the APIMat
 
 |                         | v2 skills (`main`)                                  | v1 skills (`v1` branch)                                                    |
 |-------------------------|-----------------------------------------------------|----------------------------------------------------------------------------|
-| APIMatic CLI            | v2 — `npm install -g @apimatic/cli@beta`            | v1 — `npm install -g @apimatic/cli@1`                                      |
+| APIMatic CLI            | v2 — `npm install -g @apimatic/cli`            | v1 — `npm install -g @apimatic/cli@1`                                      |
 | Node.js                 | 24 or later                                         | 20 or later                                                                |
 | Portal configuration    | `src/apimatic.json` and `nav.json` files            | `src/APIMATIC-BUILD.json` and `toc.yml`                                    |
 | Portal features         | Branding, header links, tabs, AI page actions, Context Plugins | Themes, API Recipes, API Copilot, dynamic configurations, custom header and footer |
@@ -109,4 +109,4 @@ The agent will invoke the right skill and guide you through the workflow step by
 
 ## Maintaining these skills
 
-See [MAINTAINING.md](MAINTAINING.md) for release notes, the v1 maintenance branch, and the checklist for when APIMatic CLI v2 leaves beta.
+See [MAINTAINING.md](MAINTAINING.md) for release notes and the v1 maintenance branch.

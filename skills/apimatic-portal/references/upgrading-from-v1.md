@@ -19,7 +19,7 @@ Before changing anything, tell the user what the upgrade involves and ask for co
 | `portal serve --destination`, `--no-reload` | Removed |
 | `apimatic portal:serve` (colon syntax) | `apimatic portal serve` (spaces) |
 | Node.js 20 | Node.js 24 or later |
-| `npm install -g @apimatic/cli` | `npm install -g @apimatic/cli@beta` |
+| `npm install -g @apimatic/cli@1` | `npm install -g @apimatic/cli` |
 
 `src/spec/`, `src/content/`, and `src/static/` keep the same roles.
 
@@ -58,7 +58,7 @@ Start from this template and fill in the mapped values:
 
 ```json
 {
-  "$schema": "https://cdn.jsdelivr.net/npm/@apimatic/cli@beta/apimatic.schema.json",
+  "$schema": "https://cdn.jsdelivr.net/npm/@apimatic/cli@2/apimatic.schema.json",
   "schemaVersion": 1,
   "portal": {
     "site": {},
@@ -137,7 +137,7 @@ Then delete `src/content/toc.yml`. See `content-and-navigation.md` for all `nav.
 
 ## Step 5: Preview and fix
 
-Upgrade the CLI (`npm install -g @apimatic/cli@beta`, Node 24+) — tell the user first, using the upgrade message in `SKILL.md` Prerequisites — then start the preview with `serve.mjs start --input ./`. Fix each problem the CLI reports, then continue with Path B in `SKILL.md`.
+Upgrade the CLI (`npm install -g @apimatic/cli`, Node 24+) — tell the user first, using the upgrade message in `SKILL.md` Prerequisites — then start the preview with `serve.mjs start --input ./`. Fix each problem the CLI reports, then continue with Path B in `SKILL.md`.
 
 If the API playground used OAuth sign-in, tell the user to register `<portal address>/oauth/callback` as a redirect URI with their OAuth provider (see `SKILL.md`, OAuth sign-in in the API playground).
 
