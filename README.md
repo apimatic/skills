@@ -11,7 +11,7 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 | Skill                                                | Description                                                           | When to use                                                                                                                                                                                        |
 |------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`apimatic-portal`](skills/apimatic-portal/SKILL.md) | Build, configure, and publish API Portals using a Docs as Code workflow | Creating, previewing, or deploying an APIMatic portal; configuring `src/apimatic.json` (branding, header links, AI page actions, SDK languages, hosting under a path), Markdown pages and `nav.json` navigation and tabs, Context Plugins, and upgrading CLI v1 portal projects. |
-| [`apimatic-sdk`](skills/apimatic-sdk/SKILL.md) | Generate, customize, and publish SDKs using the APIMatic CLI | Generating C#, Python, or TypeScript SDKs; validating, checking, or transforming API definitions; customizing generated code with change tracking; publishing SDKs to NuGet, PyPI, npm, or GitHub. |
+| [`apimatic-sdk`](skills/apimatic-sdk/SKILL.md) | Generate, customize, and publish SDKs using the APIMatic CLI | Generating C#, Python, or TypeScript SDKs; validating, checking, or transforming API definitions; customizing generated code; publishing SDKs to NuGet, PyPI, npm, or GitHub. |
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ There are two versions of these skills, one for each major version of the APIMat
 | Portal configuration    | `src/apimatic.json` and `nav.json` files            | `src/APIMATIC-BUILD.json` and `toc.yml`                                    |
 | Portal features         | Branding, header links, tabs, AI page actions, Context Plugins | Themes, API Recipes, API Copilot, dynamic configurations, custom header and footer |
 | SDK languages           | C#, Python, TypeScript                              | C#, Java, PHP, Python, Ruby, TypeScript, Go                                |
-| SDK customization       | Change tracking                                     | CodeGen settings (`APIMATIC-META.json`) and change tracking                |
+| SDK customization       | Code edits; change tracking if the installed CLI has it (CLI 2.0.0 does not) | CodeGen settings (`APIMATIC-META.json`) and change tracking                |
 | Documentation           | [docs.apimatic.io/v4](https://docs.apimatic.io/v4)  | [docs.apimatic.io](https://docs.apimatic.io)                               |
 
 **Not sure which one you have?**
