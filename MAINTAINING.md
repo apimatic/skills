@@ -18,4 +18,4 @@ The skills describe a specific CLI behavior, so check each CLI v2 release for ch
 - Release notes: https://github.com/apimatic/apimatic-cli/releases
 - Docs: https://docs.apimatic.io/v4 (they can lag behind the CLI; when they disagree, the CLI's release notes and `--help` output are what users will see)
 
-Look in particular for an "Upgrading from …" section in the release notes. Those list breaking changes, such as the root `nav.json` `tabs` key (2.0.0-beta.3) and the single OAuth callback page (2.0.0-beta.5).
+Look in particular for an "Upgrading from …" section in the release notes. Those list breaking changes, such as a new required key in `nav.json` or a new redirect URI to register.

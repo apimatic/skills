@@ -89,7 +89,7 @@ Confirm these are in place before starting:
 npm install -g @apimatic/cli
 ```
 
-  Install it without a tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease.
+  Install it with no version or tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease. In CI, pin the major version instead (`npx @apimatic/cli@2`), so a later major release doesn't change the pipeline.
 
 - Verify the CLI is available and on v2:
 
@@ -97,7 +97,7 @@ npm install -g @apimatic/cli
 apimatic --version
 ```
 
-The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`.
+The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`. If it prints a prerelease, such as `@apimatic/cli/2.0.0-beta.8`, tell the user and offer to install the stable release with `npm install -g @apimatic/cli`.
 
 If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 
@@ -419,7 +419,7 @@ API Recipes, API Copilot, custom themes and fonts, custom header/footer HTML, `h
 | Mistake | Fix |
 |---------|-----|
 | Running `apimatic portal serve` from inside `src/` | Run from the project root (the directory that *contains* `src/`) |
-| Installing `@apimatic/cli@1` or `@apimatic/cli@beta` | `@1` is CLI v1 and `@beta` a prerelease. Install `@apimatic/cli` |
+| Installing `@apimatic/cli@beta`, or `@apimatic/cli@1` when the user hasn't asked for CLI v1 | `@beta` is a prerelease and `@1` is CLI v1. Install `@apimatic/cli` |
 | Using Node 20 or 22 | CLI v2 needs Node 24 or later, locally and in CI |
 | Page has no front matter or no `title` | Start every page with `---\ntitle: Page title\n---` |
 | `nav.json` entry has an extension or a path (`"guides/intro.md"`) | Use the bare name of a page or folder in the same directory (`"intro"`) |

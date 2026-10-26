@@ -16,8 +16,10 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 
 separator() { echo ""; echo "--- $1 ---"; }
 
-# upgrading-from-v1.md documents the v1 setup on purpose, so it is left out of the v2-only checks.
-DOCS=("$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md" "$SKILL_DIR/references/apimatic-json.md" "$SKILL_DIR/references/content-and-navigation.md" "$SKILL_DIR/references/context-plugins.md")
+DOCS=("$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md" "$SKILL_DIR/references/apimatic-json.md" "$SKILL_DIR/references/content-and-navigation.md" "$SKILL_DIR/references/context-plugins.md" "$SKILL_DIR/references/upgrading-from-v1.md")
+# A plain install, as opposed to one pinned to @1, @beta or a version.
+PLAIN_INSTALL="npm install -g @apimatic/cli([^@[:alnum:]/]|$)"
+PRERELEASE_INSTALL="(npm (install|i)( -g)?|npx( -y)?) @apimatic/cli@((beta|latest|next)\b|[0-9]+\.[0-9]+\.[0-9]+-)"
 
 # Probe rather than `command -v`: Windows ships a python3 stub that only opens the Store.
 PY=""
@@ -43,14 +45,14 @@ else
   pass "No old Node.js requirements"
 fi
 
-if grep -nE "@apimatic/cli@(beta|latest)\b" "${DOCS[@]}" | grep -E "npm install|npx" > /dev/null 2>&1; then
-  fail "An install/npx command pins @apimatic/cli to @beta or @latest"
-  grep -nE "@apimatic/cli@(beta|latest)\b" "${DOCS[@]}" | grep -E "npm install|npx" || true
+if grep -qE "$PRERELEASE_INSTALL" "${DOCS[@]}"; then
+  fail "An install/npx command pins @apimatic/cli to @beta, @latest, @next or a prerelease"
+  grep -nE "$PRERELEASE_INSTALL" "${DOCS[@]}" || true
 else
-  pass "No install/npx command pins @apimatic/cli to @beta or @latest"
+  pass "No install/npx command pins @apimatic/cli to @beta, @latest, @next or a prerelease"
 fi
 
-if grep -qF "npm install -g @apimatic/cli" "$SKILL_DIR/SKILL.md"; then
+if grep -qE "$PLAIN_INSTALL" "$SKILL_DIR/SKILL.md"; then
   pass "SKILL.md: install command is npm install -g @apimatic/cli"
 else
   fail "SKILL.md: npm install -g @apimatic/cli missing"
@@ -218,13 +220,18 @@ fi
 # ─────────────────────────────────────────────
 separator "QUAL-07 — Path A onboarding flow markers"
 
-for marker in "node --version" "npm install -g @apimatic/cli" "serve.mjs start" "AskUserQuestion" "shut down the portal"; do
+for marker in "node --version" "serve.mjs start" "AskUserQuestion" "shut down the portal"; do
   if grep -qF "$marker" "$SKILL_DIR/references/first-time-setup.md"; then
     pass "first-time-setup.md contains '$marker'"
   else
     fail "first-time-setup.md missing '$marker'"
   fi
 done
+if grep -qE "$PLAIN_INSTALL" "$SKILL_DIR/references/first-time-setup.md"; then
+  pass "first-time-setup.md contains 'npm install -g @apimatic/cli'"
+else
+  fail "first-time-setup.md missing 'npm install -g @apimatic/cli'"
+fi
 
 # ─────────────────────────────────────────────
 separator "All reference files exist and are linked from SKILL.md"

@@ -61,7 +61,7 @@ Source: https://docs.apimatic.io/v4/generate-developer-portals/apimatic-json-ref
 }
 ```
 
-Keep the `$schema` line: it gives autocomplete and validation in VS Code and other JSON-aware editors. The CLI ignores it.
+Keep the `$schema` line: it gives autocomplete and validation in VS Code and other JSON-aware editors. The CLI ignores it. A file from a CLI 2.0 beta points it at `@apimatic/cli@beta`; change that to `@apimatic/cli@2`.
 
 ---
 

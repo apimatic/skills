@@ -31,7 +31,7 @@ There are two versions of these skills, one for each major version of the APIMat
 
 |                         | v2 skills (`main`)                                  | v1 skills (`v1` branch)                                                    |
 |-------------------------|-----------------------------------------------------|----------------------------------------------------------------------------|
-| APIMatic CLI            | v2 — `npm install -g @apimatic/cli`            | v1 — `npm install -g @apimatic/cli@1`                                      |
+| APIMatic CLI            | v2 — `npm install -g @apimatic/cli`                 | v1 — `npm install -g @apimatic/cli@1`                                      |
 | Node.js                 | 24 or later                                         | 20 or later                                                                |
 | Portal configuration    | `src/apimatic.json` and `nav.json` files            | `src/APIMATIC-BUILD.json` and `toc.yml`                                    |
 | Portal features         | Branding, header links, tabs, AI page actions, Context Plugins | Themes, API Recipes, API Copilot, dynamic configurations, custom header and footer |
@@ -109,4 +109,4 @@ The agent will invoke the right skill and guide you through the workflow step by
 
 ## Maintaining these skills
 
-See [MAINTAINING.md](MAINTAINING.md) for release notes and the v1 maintenance branch.
+See [MAINTAINING.md](MAINTAINING.md) for the v1 maintenance branch and how to keep up with CLI releases.

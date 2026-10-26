@@ -24,7 +24,7 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli` 2.x), documented at http
 
 ## Red Flags — STOP and re-read the relevant section
 
-- About to install `@apimatic/cli@1` or `@apimatic/cli@beta` → `@1` is CLI v1 and `@beta` a prerelease. Install `@apimatic/cli`, which needs Node.js 24 or later
+- About to install `@apimatic/cli@beta`, or `@apimatic/cli@1` when the user hasn't asked for CLI v1 → `@beta` is a prerelease and `@1` is CLI v1. Install `@apimatic/cli`, which needs Node.js 24 or later
 - About to generate or publish a Java, PHP, Ruby, or Go SDK → CLI v2 supports only `csharp`, `python`, and `typescript`. Tell the user the language is not available yet and offer the supported ones; do not run the command
 - About to pass the spec file path to `--input` → `--input` must point to the parent directory that contains `src/`, not the spec file itself (e.g., `--input=./my-project`, not `--input=./openapi.yaml`) → commands run from project root, never from inside `src/`
 - About to check an API definition for problems by reading the file yourself → run `apimatic api validate` (see [Validate or Transform the API Definition](#validate-or-transform-the-api-definition)); reading the file misses APIMatic's validation and linting rules
@@ -91,7 +91,7 @@ If the user wants to go ahead, treat the request as a code customization: run th
 
 ## Change Tracking Availability Check
 
-Change tracking (`--track-changes`, `--skip-changes`, and `apimatic sdk save-changes`) keeps custom code across regenerations. It is part of the v4 CLI reference, but not every CLI v2 release includes it. Before using any of these, check the installed CLI once per session:
+Change tracking (`--track-changes`, `--skip-changes`, and `apimatic sdk save-changes`) keeps custom code across regenerations. It is part of the v4 CLI reference, but CLI 2.0.0 does not include it. Before using any of these, check the installed CLI once per session:
 
 ```
 apimatic sdk generate --help
@@ -174,7 +174,7 @@ Confirm these are in place before starting:
   npm install -g @apimatic/cli
   ```
 
-  Install it without a tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease.
+  Install it with no version or tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease. In CI, pin the major version instead (`npx @apimatic/cli@2`), so a later major release doesn't change the pipeline.
 
   Verify the CLI is available:
 
@@ -182,7 +182,7 @@ Confirm these are in place before starting:
   apimatic --version
   ```
 
-  The output should start with `@apimatic/cli/2.`. If the command fails, CLI v2 is not installed — run the install command above. Do not continue to authentication or SDK generation until `apimatic --version` prints `@apimatic/cli/2.`.
+  The output should start with `@apimatic/cli/2.`. If the command fails, CLI v2 is not installed — run the install command above. Do not continue to authentication or SDK generation until `apimatic --version` prints `@apimatic/cli/2.`. If it prints a prerelease, such as `@apimatic/cli/2.0.0-beta.8`, tell the user and offer to install the stable release with `npm install -g @apimatic/cli`.
 
   If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 

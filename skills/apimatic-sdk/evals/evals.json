@@ -393,8 +393,27 @@
         {
           "id": "suggests-reinstall",
           "description": "Response suggests installing the v2 CLI with npm install -g @apimatic/cli",
-          "type": "contains",
-          "value": "npm install -g @apimatic/cli"
+          "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli`",
+            "npm install -g @apimatic/cli ",
+            "npm install -g @apimatic/cli\n",
+            "npm install -g @apimatic/cli\r",
+            "npm install -g @apimatic/cli.",
+            "npm install -g @apimatic/cli,",
+            "npm install -g @apimatic/cli\"",
+            "npm install -g @apimatic/cli)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@beta",
+            "npm install -g @apimatic/cli@latest",
+            "npm i -g @apimatic/cli@beta"
+          ]
         },
         {
           "id": "does-not-proceed-to-generate",
@@ -1023,8 +1042,27 @@
         {
           "id": "installs-v2",
           "description": "Response installs the v2 CLI with npm install -g @apimatic/cli",
-          "type": "contains",
-          "value": "npm install -g @apimatic/cli"
+          "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli`",
+            "npm install -g @apimatic/cli ",
+            "npm install -g @apimatic/cli\n",
+            "npm install -g @apimatic/cli\r",
+            "npm install -g @apimatic/cli.",
+            "npm install -g @apimatic/cli,",
+            "npm install -g @apimatic/cli\"",
+            "npm install -g @apimatic/cli)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@beta",
+            "npm install -g @apimatic/cli@latest",
+            "npm i -g @apimatic/cli@beta"
+          ]
         },
         {
           "id": "verifies-version",
@@ -1296,8 +1334,27 @@
         {
           "id": "installs-v2",
           "description": "Response upgrades with npm install -g @apimatic/cli",
-          "type": "contains",
-          "value": "npm install -g @apimatic/cli"
+          "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli`",
+            "npm install -g @apimatic/cli ",
+            "npm install -g @apimatic/cli\n",
+            "npm install -g @apimatic/cli\r",
+            "npm install -g @apimatic/cli.",
+            "npm install -g @apimatic/cli,",
+            "npm install -g @apimatic/cli\"",
+            "npm install -g @apimatic/cli)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@beta",
+            "npm install -g @apimatic/cli@latest",
+            "npm i -g @apimatic/cli@beta"
+          ]
         },
         {
           "id": "verifies-version",
