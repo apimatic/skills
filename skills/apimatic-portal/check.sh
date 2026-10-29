@@ -17,8 +17,9 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 separator() { echo ""; echo "--- $1 ---"; }
 
 DOCS=("$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md" "$SKILL_DIR/references/apimatic-json.md" "$SKILL_DIR/references/content-and-navigation.md" "$SKILL_DIR/references/context-plugins.md" "$SKILL_DIR/references/upgrading-from-v1.md")
-# A plain install, as opposed to one pinned to @1, @beta or a version.
-PLAIN_INSTALL="npm install -g @apimatic/cli([^@[:alnum:]/]|$)"
+# An install with no version: on Node older than 24, npm resolves it to CLI v1.
+BARE_INSTALL="(npm (install|i)( -g)?|npx( -y)?) @apimatic/cli([^@[:alnum:]/]|$)"
+V2_INSTALL="npm install -g @apimatic/cli@2([^[:alnum:].]|$)"
 PRERELEASE_INSTALL="(npm (install|i)( -g)?|npx( -y)?) @apimatic/cli@((beta|latest|next)\b|[0-9]+\.[0-9]+\.[0-9]+-)"
 
 # Probe rather than `command -v`: Windows ships a python3 stub that only opens the Store.
@@ -52,10 +53,17 @@ else
   pass "No install/npx command pins @apimatic/cli to @beta, @latest, @next or a prerelease"
 fi
 
-if grep -qE "$PLAIN_INSTALL" "$SKILL_DIR/SKILL.md"; then
-  pass "SKILL.md: install command is npm install -g @apimatic/cli"
+if grep -qE "$BARE_INSTALL" "${DOCS[@]}" "$SKILL_DIR/scripts/serve.mjs"; then
+  fail "An install/npx command has no version, which installs CLI v1 on Node older than 24"
+  grep -nE "$BARE_INSTALL" "${DOCS[@]}" "$SKILL_DIR/scripts/serve.mjs" || true
 else
-  fail "SKILL.md: npm install -g @apimatic/cli missing"
+  pass "Every install/npx command pins a version"
+fi
+
+if grep -qE "$V2_INSTALL" "$SKILL_DIR/SKILL.md"; then
+  pass "SKILL.md: install command is npm install -g @apimatic/cli@2"
+else
+  fail "SKILL.md: npm install -g @apimatic/cli@2 missing"
 fi
 
 # Security scanners (Gen Agent Trust Hub on skills.sh) rate the skill High Risk for privilege escalation
@@ -227,10 +235,10 @@ for marker in "node --version" "serve.mjs start" "AskUserQuestion" "shut down th
     fail "first-time-setup.md missing '$marker'"
   fi
 done
-if grep -qE "$PLAIN_INSTALL" "$SKILL_DIR/references/first-time-setup.md"; then
-  pass "first-time-setup.md contains 'npm install -g @apimatic/cli'"
+if grep -qE "$V2_INSTALL" "$SKILL_DIR/references/first-time-setup.md"; then
+  pass "first-time-setup.md contains 'npm install -g @apimatic/cli@2'"
 else
-  fail "first-time-setup.md missing 'npm install -g @apimatic/cli'"
+  fail "first-time-setup.md missing 'npm install -g @apimatic/cli@2'"
 fi
 
 # ─────────────────────────────────────────────
