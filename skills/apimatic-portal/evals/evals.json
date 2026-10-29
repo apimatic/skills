@@ -300,7 +300,7 @@
     {
       "id": 7,
       "prompt": "I'm completely new to APIMatic and want to build my first developer portal from scratch.",
-      "expected_output": "The agent follows Path A: runs `node --version` directly and checks for v24 or later, asks permission before installing @apimatic/cli, then signs in and waits for browser sign-in confirmation before proceeding.",
+      "expected_output": "The agent follows Path A: runs `node --version` directly and checks for v24 or later, asks permission before installing @apimatic/cli@2, then signs in and waits for browser sign-in confirmation before proceeding.",
       "files": [],
       "assertions": [
         {
@@ -333,8 +333,23 @@
         },
         {
           "id": "installs-v2-cli",
-          "description": "Response installs the v2 CLI with npm install -g @apimatic/cli",
+          "description": "Response installs the v2 CLI with npm install -g @apimatic/cli@2",
           "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@2`",
+            "npm install -g @apimatic/cli@2 ",
+            "npm install -g @apimatic/cli@2\n",
+            "npm install -g @apimatic/cli@2\r",
+            "npm install -g @apimatic/cli@2.",
+            "npm install -g @apimatic/cli@2,",
+            "npm install -g @apimatic/cli@2\"",
+            "npm install -g @apimatic/cli@2)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install with no version, or the beta or latest tag",
+          "type": "not_contains_any",
           "value": [
             "npm install -g @apimatic/cli`",
             "npm install -g @apimatic/cli ",
@@ -343,14 +358,7 @@
             "npm install -g @apimatic/cli.",
             "npm install -g @apimatic/cli,",
             "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)"
-          ]
-        },
-        {
-          "id": "no-prerelease-install",
-          "description": "Response does not install the beta or latest tag",
-          "type": "not_contains_any",
-          "value": [
+            "npm install -g @apimatic/cli)",
             "npm install -g @apimatic/cli@beta",
             "npm install -g @apimatic/cli@latest",
             "npm i -g @apimatic/cli@beta"
@@ -382,22 +390,22 @@
     {
       "id": 8,
       "prompt": "I ran npm install -g @apimatic/cli but when I run apimatic --version it still says command not found.",
-      "expected_output": "The agent tells the user to install the v2 CLI with npm install -g @apimatic/cli (running it in their own terminal, without the agent retrying under sudo) and does NOT proceed to authentication or portal generation until the CLI is verified.",
+      "expected_output": "The agent tells the user to install the v2 CLI with npm install -g @apimatic/cli@2 (running it in their own terminal, without the agent retrying under sudo) and does NOT proceed to authentication or portal generation until the CLI is verified.",
       "files": [],
       "assertions": [
         {
           "id": "suggests-v2-install",
-          "description": "Response uses npm install -g @apimatic/cli",
+          "description": "Response uses npm install -g @apimatic/cli@2",
           "type": "contains_any",
           "value": [
-            "npm install -g @apimatic/cli`",
-            "npm install -g @apimatic/cli ",
-            "npm install -g @apimatic/cli\n",
-            "npm install -g @apimatic/cli\r",
-            "npm install -g @apimatic/cli.",
-            "npm install -g @apimatic/cli,",
-            "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)"
+            "npm install -g @apimatic/cli@2`",
+            "npm install -g @apimatic/cli@2 ",
+            "npm install -g @apimatic/cli@2\n",
+            "npm install -g @apimatic/cli@2\r",
+            "npm install -g @apimatic/cli@2.",
+            "npm install -g @apimatic/cli@2,",
+            "npm install -g @apimatic/cli@2\"",
+            "npm install -g @apimatic/cli@2)"
           ]
         },
         {
@@ -661,7 +669,7 @@
     {
       "id": 15,
       "prompt": "I have an older APIMatic portal project with src/APIMATIC-BUILD.json and src/content/toc.yml. Help me upgrade it to the new CLI.",
-      "expected_output": "The agent follows the upgrade guide: installs @apimatic/cli on Node 24, creates src/apimatic.json from the portal settings, adds title front matter to every page, replaces toc.yml with nav.json files, and tells the user which v1 features have no v2 equivalent.",
+      "expected_output": "The agent follows the upgrade guide: installs @apimatic/cli@2 on Node 24, creates src/apimatic.json from the portal settings, adds title front matter to every page, replaces toc.yml with nav.json files, and tells the user which v1 features have no v2 equivalent.",
       "files": [],
       "assertions": [
         {
@@ -690,6 +698,21 @@
           "description": "Response installs the v2 CLI",
           "type": "contains_any",
           "value": [
+            "npm install -g @apimatic/cli@2`",
+            "npm install -g @apimatic/cli@2 ",
+            "npm install -g @apimatic/cli@2\n",
+            "npm install -g @apimatic/cli@2\r",
+            "npm install -g @apimatic/cli@2.",
+            "npm install -g @apimatic/cli@2,",
+            "npm install -g @apimatic/cli@2\"",
+            "npm install -g @apimatic/cli@2)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install with no version, or the beta or latest tag",
+          "type": "not_contains_any",
+          "value": [
             "npm install -g @apimatic/cli`",
             "npm install -g @apimatic/cli ",
             "npm install -g @apimatic/cli\n",
@@ -697,14 +720,7 @@
             "npm install -g @apimatic/cli.",
             "npm install -g @apimatic/cli,",
             "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)"
-          ]
-        },
-        {
-          "id": "no-prerelease-install",
-          "description": "Response does not install the beta or latest tag",
-          "type": "not_contains_any",
-          "value": [
+            "npm install -g @apimatic/cli)",
             "npm install -g @apimatic/cli@beta",
             "npm install -g @apimatic/cli@latest",
             "npm i -g @apimatic/cli@beta"
@@ -1131,7 +1147,7 @@
     {
       "id": 29,
       "prompt": "Help me preview my APIMatic portal. My project at ./docs-portal/ has src/apimatic.json. apimatic --version prints @apimatic/cli/1.5.0 win32-x64 node-v24.12.0.",
-      "expected_output": "The agent tells the user that CLI v1 (1.5.0) is installed and that it is upgrading the APIMatic CLI to v2 with npm install -g @apimatic/cli, mentions how to switch back to v1, verifies apimatic --version, then starts the preview.",
+      "expected_output": "The agent tells the user that CLI v1 (1.5.0) is installed and that it is upgrading the APIMatic CLI to v2 with npm install -g @apimatic/cli@2, mentions how to switch back to v1, verifies apimatic --version, then starts the preview.",
       "files": [],
       "assertions": [
         {
@@ -1147,8 +1163,23 @@
         },
         {
           "id": "installs-v2",
-          "description": "Response upgrades with npm install -g @apimatic/cli",
+          "description": "Response upgrades with npm install -g @apimatic/cli@2",
           "type": "contains_any",
+          "value": [
+            "npm install -g @apimatic/cli@2`",
+            "npm install -g @apimatic/cli@2 ",
+            "npm install -g @apimatic/cli@2\n",
+            "npm install -g @apimatic/cli@2\r",
+            "npm install -g @apimatic/cli@2.",
+            "npm install -g @apimatic/cli@2,",
+            "npm install -g @apimatic/cli@2\"",
+            "npm install -g @apimatic/cli@2)"
+          ]
+        },
+        {
+          "id": "no-prerelease-install",
+          "description": "Response does not install with no version, or the beta or latest tag",
+          "type": "not_contains_any",
           "value": [
             "npm install -g @apimatic/cli`",
             "npm install -g @apimatic/cli ",
@@ -1157,14 +1188,7 @@
             "npm install -g @apimatic/cli.",
             "npm install -g @apimatic/cli,",
             "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)"
-          ]
-        },
-        {
-          "id": "no-prerelease-install",
-          "description": "Response does not install the beta or latest tag",
-          "type": "not_contains_any",
-          "value": [
+            "npm install -g @apimatic/cli)",
             "npm install -g @apimatic/cli@beta",
             "npm install -g @apimatic/cli@latest",
             "npm i -g @apimatic/cli@beta"

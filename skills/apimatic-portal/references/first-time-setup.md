@@ -20,7 +20,7 @@ First run `apimatic --version`. If the output starts with `@apimatic/cli/2.`, CL
 If the output starts with `@apimatic/cli/1.`, CLI v1 is installed and must be upgraded. Use AskUserQuestion (substituting the version it printed):
 
 ```
-question: "You have APIMatic CLI v1 (<version>) installed, and this portal needs CLI v2. OK to upgrade it by running: npm install -g @apimatic/cli? This replaces v1 on this machine; you can switch back later with npm install -g @apimatic/cli@1."
+question: "You have APIMatic CLI v1 (<version>) installed, and this portal needs CLI v2. OK to upgrade it by running: npm install -g @apimatic/cli@2? This replaces v1 on this machine; you can switch back later with npm install -g @apimatic/cli@1."
 options:
   - "Yes, upgrade it"
   - "No, I'll upgrade it myself"
@@ -32,16 +32,16 @@ options:
 If the command is not found, use AskUserQuestion:
 
 ```
-question: "APIMatic CLI v2 needs to be installed globally. OK to run: npm install -g @apimatic/cli?"
+question: "APIMatic CLI v2 needs to be installed globally. OK to run: npm install -g @apimatic/cli@2?"
 options:
   - "Yes, go ahead"
   - "No, I'll install it myself"
 ```
 
-- "Yes" → run `npm install -g @apimatic/cli`, then run `apimatic --version`
+- "Yes" → run `npm install -g @apimatic/cli@2`, then run `apimatic --version`
   - Output starts with `@apimatic/cli/2.` → proceed to Step A3
-  - Command not found or error → do not retry the install with elevated privileges yourself. Stop and output exactly: "The install did not complete. Please run `npm install -g @apimatic/cli` in your own terminal. If npm reports a permissions error (EACCES), follow npm's guide to fix it: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally. Verify with `apimatic --version`, then come back here." Do not proceed.
-- "No" → output: "When you're ready, run `npm install -g @apimatic/cli`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
+  - Command not found or error → do not retry the install with elevated privileges yourself. Stop and output exactly: "The install did not complete. Please run `npm install -g @apimatic/cli@2` in your own terminal. If npm reports a permissions error (EACCES), follow npm's guide to fix it: https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally. Verify with `apimatic --version`, then come back here." Do not proceed.
+- "No" → output: "When you're ready, run `npm install -g @apimatic/cli@2`, verify with `apimatic --version`, and come back here." Do not proceed until the user returns and confirms.
 
 ---
 
