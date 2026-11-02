@@ -394,7 +394,7 @@
           "id": "suggests-reinstall",
           "description": "Response suggests installing the v2 CLI with npm install -g @apimatic/cli@2",
           "type": "regex",
-          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|(?:\\.\\d+)*-)"
         },
         {
           "id": "no-prerelease-install",
@@ -1034,7 +1034,7 @@
           "id": "installs-v2",
           "description": "Response installs the v2 CLI with npm install -g @apimatic/cli@2",
           "type": "regex",
-          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|(?:\\.\\d+)*-)"
         },
         {
           "id": "no-unpinned-install",
@@ -1313,7 +1313,7 @@
           "id": "installs-v2",
           "description": "Response upgrades with npm install -g @apimatic/cli@2",
           "type": "regex",
-          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|(?:\\.\\d+)*-)"
         },
         {
           "id": "no-unpinned-install",
