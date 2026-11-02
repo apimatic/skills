@@ -34,6 +34,14 @@ def check_assertion(text, assertion):
         found = [item for item in v if normalize(item) in text_lower]
         passed = len(found) == 0
         evidence = f"Correctly absent" if passed else f"SHOULD NOT CONTAIN: {found}"
+    elif t == "regex":
+        match = re.search(v, text_lower)
+        passed = match is not None
+        evidence = f"Matched: {match.group(0)!r}" if passed else f"NO MATCH: /{v}/"
+    elif t == "not_regex":
+        found = [m.group(0) for m in re.finditer(v, text_lower)]
+        passed = len(found) == 0
+        evidence = f"Correctly absent" if passed else f"SHOULD NOT MATCH: {found}"
     else:
         passed = False
         evidence = f"Unknown assertion type: {t}"

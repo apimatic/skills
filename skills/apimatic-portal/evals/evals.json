@@ -334,37 +334,14 @@
         {
           "id": "installs-v2-cli",
           "description": "Response installs the v2 CLI with npm install -g @apimatic/cli@2",
-          "type": "contains_any",
-          "value": [
-            "npm install -g @apimatic/cli@2`",
-            "npm install -g @apimatic/cli@2 ",
-            "npm install -g @apimatic/cli@2\n",
-            "npm install -g @apimatic/cli@2\r",
-            "npm install -g @apimatic/cli@2.",
-            "npm install -g @apimatic/cli@2,",
-            "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)",
-            "npm install -g @apimatic/cli@2;"
-          ]
+          "type": "regex",
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
         },
         {
-          "id": "no-prerelease-install",
-          "description": "Response does not install with no version, or the beta or latest tag",
-          "type": "not_contains_any",
-          "value": [
-            "npm install -g @apimatic/cli`",
-            "npm install -g @apimatic/cli ",
-            "npm install -g @apimatic/cli\n",
-            "npm install -g @apimatic/cli\r",
-            "npm install -g @apimatic/cli.",
-            "npm install -g @apimatic/cli,",
-            "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)",
-            "npm install -g @apimatic/cli;",
-            "npm install -g @apimatic/cli@beta",
-            "npm install -g @apimatic/cli@latest",
-            "npm i -g @apimatic/cli@beta"
-          ]
+          "id": "no-unpinned-install",
+          "description": "Response does not install with no version, a beta, latest or next tag, or a prerelease version",
+          "type": "not_regex",
+          "value": "(?:npm (?:install|i|update|up|upgrade)|npx)(?: -[-\\w]+)* [\\\"']?@apimatic/cli(?:(?![-\\w@/])|@(?:beta|latest|next)\\b|@\\d+\\.\\d+\\.\\d+-)"
         },
         {
           "id": "runs-auth-login",
@@ -398,18 +375,8 @@
         {
           "id": "suggests-v2-install",
           "description": "Response uses npm install -g @apimatic/cli@2",
-          "type": "contains_any",
-          "value": [
-            "npm install -g @apimatic/cli@2`",
-            "npm install -g @apimatic/cli@2 ",
-            "npm install -g @apimatic/cli@2\n",
-            "npm install -g @apimatic/cli@2\r",
-            "npm install -g @apimatic/cli@2.",
-            "npm install -g @apimatic/cli@2,",
-            "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)",
-            "npm install -g @apimatic/cli@2;"
-          ]
+          "type": "regex",
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
         },
         {
           "id": "no-prerelease-install",
@@ -699,37 +666,14 @@
         {
           "id": "installs-v2",
           "description": "Response installs the v2 CLI",
-          "type": "contains_any",
-          "value": [
-            "npm install -g @apimatic/cli@2`",
-            "npm install -g @apimatic/cli@2 ",
-            "npm install -g @apimatic/cli@2\n",
-            "npm install -g @apimatic/cli@2\r",
-            "npm install -g @apimatic/cli@2.",
-            "npm install -g @apimatic/cli@2,",
-            "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)",
-            "npm install -g @apimatic/cli@2;"
-          ]
+          "type": "regex",
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
         },
         {
-          "id": "no-prerelease-install",
-          "description": "Response does not install with no version, or the beta or latest tag",
-          "type": "not_contains_any",
-          "value": [
-            "npm install -g @apimatic/cli`",
-            "npm install -g @apimatic/cli ",
-            "npm install -g @apimatic/cli\n",
-            "npm install -g @apimatic/cli\r",
-            "npm install -g @apimatic/cli.",
-            "npm install -g @apimatic/cli,",
-            "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)",
-            "npm install -g @apimatic/cli;",
-            "npm install -g @apimatic/cli@beta",
-            "npm install -g @apimatic/cli@latest",
-            "npm i -g @apimatic/cli@beta"
-          ]
+          "id": "no-unpinned-install",
+          "description": "Response does not install with no version, a beta, latest or next tag, or a prerelease version",
+          "type": "not_regex",
+          "value": "(?:npm (?:install|i|update|up|upgrade)|npx)(?: -[-\\w]+)* [\\\"']?@apimatic/cli(?:(?![-\\w@/])|@(?:beta|latest|next)\\b|@\\d+\\.\\d+\\.\\d+-)"
         },
         {
           "id": "requires-node-24",
@@ -1169,37 +1113,14 @@
         {
           "id": "installs-v2",
           "description": "Response upgrades with npm install -g @apimatic/cli@2",
-          "type": "contains_any",
-          "value": [
-            "npm install -g @apimatic/cli@2`",
-            "npm install -g @apimatic/cli@2 ",
-            "npm install -g @apimatic/cli@2\n",
-            "npm install -g @apimatic/cli@2\r",
-            "npm install -g @apimatic/cli@2.",
-            "npm install -g @apimatic/cli@2,",
-            "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)",
-            "npm install -g @apimatic/cli@2;"
-          ]
+          "type": "regex",
+          "value": "npm install -g @apimatic/cli@2(?![\\w-]|\\.\\d)"
         },
         {
-          "id": "no-prerelease-install",
-          "description": "Response does not install with no version, or the beta or latest tag",
-          "type": "not_contains_any",
-          "value": [
-            "npm install -g @apimatic/cli`",
-            "npm install -g @apimatic/cli ",
-            "npm install -g @apimatic/cli\n",
-            "npm install -g @apimatic/cli\r",
-            "npm install -g @apimatic/cli.",
-            "npm install -g @apimatic/cli,",
-            "npm install -g @apimatic/cli\"",
-            "npm install -g @apimatic/cli)",
-            "npm install -g @apimatic/cli;",
-            "npm install -g @apimatic/cli@beta",
-            "npm install -g @apimatic/cli@latest",
-            "npm i -g @apimatic/cli@beta"
-          ]
+          "id": "no-unpinned-install",
+          "description": "Response does not install with no version, a beta, latest or next tag, or a prerelease version",
+          "type": "not_regex",
+          "value": "(?:npm (?:install|i|update|up|upgrade)|npx)(?: -[-\\w]+)* [\\\"']?@apimatic/cli(?:(?![-\\w@/])|@(?:beta|latest|next)\\b|@\\d+\\.\\d+\\.\\d+-)"
         },
         {
           "id": "verifies-version",
