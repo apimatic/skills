@@ -17,10 +17,11 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 separator() { echo ""; echo "--- $1 ---"; }
 
 DOCS=("$SKILL_DIR/SKILL.md" "$SKILL_DIR/references/first-time-setup.md" "$SKILL_DIR/references/apimatic-json.md" "$SKILL_DIR/references/content-and-navigation.md" "$SKILL_DIR/references/context-plugins.md" "$SKILL_DIR/references/upgrading-from-v1.md")
+INSTALL_CMD="(npm (install|i|update|up|upgrade)|npx)( -[-[:alnum:]]+)* [\"']?"
 # An install with no version: on Node older than 24, npm resolves it to CLI v1.
-BARE_INSTALL="(npm (install|i)( -g)?|npx( -y)?) @apimatic/cli([^@[:alnum:]/]|$)"
+BARE_INSTALL="${INSTALL_CMD}@apimatic/cli([^-_@[:alnum:]/]|$)"
 V2_INSTALL="npm install -g @apimatic/cli@2([^[:alnum:].]|$)"
-PRERELEASE_INSTALL="(npm (install|i)( -g)?|npx( -y)?) @apimatic/cli@((beta|latest|next)\b|[0-9]+\.[0-9]+\.[0-9]+-)"
+PRERELEASE_INSTALL="${INSTALL_CMD}@apimatic/cli@((beta|latest|next)\b|[0-9]+\.[0-9]+\.[0-9]+-)"
 
 # Probe rather than `command -v`: Windows ships a python3 stub that only opens the Store.
 PY=""

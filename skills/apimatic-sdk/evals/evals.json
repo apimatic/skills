@@ -402,7 +402,8 @@
             "npm install -g @apimatic/cli@2.",
             "npm install -g @apimatic/cli@2,",
             "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)"
+            "npm install -g @apimatic/cli@2)",
+            "npm install -g @apimatic/cli@2;"
           ]
         },
         {
@@ -1051,7 +1052,8 @@
             "npm install -g @apimatic/cli@2.",
             "npm install -g @apimatic/cli@2,",
             "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)"
+            "npm install -g @apimatic/cli@2)",
+            "npm install -g @apimatic/cli@2;"
           ]
         },
         {
@@ -1067,6 +1069,7 @@
             "npm install -g @apimatic/cli,",
             "npm install -g @apimatic/cli\"",
             "npm install -g @apimatic/cli)",
+            "npm install -g @apimatic/cli;",
             "npm install -g @apimatic/cli@beta",
             "npm install -g @apimatic/cli@latest",
             "npm i -g @apimatic/cli@beta"
@@ -1351,7 +1354,8 @@
             "npm install -g @apimatic/cli@2.",
             "npm install -g @apimatic/cli@2,",
             "npm install -g @apimatic/cli@2\"",
-            "npm install -g @apimatic/cli@2)"
+            "npm install -g @apimatic/cli@2)",
+            "npm install -g @apimatic/cli@2;"
           ]
         },
         {
@@ -1367,6 +1371,7 @@
             "npm install -g @apimatic/cli,",
             "npm install -g @apimatic/cli\"",
             "npm install -g @apimatic/cli)",
+            "npm install -g @apimatic/cli;",
             "npm install -g @apimatic/cli@beta",
             "npm install -g @apimatic/cli@latest",
             "npm i -g @apimatic/cli@beta"
