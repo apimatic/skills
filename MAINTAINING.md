@@ -6,7 +6,7 @@ Notes for the people who maintain this repository. Users of the skills should st
 
 | Branch | Targets | Notes |
 |--------|---------|-------|
-| `main` | APIMatic CLI v2 (`@apimatic/cli`), docs at https://docs.apimatic.io/v4 | Day-to-day development. |
+| `main` | APIMatic CLI v2 (`@apimatic/cli@2`), docs at https://docs.apimatic.io/v4 | Day-to-day development. |
 | `v1` | APIMatic CLI v1 (`@apimatic/cli@1`) | Maintenance only. Branched from the `v1.0.0` tag. |
 
 To fix a v1 skill, branch from `v1`, open the pull request against `v1`, and tag the merge as the next `v1.0.x`. Port a fix to `main` only if it also applies to CLI v2.

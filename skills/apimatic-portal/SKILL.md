@@ -86,10 +86,10 @@ Confirm these are in place before starting:
 - APIMatic CLI v2 installed globally:
 
 ```
-npm install -g @apimatic/cli
+npm install -g @apimatic/cli@2
 ```
 
-  Install it with no version or tag: `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease. In CI, pin the major version instead (`npx @apimatic/cli@2`), so a later major release doesn't change the pipeline.
+  Always pin the major version, here and in CI (`npx @apimatic/cli@2`). On Node older than 24, a bare `@apimatic/cli` silently installs CLI v1 (1.5.0): npm skips a `latest` release whose `engines` the running Node doesn't satisfy and takes the newest one that does. With `@2`, npm only warns, and the CLI then refuses to run and names the Node version it needs. `@apimatic/cli@1` is CLI v1, and `@apimatic/cli@beta` is a prerelease.
 
 - Verify the CLI is available and on v2:
 
@@ -97,11 +97,11 @@ npm install -g @apimatic/cli
 apimatic --version
 ```
 
-The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`. If it prints a prerelease, such as `@apimatic/cli/2.0.0-beta.8`, tell the user and offer to install the stable release with `npm install -g @apimatic/cli`.
+The output should start with `@apimatic/cli/2.`. If the command fails, the CLI v2 is not installed — run the install command above. Do not continue to authentication or portal generation until `apimatic --version` prints `@apimatic/cli/2.`. If it prints a prerelease, such as `@apimatic/cli/2.0.0-beta.8`, tell the user and offer to install the stable release with `npm install -g @apimatic/cli@2`.
 
 If it shows `1.x`, CLI v1 is installed. Before upgrading, tell the user (substituting the version it printed):
 
-> "You have APIMatic CLI v1 (`<version>`) installed, and this portal needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
+> "You have APIMatic CLI v1 (`<version>`) installed, and this portal needs CLI v2. I'm upgrading your APIMatic CLI to v2 now with `npm install -g @apimatic/cli@2`. This replaces v1 on this machine; to switch back later, run `npm install -g @apimatic/cli@1`."
 
 Then run the install command and check `apimatic --version` again.
 
@@ -233,7 +233,7 @@ The script spawns `apimatic portal serve` and streams its output live. The first
 2. **Node.js too old:** The CLI refuses to run and names the Node version it found. Tell the user: "The APIMatic CLI needs Node.js 24 or later. Please install it from https://nodejs.org/en/download/ then come back."
 3. **Missing or invalid spec:** Check that `src/spec/` contains the API spec file. If the CLI says `No OpenAPI 3.x document found`, the spec is in another format (Swagger 2.0, Postman, …): run the `apimatic api transform` command it prints, move the converted file up into `src/spec/` as it says, and delete the original and the `transformations/` folder. If the CLI reports problems with the spec, run `apimatic api validate` from the project root (it checks the definition in `src/spec/`) and explain the errors to the user.
 4. **Problems in `apimatic.json`, a page, or a `nav.json`:** The CLI lists each problem with the file it is in. Fix each one using `references/apimatic-json.md` and `references/content-and-navigation.md`, then retry.
-5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli` and verify with `apimatic --version`, then retry. 
+5. **`apimatic` command not found:** Run `npm install -g @apimatic/cli@2` and verify with `apimatic --version`, then retry. 
 6. **Permission error or script cannot run:** If the error cannot be resolved automatically, tell the user:
 
    > "I was unable to start the portal server automatically due to a permissions or environment issue. To start it manually, run this command in your project root (the directory that contains `src/`):
@@ -419,7 +419,7 @@ API Recipes, API Copilot, custom themes and fonts, custom header/footer HTML, `h
 | Mistake | Fix |
 |---------|-----|
 | Running `apimatic portal serve` from inside `src/` | Run from the project root (the directory that *contains* `src/`) |
-| Installing `@apimatic/cli@beta`, or `@apimatic/cli@1` when the user hasn't asked for CLI v1 | `@beta` is a prerelease and `@1` is CLI v1. Install `@apimatic/cli` |
+| Installing `@apimatic/cli` with no version, `@apimatic/cli@beta`, or `@apimatic/cli@1` when the user hasn't asked for CLI v1 | No version gets CLI v1 on Node older than 24, `@beta` is a prerelease and `@1` is CLI v1. Install `@apimatic/cli@2` |
 | Using Node 20 or 22 | CLI v2 needs Node 24 or later, locally and in CI |
 | Page has no front matter or no `title` | Start every page with `---\ntitle: Page title\n---` |
 | `nav.json` entry has an extension or a path (`"guides/intro.md"`) | Use the bare name of a page or folder in the same directory (`"intro"`) |
