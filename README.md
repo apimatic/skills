@@ -12,12 +12,13 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 |------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`apimatic-portal`](skills/apimatic-portal/SKILL.md) | Build, configure, and publish API Portals using a Docs as Code workflow | Creating, previewing, or deploying an APIMatic portal; configuring `src/apimatic.json` (branding, header links, AI page actions, SDK languages, hosting under a path), Markdown pages and `nav.json` navigation and tabs, Context Plugins, and upgrading CLI v1 portal projects. |
 | [`apimatic-sdk`](skills/apimatic-sdk/SKILL.md) | Generate, customize, and publish SDKs using the APIMatic CLI | Generating C#, Python, or TypeScript SDKs; validating, checking, or transforming API definitions; customizing generated code; publishing SDKs to NuGet, PyPI, npm, or GitHub. |
+| [`apimatic-business-rules`](skills/apimatic-business-rules/SKILL.md) | Turn business rules dropped into `src/rules/` (notes, links, code, tables, documents) into Markdown rule files filed by API operation | Collecting an API's business rules in an APIMatic project: translating whatever was put in `src/rules/` into `rules.md`, `every-request.md`, `background.md` and `operations/<area>.md`, adding more material later, or checking the rule files. |
 
 ## Prerequisites
 
 - Node.js 24 or later and npm
 - An APIMatic account — [sign up free at app.apimatic.io](https://app.apimatic.io)
-- APIMatic CLI v2 installed globally:
+- APIMatic CLI v2 installed globally (not needed for `apimatic-business-rules`, which needs only Node.js):
 
 ```bash
 npm install -g @apimatic/cli@2
@@ -62,6 +63,7 @@ Or clone that branch (`git clone --branch v1 https://github.com/apimatic/skills`
 ```bash
 npx skills add apimatic/skills --skill apimatic-portal
 npx skills add apimatic/skills --skill apimatic-sdk
+npx skills add apimatic/skills --skill apimatic-business-rules
 ```
 
 ### Option 2 — Prompt your agent to install it

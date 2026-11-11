@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: Example Billing
+  version: 1.0.0
+paths:
+  /subscriptions:
+    post:
+      operationId: createSubscription
+      tags: [Subscriptions]
+      responses:
+        "201":
+          description: Created
+  /subscriptions/{id}/cancel:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: cancelSubscription
+      tags: [Subscriptions]
+      responses:
+        "200":
+          description: Cancelled
+  /plans/{plan_id}/prices:
+    post:
+      operationId: createPlanPrice
+      tags: [Plans]
+      responses:
+        "201":
+          description: Created
