@@ -933,6 +933,11 @@ function cmdOps(prj, opts) {
     console.log(`\n${file}  (area "${a.area}", tag "${a.tag}", ${plural(a.ops.length, 'operation')})`);
     for (const o of a.ops) console.log(`  ## ${o.heading}${o.operationId ? '' : `   [no operationId: name it ${o.key}]`}`);
   }
+  const ids = new Map();
+  for (const o of spec.ops) if (o.operationId) ids.set(o.operationId, [...(ids.get(o.operationId) ?? []), o]);
+  for (const [id, os] of ids) {
+    if (os.length > 1) console.log(`\nwarning: ${os.map((o) => `${o.method} ${o.path}`).join(' and ')} share the operationId ${id}; a rule filed under it is listed under each. Say so in the report.`);
+  }
   return 0;
 }
 
