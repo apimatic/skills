@@ -5,11 +5,11 @@ description: Use when a user wants the business rules of their API written down 
 
 # APIMatic Business Rules
 
-Find the business rules that an API's own definition (`src/spec/`) and docs (`src/content/`) state, and write them into `src/rules/`, each under the API operation (endpoint) it governs. When the user generates a Context Plugin (`apimatic plugin generate`, in the `apimatic-portal` skill), APIMatic copies `src/rules/` into the plugin as `business-rules/`, and the plugin's planning step reads the rules of every operation the integration uses. The skill body IS the instructions: do every step yourself; ask the user only where a step says to.
+Find the business rules that an API's own definition (`src/spec/`) and docs (`src/content/`), and the pages they link to, state, and write them into `src/rules/`, each under the API operation (endpoint) it governs. When the user generates a Context Plugin (`apimatic plugin generate`, in the `apimatic-portal` skill), APIMatic copies `src/rules/` into the plugin as `business-rules/`, and the plugin's planning step reads the rules of every operation the integration uses. The skill body IS the instructions: do every step yourself; ask the user only where a step says to.
 
 A **business rule** is logic the API applies that the API definition's schema cannot express: a field required only in some case, an action refused in some state, a call that must come first, a setting that must be on, a side effect, a value the server computes, a limit, what an error means. A rule written only in a description is still a business rule. Each rule says what an app calling the API must do about it.
 
-**The rules come only from the API definition and the docs.** Nothing here calls the API to test them. The skill assumes the docs and the definition are accurate and up to date with the live API (what its sandbox does), and tells the user so in its report.
+**The rules come only from the API definition, the docs and the pages they link to.** Nothing here calls the API to test them. The skill assumes the docs and the definition are accurate and up to date with the live API (what its sandbox does), and tells the user so in its report.
 
 ## When to Use
 
@@ -41,6 +41,7 @@ rules-work/                  your working files: outside src/, so they are never
   groups.md                  the groups, and what each one reads
   records/<group>.jsonl      one record per rule, with the exact quote it comes from
   spec-<group>.txt           what the API definition says about the group's operations
+  links/                     pages that src/spec/ or src/content/ link to, saved by `rules.mjs link`
   sample.jsonl, review-*.jsonl   the second pass
 ```
 
@@ -48,8 +49,8 @@ The records are the source of `src/rules/`; the next run builds on them. Keep `r
 
 ## Red Flags — STOP and re-read the relevant section
 
-- About to write a rule that no file in `src/spec/` or `src/content/` states, or to "complete" one from what you know about this API or a similar one → a rule counts only if one of those files states it. If you are unsure whether a file states something, it does not
-- About to read anything else for rules (the web, the user's code, other folders, the live API) → only `src/spec/` and `src/content/`
+- About to write a rule that no file in `src/spec/` or `src/content/`, and no page they link to, states, or to "complete" one from what you know about this API or a similar one → a rule counts only if one of those states it. If you are unsure whether a file states something, it does not
+- About to read anything else for rules (a web search, a page no file in `src/spec/` or `src/content/` links to, a link on a linked page, the user's code, other folders, the live API) → only `src/spec/`, `src/content/`, and the pages they link to, saved with `rules.mjs link`
 - About to record what the schema already states (a type, `required`, an enum, a format, a minimum or maximum, a pattern, `readOnly`) → not a business rule, unless the text adds a condition the schema cannot express (see `references/extracting.md`)
 - About to put anything into `src/rules/` yourself, or to write keys, tokens, account or site ids into a rule → everything in `src/rules/` is published in the Context Plugin. Only `rules.mjs write` writes there; working files go in `rules-work/`
 - About to write a quote from memory or in your own words → copy it exactly from the file; `rules.mjs quotes` checks every one
@@ -119,17 +120,17 @@ Tell the user, briefly:
 
 - how many rules, loud and silent (the first line of `src/rules/rules.md`), how many operations have rules, and how many rules are for every request and for background jobs;
 - the second pass: how many records were checked, and how many were confirmed, corrected and rejected;
-- the docs pages that state no business rule (exactly the pages `check` still warns about), and anything you could not read;
+- the docs pages that state no business rule (exactly the pages `check` still warns about), and anything you could not read, linked pages included;
 - statements you could not place (about an endpoint the definition does not have), and conflicts between the definition and the docs;
 - your questions, all together;
-- in one line: the rules come only from the API definition and the docs and were not tested against the API; they assume both are accurate and up to date with the live API (its sandbox);
+- in one line: the rules come only from the API definition, the docs and the pages they link to, and were not tested against the API; they assume both are accurate and up to date with the live API (its sandbox);
 - next: generate the Context Plugin (`apimatic plugin generate`, see the `apimatic-portal` skill) to include them; keep `rules-work/` for the next run.
 
 ## Running it again
 
 When the API definition or the docs change, or the user asks to update the rules:
 
-1. Run `quotes`. Each error names a record whose quote is no longer in its file. Read the file again and either fix the record (its id stays) or remove it: replace the record's line with `{"id": "<its id>", "removed": "<why>"}`.
+1. Run `link` again for each linked page the records cite, so their saved copies are current, then run `quotes`. Each error names a record whose quote is no longer in its file or page. Read the file again and either fix the record (its id stays) or remove it: replace the record's line with `{"id": "<its id>", "removed": "<why>"}`.
 2. Find the operations and pages that are new or changed: compare `ops` and the files under `src/content/` with `rules-work/groups.md`, and use the files' dates or the project's git history. Extract their rules as in Step 3, adding records to the groups' files. Update `groups.md`.
 3. Then Steps 4 to 8. New records take the next free number; ids never change.
 
@@ -137,4 +138,4 @@ When the API definition or the docs change, or the user asks to update the rules
 
 - `references/extracting.md`: what a business rule is, how a group reads the API definition and the docs, and the second pass
 - `references/record-format.md`: the record, the rule line it becomes, the categories, ids and an example
-- `scripts/rules.mjs`: `ops`, `spec`, `quotes`, `write`, `merge`, `sample`, `review` and `check`
+- `scripts/rules.mjs`: `ops`, `spec`, `link`, `quotes`, `write`, `merge`, `sample`, `review` and `check`

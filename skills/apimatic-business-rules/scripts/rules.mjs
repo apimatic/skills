@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// Business rules for an APIMatic project, taken from its own API definition (src/spec/) and docs (src/content/).
+// Business rules for an APIMatic project, taken from its own API definition (src/spec/) and docs (src/content/),
+// and from the pages they link to.
 //
 //   node rules.mjs ops    [--json]                 every operation: the area file its rules go in, its heading
 //   node rules.mjs spec   <area|operationId|info>...   what the API definition says, to read and quote from
+//   node rules.mjs link   <url>...                 save the text of a page src/spec/ or src/content/ links to
 //   node rules.mjs quotes                          check that every record's quote is in its source file
 //   node rules.mjs write                           give new records their ids, then write src/rules/ from the records
 //   node rules.mjs merge  [<keep-id> <drop-id>...] list likely duplicates; or merge records into the first one
@@ -11,8 +13,8 @@
 //   node rules.mjs check                           check src/rules/: format, definition, records, quotes, codegen
 //
 // Every command takes --input <project root>, the directory that contains src/ (default: the current directory).
-// The records are JSON Lines files in <project root>/rules-work/records/, outside src/, so the CLI never uploads
-// them. No dependencies: Node.js only.
+// The records are JSON Lines files in <project root>/rules-work/records/, and saved linked pages are in
+// rules-work/links/: outside src/, so the CLI never uploads them. No dependencies: Node.js only.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +23,7 @@ const METHODS = ['get', 'put', 'post', 'delete', 'patch', 'options', 'head', 'tr
 const LOUDNESS = ['loud', 'silent'];
 const ON = ['auth', 'state', 'order', 'account-config', 'idempotency', 'resilience', 'limits', 'other', '-'];
 const DOES = ['side-effects', 'webhooks', 'lists', 'values', 'errors', 'other', '-'];
-const KINDS = ['spec', 'docs', 'announcement'];
+const KINDS = ['spec', 'docs', 'announcement', 'link'];
 const FIELDS = new Set(['id', 'operations', 'scope', 'on', 'does', 'loudness', 'condition', 'provider_outcome', 'app_must', 'sources', 'conflict', 'removed']);
 const EVERY = ['every-request', '*'];
 const QUOTE_MAX = 300;
@@ -30,7 +32,7 @@ const WORK = 'rules-work';
 // rules.md, every-request.md and at least one operations/<area>.md are there; background.md is optional.
 const LAYOUT = ['rules.md', 'every-request.md', 'background.md', 'operations'];
 const IGNORED = new Set(['.DS_Store', 'Thumbs.db', 'desktop.ini']);
-const USAGE = 'usage: node rules.mjs ops|spec|quotes|write|merge|sample|review|check [--input <project root>]';
+const USAGE = 'usage: node rules.mjs ops|spec|link|quotes|write|merge|sample|review|check [--input <project root>]';
 
 class Fail extends Error {}
 
@@ -50,8 +52,9 @@ function parseArgs(argv) {
     else opts.targets.push(a);
   }
   if (!Object.hasOwn(COMMANDS, cmd ?? '')) throw new Fail(USAGE);
-  if (!['spec', 'merge'].includes(cmd) && opts.targets.length) throw new Fail(`unexpected argument: ${opts.targets[0]}`);
+  if (!['spec', 'merge', 'link'].includes(cmd) && opts.targets.length) throw new Fail(`unexpected argument: ${opts.targets[0]}`);
   if (cmd === 'spec' && !opts.targets.length) throw new Fail('usage: node rules.mjs spec <area|operationId|info>... (areas and operationIds as `rules.mjs ops` prints them)');
+  if (cmd === 'link' && !opts.targets.length) throw new Fail('usage: node rules.mjs link <url>... (a link as src/spec/ or src/content/ gives it)');
   if (cmd === 'merge' && opts.targets.length === 1) throw new Fail('usage: node rules.mjs merge <keep-id> <drop-id>...');
   if (!(opts.percent > 0 && opts.percent <= 100)) throw new Fail('--percent takes a number from 1 to 100');
   if (opts.seed !== null && !(Number.isInteger(opts.seed) && opts.seed > 0)) throw new Fail('--seed takes a positive whole number');
@@ -65,7 +68,10 @@ function project(input) {
     const hint = path.basename(root) === 'src' ? ' (run from the directory that contains src/, not from inside it)' : '';
     throw new Fail(`no src/ folder in ${root}${hint}`);
   }
-  return { root, src, rules: path.join(src, 'rules'), work: path.join(root, WORK), records: path.join(root, WORK, 'records') };
+  return {
+    root, src, rules: path.join(src, 'rules'), work: path.join(root, WORK),
+    records: path.join(root, WORK, 'records'), links: path.join(root, WORK, 'links'),
+  };
 }
 
 const isFile = (f) => { try { return fs.statSync(f).isFile(); } catch { return false; } };
@@ -489,9 +495,14 @@ function checkRecord(r, spec, prj) {
     r.sources.forEach((s, i) => {
       const at = `sources[${i}]`;
       if (!s || typeof s !== 'object' || Array.isArray(s)) { p.push(`${at} is {"kind", "path", "line", "quote"}`); return; }
-      for (const k of Object.keys(s)) if (!['kind', 'path', 'line', 'quote'].includes(k)) p.push(`${at} has no "${k}"`);
+      const keys = s.kind === 'link' ? ['kind', 'url', 'line', 'quote'] : ['kind', 'path', 'line', 'quote'];
+      for (const k of Object.keys(s)) if (!keys.includes(k)) p.push(`${at} has no "${k}"${s.kind === 'link' ? ' (a link cites its "url")' : ''}`);
       if (!KINDS.includes(s.kind)) p.push(`${at}.kind is ${KINDS.join(', ')}`);
-      if (typeof s.path !== 'string' || !/^(spec|content)\/./.test(s.path)) {
+      if (s.kind === 'link') {
+        if (typeof s.url !== 'string' || !/^https?:\/\/./.test(s.url)) p.push(`${at}.url is the link, as a file in spec/ or content/ gives it`);
+        else if (!isMentioned(prj, s.url)) p.push(`${at}.url: no file in src/spec/ or src/content/ links to ${s.url}`);
+        else if (!isFile(linkFile(prj, s.url))) p.push(`${at}: no saved copy of ${s.url}; run rules.mjs link ${s.url}`);
+      } else if (typeof s.path !== 'string' || !/^(spec|content)\/./.test(s.path)) {
         p.push(`${at}.path is a file under spec/ or content/, written relative to src/`);
       } else {
         if (!isFile(path.join(prj.src, s.path))) p.push(`${at}.path: src/${s.path} is not a file`);
@@ -571,11 +582,16 @@ function norm(s) {
     .toLowerCase();
 }
 
-function sourceText(prj, p, cache) {
+// What a source is called: a file under src/, or a linked page's URL.
+const srcKey = (s) => (s.kind === 'link' ? s.url : s.path);
+const srcShow = (s) => (s.kind === 'link' ? s.url : `src/${s.path}`);
+
+function sourceText(prj, s, cache) {
+  const p = srcKey(s);
   if (!cache.has(p)) {
-    const file = path.join(prj.src, p);
+    const file = s.kind === 'link' ? linkFile(prj, s.url) : path.join(prj.src, p);
     let t;
-    if (/\.json$/i.test(file)) {
+    if (s.kind !== 'link' && /\.json$/i.test(file)) {
       // The text of a JSON file is its string values, decoded; a quote never spans two of them.
       const strings = [];
       (function walkJson(v) {
@@ -594,7 +610,7 @@ function sourceText(prj, p, cache) {
 
 // "..." or "…" in a quote skips text; the parts must appear in order.
 function quoteFound(prj, s, cache) {
-  const text = sourceText(prj, s.path, cache);
+  const text = sourceText(prj, s, cache);
   const parts = s.quote.split(/\.\.\.|…/).map(norm).filter(Boolean);
   if (!parts.length) return false;
   let from = 0;
@@ -613,10 +629,10 @@ function quoteProblems(set, spec, prj) {
   const ok = live(set).filter((x) => checkRecord(x.r, spec, prj).length === 0);
   for (const x of ok) {
     x.r.sources.forEach((s, i) => {
-      if (!quoteFound(prj, s, cache)) errors.push(`${label(x)}: sources[${i}].quote is not in src/${s.path}: "${clip(s.quote)}"`);
+      if (!quoteFound(prj, s, cache)) errors.push(`${label(x)}: sources[${i}].quote is not in ${s.kind === 'link' ? `the saved copy of ${s.url}` : srcShow(s)}: "${clip(s.quote)}"`);
     });
   }
-  const cited = new Set(ok.flatMap((x) => x.r.sources.map((s) => s.path)));
+  const cited = new Set(ok.flatMap((x) => x.r.sources.map(srcKey)));
   for (const f of walk(path.join(prj.src, 'content'))) {
     if (!/\.mdx?$/i.test(f)) continue;
     const p = rel(prj.src, f);
@@ -634,6 +650,93 @@ function walk(dir) {
     else if (!IGNORED.has(e.name)) out.push(p);
   }
   return out.sort(natural);
+}
+
+// ---------- linked pages ----------
+
+const URL_IN_TEXT = /https?:\/\/[^\s"'<>()[\]`\\|]+/g;
+
+// Every http(s) link a file in src/spec/ or src/content/ gives: the only pages the skill may follow.
+function mentionedUrls(prj) {
+  if (prj.urls) return prj.urls;
+  const urls = new Set();
+  const add = (t) => {
+    for (const m of t.matchAll(URL_IN_TEXT)) {
+      const u = m[0].replace(/[.,;:!?*_]+$/, '');
+      urls.add(u);
+      urls.add(u.replace(/\/$/, ''));
+    }
+  };
+  for (const f of [...walk(path.join(prj.src, 'spec')), ...walk(path.join(prj.src, 'content'))]) {
+    if (!/\.(json|ya?ml|mdx?|txt|html?)$/i.test(f)) continue;
+    let t = readText(f);
+    if (/\.json$/i.test(f)) {
+      try {
+        const strings = [];
+        (function walkJson(v) {
+          if (typeof v === 'string') strings.push(v);
+          else if (v && typeof v === 'object') for (const x of Object.values(v)) walkJson(x);
+        })(jsonDoc(f));
+        t = strings.join('\n');
+      } catch { /* not JSON after all: read it as text */ }
+    }
+    add(t);
+  }
+  prj.urls = urls;
+  return urls;
+}
+
+const isMentioned = (prj, url) => mentionedUrls(prj).has(url) || mentionedUrls(prj).has(url.replace(/\/$/, ''));
+
+// The hosts the API itself answers on (Swagger `host`, OpenAPI `servers`; `{variables}` match anything): a link
+// there is a call to the API, which this skill never makes.
+function apiHosts(spec) {
+  const urls = [];
+  if (/\.json$/i.test(spec.file)) {
+    const doc = jsonDoc(spec.file);
+    if (doc.host) urls.push(`https://${doc.host}`);
+    for (const s of doc.servers ?? []) if (typeof s?.url === 'string') urls.push(s.url);
+  } else {
+    const text = readText(spec.file);
+    for (const m of text.matchAll(/^host:\s*['"]?([^\s'"#]+)/gm)) urls.push(`https://${m[1]}`);
+    for (const m of text.matchAll(/^\s*-?\s*url:\s*['"]?(https?:\/\/[^\s'"#]+)/gm)) urls.push(m[1]);
+  }
+  return urls
+    .map((u) => u.match(/^(?:https?:\/\/)?([^/:?#]+)/)?.[1]?.toLowerCase())
+    .filter(Boolean)
+    .map((h) => new RegExp(`^${h.split(/\{[^}]*\}/).map((x) => x.replace(/[.*+?^$()|[\]\\]/g, '\\$&')).join('[^.]+')}$`));
+}
+
+function isApiUrl(spec, url) {
+  let host;
+  try { host = new URL(url).hostname.toLowerCase(); } catch { return false; }
+  return apiHosts(spec).some((re) => re.test(host));
+}
+
+// Where `rules.mjs link` saves a page: rules-work/links/<host and path>-<hash>.md. The fragment is not part of it.
+function linkFile(prj, url) {
+  const page = url.split('#')[0];
+  let name = 'page';
+  try {
+    const u = new URL(page);
+    name = slug(`${u.host}${u.pathname}${u.search}`).slice(0, 80);
+  } catch { /* not a URL: the hash still names it */ }
+  let h = 5381;
+  for (const c of page) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+  return path.join(prj.links, `${name}-${h.toString(16)}.md`);
+}
+
+function htmlText(html) {
+  return html
+    .replace(/<(script|style|noscript|svg|template|head)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<li\b[^>]*>/gi, '\n- ')
+    .replace(/<(br|\/p|\/div|\/li|\/h[1-6]|\/tr|\/table|\/section|\/article|\/pre|\/blockquote|\/dd|\/dt)\b[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'").replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(Number(d))).replace(/&amp;/g, '&')
+    .replace(/[ \t\r]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 // ---------- duplicates ----------
@@ -679,7 +782,7 @@ function likelyDuplicates(set, spec, prj) {
   const byQuote = new Map();
   for (const x of recs) {
     for (const s of x.r.sources) {
-      const k = `${s.path}\u0000${norm(s.quote)}`;
+      const k = `${srcKey(s)}\u0000${norm(s.quote)}`;
       for (const y of byQuote.get(k) ?? []) add(y, x, 'the same quote');
       byQuote.set(k, [...(byQuote.get(k) ?? []), x]);
     }
@@ -713,7 +816,7 @@ const sentence = (s) => (/[.!?]$/.test(s.trim()) ? s.trim() : `${s.trim()}.`);
 
 function ruleLine(r, here, spec) {
   const others = r.operations.filter((u) => placeKey(u, spec) !== here).map((u) => `\`${placeKey(u, spec)}\``);
-  const sources = [...new Set(r.sources.map((s) => `${s.kind} \`${s.path}\``))];
+  const sources = [...new Set(r.sources.map((s) => `${s.kind} \`${srcKey(s)}\``))];
   return `- **${r.loudness}**, ${r.on}/${r.does}: ${r.condition.trim().replace(/\.$/, '')} → ${outcomeText(r).replace(/\.$/, '')}. **Do:** ${sentence(r.app_must)}`
     + (others.length ? ` Also: ${others.join(', ')}.` : '')
     + (r.conflict ? ` **Conflict:** ${r.conflict.trim()}` : '')
@@ -844,7 +947,9 @@ function readRuleFiles(prj, spec, files) {
           if (!spec.byRef.has(a) && !isJob(a)) err(name, i, `"Also:" names \`${a}\`, which is neither an operationId of the API definition nor background:<job>`);
         }
         for (const s of r.sources) {
-          if (!/^(spec|content)\//.test(s.path)) err(name, i, `cites \`${s.path}\`; a rule's sources are files under spec/ or content/`);
+          if (s.kind === 'link') {
+            if (!/^https?:\/\//.test(s.path) || !isMentioned(prj, s.path)) err(name, i, `cites \`${s.path}\`, which no file in spec/ or content/ links to`);
+          } else if (!/^(spec|content)\//.test(s.path)) err(name, i, `cites \`${s.path}\`; a rule's sources are files under spec/ or content/, or pages they link to`);
           else if (!isFile(path.join(prj.src, s.path))) err(name, i, `cites \`${s.path}\`, which is not a file under src/`);
         }
         if (section?.op) section.count++;
@@ -970,6 +1075,32 @@ function cmdSpec(prj, opts) {
   return 0;
 }
 
+async function cmdLink(prj, opts) {
+  const spec = loadSpec(prj.src);
+  let failed = 0;
+  const say = (url, why) => { console.log(`error: ${url}: ${why}`); failed++; };
+  for (const url of opts.targets) {
+    if (!/^https?:\/\/./.test(url)) { say(url, 'not an http(s) link'); continue; }
+    if (!isMentioned(prj, url)) { say(url, 'no file in src/spec/ or src/content/ links to it; follow only the links those files give'); continue; }
+    if (isApiUrl(spec, url)) { say(url, 'is on a server of the API itself; this skill never calls the API'); continue; }
+    let res;
+    try {
+      res = await fetch(url.split('#')[0], { redirect: 'follow', signal: AbortSignal.timeout(30000) });
+    } catch (e) { say(url, `could not be fetched (${e.cause?.code ?? e.message}); report it`); continue; }
+    if (!res.ok) { say(url, `the server answered ${res.status}; report it`); continue; }
+    const type = res.headers.get('content-type') ?? '';
+    if (!/text\/(html|plain|markdown)|application\/(xhtml\+xml|json)/i.test(type)) { say(url, `is ${type || 'not text'}, not a page this command reads; report it`); continue; }
+    const body = await res.text();
+    const text = /html/i.test(type) ? htmlText(body) : body.trim();
+    if (text.replace(/\s+/g, ' ').length < 200) { say(url, 'has no readable text (it may show its content only in a browser); report it'); continue; }
+    const file = linkFile(prj, url);
+    fs.mkdirSync(prj.links, { recursive: true });
+    fs.writeFileSync(file, `Source: ${url}\nFetched: ${new Date().toISOString().slice(0, 10)}\n\n${text}\n`);
+    console.log(`saved ${rel(prj.root, file)} (${text.length} characters). Read it whole; cite it as {"kind": "link", "url": "${url}", "line": null, "quote": "..."}`);
+  }
+  return failed ? 1 : 0;
+}
+
 function cmdQuotes(prj) {
   const spec = loadSpec(prj.src);
   const set = requireRecords(prj);
@@ -1038,7 +1169,7 @@ function cmdMerge(prj, opts) {
   if (everyDropped && !everyKept) throw new Fail(`\`${everyDropped.r.id}\` is a rule for every request, which covers every operation: keep it, and drop the others`);
   for (const x of drops) {
     if (!everyKept) for (const u of x.r.operations) if (!merged.operations.some((v) => placeKey(v, spec) === placeKey(u, spec))) merged.operations.push(u);
-    for (const s of x.r.sources) if (!merged.sources.some((t) => t.path === s.path && norm(t.quote) === norm(s.quote))) merged.sources.push(s);
+    for (const s of x.r.sources) if (!merged.sources.some((t) => srcKey(t) === srcKey(s) && norm(t.quote) === norm(s.quote))) merged.sources.push(s);
     if (!merged.conflict && x.r.conflict) merged.conflict = x.r.conflict;
   }
   const problems = checkRecord(merged, spec, prj);
@@ -1156,11 +1287,11 @@ function cmdCheck(prj) {
   return errors.length ? 1 : 0;
 }
 
-const COMMANDS = { ops: cmdOps, spec: cmdSpec, quotes: cmdQuotes, write: cmdWrite, merge: cmdMerge, sample: cmdSample, review: cmdReview, check: cmdCheck };
+const COMMANDS = { ops: cmdOps, spec: cmdSpec, link: cmdLink, quotes: cmdQuotes, write: cmdWrite, merge: cmdMerge, sample: cmdSample, review: cmdReview, check: cmdCheck };
 
 try {
   const opts = parseArgs(process.argv.slice(2));
-  process.exitCode = COMMANDS[opts.cmd](project(opts.input), opts);
+  process.exitCode = await COMMANDS[opts.cmd](project(opts.input), opts);
 } catch (e) {
   if (!(e instanceof Fail)) throw e;
   console.error(`error: ${e.message}`);
