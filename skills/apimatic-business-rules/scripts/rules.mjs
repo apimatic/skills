@@ -1027,8 +1027,12 @@ function cmdMerge(prj, opts) {
     if (x.r.removed !== undefined) throw new Fail(`\`${id}\` is already removed (${x.r.removed})`);
     return x;
   });
+  // A rule for every request already covers each operation: it absorbs the others and stays filed alone.
+  const everyKept = keep.r.operations.some(isEvery);
+  const everyDropped = drops.find((x) => x.r.operations.some(isEvery));
+  if (everyDropped && !everyKept) throw new Fail(`\`${everyDropped.r.id}\` is a rule for every request, which covers every operation: keep it, and drop the others`);
   for (const x of drops) {
-    for (const u of x.r.operations) if (!merged.operations.some((v) => placeKey(v, spec) === placeKey(u, spec))) merged.operations.push(u);
+    if (!everyKept) for (const u of x.r.operations) if (!merged.operations.some((v) => placeKey(v, spec) === placeKey(u, spec))) merged.operations.push(u);
     for (const s of x.r.sources) if (!merged.sources.some((t) => t.path === s.path && norm(t.quote) === norm(s.quote))) merged.sources.push(s);
     if (!merged.conflict && x.r.conflict) merged.conflict = x.r.conflict;
   }

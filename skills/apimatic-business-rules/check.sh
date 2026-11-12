@@ -204,6 +204,23 @@ else
 fi
 
 copy_example
+head -1 "$EXAMPLE/rules-work/records/general.jsonl" | node -e 'const r=JSON.parse(require("fs").readFileSync(0,"utf8")); delete r.id; r.operations=["createSubscription"]; console.log(JSON.stringify(r))' >> "$TMP/p/rules-work/records/subscriptions-and-plans.jsonl"
+(cd "$TMP/p" && node "$RULES" write > /dev/null)
+if (cd "$TMP/p" && node "$RULES" merge createSubscription.5 every-request.1 > /dev/null 2>&1); then
+  fail "merge drops a rule for every request into an operation's rule"
+else
+  pass "merge keeps a rule for every request rather than an operation's copy"
+fi
+(cd "$TMP/p" && node "$RULES" merge every-request.1 createSubscription.5 > /dev/null && node "$RULES" write > /dev/null)
+if grep -qF '"id":"every-request.1","operations":["every-request"]' "$TMP/p/rules-work/records/general.jsonl" \
+  && grep -qF '"removed":"merged into every-request.1"' "$TMP/p/rules-work/records/subscriptions-and-plans.jsonl" \
+  && (cd "$TMP/p" && node "$RULES" check > /dev/null 2>&1); then
+  pass "a rule for every request absorbs an operation's copy and stays filed alone"
+else
+  fail "a rule for every request did not absorb an operation's copy"
+fi
+
+copy_example
 (cd "$TMP/p" && node "$RULES" sample --percent 100 --seed 7 > /dev/null)
 if [ "$(grep -c . "$TMP/p/rules-work/sample.jsonl")" = "7" ]; then
   pass "sample picks the share it is asked for"

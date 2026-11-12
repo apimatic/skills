@@ -37,10 +37,10 @@ A rule belongs to the group that owns the operation whose request it governs. If
 
 ## How a group works
 
-1. **The API definition.** Run `node <skill-dir>/scripts/rules.mjs spec <area>... > rules-work/spec-<group>.txt` with your group's areas (the `general` group: `spec info`), and read the whole file, in parts if it is long. For each operation it prints the summary, description, parameters and responses, and then every schema they use with each property's description. Most rules are in that prose. For a YAML definition it prints where each operation starts instead: read each one there, and every schema file it refers to.
+1. **The API definition.** Read `rules-work/spec-<group>.txt` whole, in parts if it is long. (If it is missing, write it: `node <skill-dir>/scripts/rules.mjs spec <area>... > rules-work/spec-<group>.txt` with your group's areas; for the `general` group, `spec info`.) For each operation it holds the summary, description, parameters and responses, and then every schema they use with each property's description. Most rules are in that prose. For a YAML definition it holds where each operation starts instead: read each one there, and every schema file it refers to.
 2. **The docs.** Read each of your group's pages whole. Then search `src/content/` for each of your operations' paths, names and resources, and read what you find.
 3. **The records.** For each operation, write every rule it has: a write operation often has several. Add each area's records to `rules-work/records/<group>.jsonl` as you finish the area, so nothing is lost if the work stops. Be complete: every operation of the group, not a sample.
-4. **The quotes.** Run `node <skill-dir>/scripts/rules.mjs quotes` and fix every error that names your file, until none does.
+4. **The quotes.** If you can run commands, run `node <skill-dir>/scripts/rules.mjs quotes` and fix every error that names your file, until none does. If you cannot, the agent that started you runs it.
 5. **Report** (as a subagent, to the agent that started you): records per area, loud and silent counts, what you could not read, statements you could not place, and conflicts. Do not repeat the records.
 
 ## Writing a record

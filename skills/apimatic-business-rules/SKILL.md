@@ -83,9 +83,9 @@ Give every docs page to a group: a page about one area's operations (a tutorial,
 
 ### Step 3: Extract the rules, group by group
 
-Each group follows `references/extracting.md` and writes its records to `rules-work/records/<group>.jsonl` in the format of `references/record-format.md`.
+First, for each group, write what the API definition says about its operations: `node <skill-dir>/scripts/rules.mjs spec <area>... > rules-work/spec-<group>.txt` (for `general`: `spec info`). Then each group follows `references/extracting.md` and writes its records to `rules-work/records/<group>.jsonl` in the format of `references/record-format.md`.
 
-- **If you can start subagents** (in Claude Code, the Agent tool), give each group to its own subagent, up to four at a time. Tell it the project root, the full paths of `<skill-dir>/references/extracting.md`, `<skill-dir>/references/record-format.md` and `<skill-dir>/scripts/rules.mjs`, its group's name, areas and pages, and that it must read both references first.
+- **If you can start subagents** (in Claude Code, the Agent tool), give each group to its own subagent, up to four at a time. Tell it the project root, the full paths of `<skill-dir>/references/extracting.md`, `<skill-dir>/references/record-format.md` and `<skill-dir>/scripts/rules.mjs`, its group's name, areas, pages and `spec-<group>.txt`, and that it must read both references first. A subagent needs only to read and write files; when it cannot run commands, you run `quotes` for it in Step 4.
 - **Otherwise** do the groups yourself, one after another, reading `references/extracting.md` and `references/record-format.md` first.
 
 ### Step 4: Check the quotes, then write
@@ -99,7 +99,7 @@ Each group follows `references/extracting.md` and writes its records to `rules-w
 A rule stated where two groups read it (a shared parameter, a reused schema, a general page) gets recorded twice.
 
 1. Run `node <skill-dir>/scripts/rules.mjs merge`. It lists pairs of records from different groups that may be one rule: the same quote, or nearly the same condition and outcome.
-2. For each pair that is one rule, run `node <skill-dir>/scripts/rules.mjs merge <keep-id> <drop-id>`. The first keeps its id and takes the other's operations and sources; the other is marked removed. A pair that is two rules (one sentence that states two things) stays as it is.
+2. For each pair that is one rule, run `node <skill-dir>/scripts/rules.mjs merge <keep-id> <drop-id>`. The first keeps its id and takes the other's operations and sources; the other is marked removed. When one of them is a rule for every request, keep that one: it already covers every operation, so it stays in `every-request.md` alone. A pair that is two rules (one sentence that states two things) stays as it is.
 3. Run `write` again.
 
 ### Step 6: The second pass
@@ -119,7 +119,7 @@ Tell the user, briefly:
 
 - how many rules, loud and silent (the first line of `src/rules/rules.md`), how many operations have rules, and how many rules are for every request and for background jobs;
 - the second pass: how many records were checked, and how many were confirmed, corrected and rejected;
-- docs pages that state no business rule, and anything you could not read;
+- the docs pages that state no business rule (exactly the pages `check` still warns about), and anything you could not read;
 - statements you could not place (about an endpoint the definition does not have), and conflicts between the definition and the docs;
 - your questions, all together;
 - in one line: the rules come only from the API definition and the docs and were not tested against the API; they assume both are accurate and up to date with the live API (its sandbox);
