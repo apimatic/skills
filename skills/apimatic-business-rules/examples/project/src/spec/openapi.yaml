@@ -2,14 +2,27 @@ openapi: 3.0.3
 info:
   title: Example Billing
   version: 1.0.0
+  description: Subscriptions, plans and their prices. The Billing guide covers authentication and renewals.
 paths:
   /subscriptions:
     post:
       operationId: createSubscription
       tags: [Subscriptions]
+      summary: Create a subscription
+      description: >-
+        Subscribes a customer to a plan.
+        A customer can hold only one active subscription to the same plan; a second one is refused with 409 "subscription_exists".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscription'
       responses:
         "201":
           description: Created
+        "409":
+          description: The customer already has an active subscription to this plan.
   /subscriptions/{id}/cancel:
     parameters:
       - name: id
@@ -20,6 +33,16 @@ paths:
     post:
       operationId: cancelSubscription
       tags: [Subscriptions]
+      summary: Cancel a subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                at_period_end:
+                  type: boolean
+                  description: When true, the subscription stays active, and is charged, until the current period ends.
       responses:
         "200":
           description: Cancelled
@@ -27,6 +50,20 @@ paths:
     post:
       operationId: createPlanPrice
       tags: [Plans]
+      summary: Add a price to a plan
       responses:
         "201":
           description: Created
+components:
+  schemas:
+    CreateSubscription:
+      type: object
+      required: [customer_id, plan_id]
+      properties:
+        customer_id:
+          type: string
+        plan_id:
+          type: string
+        currency:
+          type: string
+          description: Three-letter ISO code. Defaults to the customer's currency.

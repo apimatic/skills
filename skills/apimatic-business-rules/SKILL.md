@@ -1,126 +1,140 @@
 ---
 name: apimatic-business-rules
-description: Use when a user gives business rules or business logic for their API, in any form (notes, pasted text, URLs, source code, spreadsheets, CSV or JSON tables, PDFs, Word files, screenshots), by putting it in the src/rules/ folder of an APIMatic project, pasting or linking it in the conversation, or pointing at files, and wants it turned into the Markdown rule files that folder keeps (rules.md, every-request.md, background.md, operations/<area>.md). Also use when the user adds more material to src/rules/, asks to check, fix or update those rule files, or asks how to write down their API's business rules.
+description: Use when a user wants the business rules of their API written down for its Context Plugin, meaning the rules its own API definition (src/spec/) and docs (src/content/) state that the definition's schema cannot express, filed by API operation in the src/rules/ folder of an APIMatic project (rules.md, every-request.md, background.md, operations/<area>.md). Also use when the user asks to update those rule files after the API definition or docs changed, asks to check or fix them, or asks how to add business rules to a Context Plugin.
 ---
 
 # APIMatic Business Rules
 
-Turn the business logic the user gives you (files dropped into `src/rules/`, text pasted in the conversation, links, files elsewhere) into Markdown rule files in `src/rules/`, each rule under the API operation (endpoint) it applies to, as the API definition in `src/spec/` lists them. The skill body IS the instructions: do every step yourself; ask the user only where a step says to.
+Find the business rules that an API's own definition (`src/spec/`) and docs (`src/content/`) state, and write them into `src/rules/`, each under the API operation (endpoint) it governs. When the user generates a Context Plugin (`apimatic plugin generate`, in the `apimatic-portal` skill), APIMatic copies `src/rules/` into the plugin as `business-rules/`, and the plugin's planning step reads the rules of every operation the integration uses. The skill body IS the instructions: do every step yourself; ask the user only where a step says to.
 
-A **business rule** is logic the API applies that the API definition cannot express: a field required only in some case, an action refused in some state, a call that must come first, a setting that must be on, a side effect, a value the server computes, a limit, what an error means. The rule files tell a developer (or an AI coding assistant) what their app must do about each one.
+A **business rule** is logic the API applies that the API definition's schema cannot express: a field required only in some case, an action refused in some state, a call that must come first, a setting that must be on, a side effect, a value the server computes, a limit, what an error means. A rule written only in a description is still a business rule. Each rule says what an app calling the API must do about it.
 
-The rules are written from the material as given; nothing here calls the API to test them. The skill assumes the material is up to date with the live API (what its sandbox does), and tells the user so in its report.
+**The rules come only from the API definition and the docs.** Nothing here calls the API to test them. The skill assumes the docs and the definition are accurate and up to date with the live API (what its sandbox does), and tells the user so in its report.
 
 ## When to Use
 
-- The user dropped files, links or notes into `src/rules/` and wants them translated, formatted, organized or "turned into rules"
-- The user pasted rules into the conversation, gave links, or pointed at files elsewhere, and wants them recorded as their API's business rules
-- The user added more material to a `src/rules/` that already holds rule files
-- The user asks to check or fix the rule files, or asks how to document their API's business rules
+- The user wants their API's business rules written down, or wants them in their Context Plugin
+- The API definition or the docs changed and the rules need to follow
+- The user asks to check or fix `src/rules/`, or how business rules get into a Context Plugin
 
-**When NOT to use:** changing the API definition itself, generating SDKs or portals (the `apimatic-sdk` and `apimatic-portal` skills).
+**When NOT to use:** changing the API definition or the docs themselves; generating SDKs, portals or the plugin (the `apimatic-sdk` and `apimatic-portal` skills).
 
 ## Prerequisites
 
 - Node.js 24 or later (for `scripts/rules.mjs`; it has no dependencies)
-- An APIMatic project: a directory that contains `src/`, with the API definition in `src/spec/` (OpenAPI 3 or Swagger 2, JSON or YAML). No APIMatic login or CLI is needed.
+- An APIMatic project: a directory that contains `src/`, with the API definition in `src/spec/` (OpenAPI 3 or Swagger 2, JSON or YAML) and the portal docs, if there are any, in `src/content/`. No APIMatic login or CLI is needed.
 
 `<skill-dir>` below is the directory holding this `SKILL.md`. Run every command from the project root (the directory that *contains* `src/`), never from inside `src/`.
 
+## What goes where
+
+```
+src/
+  spec/                      read: the API definition
+  content/                   read: the docs
+  rules/                     written by `rules.mjs write`, never by hand; all of it is published in the plugin
+    rules.md                 the index
+    every-request.md         rules for every request
+    background.md            rules for jobs the API runs on its own, when there are any
+    operations/<area>.md     one file per area (tag), one section per operation, headed with its route
+rules-work/                  your working files: outside src/, so they are never uploaded or published
+  groups.md                  the groups, and what each one reads
+  records/<group>.jsonl      one record per rule, with the exact quote it comes from
+  spec-<group>.txt           what the API definition says about the group's operations
+  sample.jsonl, review-*.jsonl   the second pass
+```
+
+The records are the source of `src/rules/`; the next run builds on them. Keep `rules-work/`.
+
 ## Red Flags — STOP and re-read the relevant section
 
-- About to write a rule no input states, or "complete" a rule from what you know about this API or similar ones → record only what the user's material (or the API definition and `src/content/` pages it points to) states. A gap is a question for the user, not a guess
-- About to record what the API definition already states (a type, `required`, an enum, a min/max, a pattern) → not a business rule, unless the material adds a condition the definition cannot express (see `references/reading-inputs.md`)
-- About to record an internal implementation detail from code (logging, caching, table names, class structure) → a rule is something a caller of the API can run into
-- About to delete, rewrite or rename any of the user's files → originals in `src/rules/` are moved, unchanged, into `src/rules/sources/`; files elsewhere are copied there and left where they are; nothing the user gave is ever deleted
-- About to cite a URL directly → save the page into `src/rules/sources/urls/` first and cite the copy; a page you could not fetch is reported, never guessed
-- About to edit `src/spec/` or `src/content/` → this skill writes only inside `src/rules/`
-- About to write or edit `src/rules/rules.md` by hand → `node <skill-dir>/scripts/rules.mjs index` writes it
-- About to renumber, reuse or delete an existing rule id → ids are permanent; new rules take the next free number
-- About to invent an operation heading, file name or `operationId` → take them from `rules.mjs ops`
-- About to finish while `rules.mjs check` reports an error → fix every error first
-- About to ask the user several questions one at a time → collect them and ask once, after writing everything you could
+- About to write a rule that no file in `src/spec/` or `src/content/` states, or to "complete" one from what you know about this API or a similar one → a rule counts only if one of those files states it. If you are unsure whether a file states something, it does not
+- About to read anything else for rules (the web, the user's code, other folders, the live API) → only `src/spec/` and `src/content/`
+- About to record what the schema already states (a type, `required`, an enum, a format, a minimum or maximum, a pattern, `readOnly`) → not a business rule, unless the text adds a condition the schema cannot express (see `references/extracting.md`)
+- About to put anything into `src/rules/` yourself, or to write keys, tokens, account or site ids into a rule → everything in `src/rules/` is published in the Context Plugin. Only `rules.mjs write` writes there; working files go in `rules-work/`
+- About to write a quote from memory or in your own words → copy it exactly from the file; `rules.mjs quotes` checks every one
+- About to edit a file in `src/rules/` → change the records, then run `rules.mjs write`
+- About to give a record an id, or change or reuse one → `rules.mjs write` gives ids; they are permanent
+- About to stop a group after some of its operations → every operation and every page of the group, not a sample
+- About to invent an operation name, area or heading → take them from `rules.mjs ops`
+- About to finish while `rules.mjs quotes` or `rules.mjs check` reports an error → fix every error first
 
 ## Communication Guidelines
 
-- Tell the user what you are doing in plain words ("Reading your 6 files", "Writing the rules for Subscriptions"). Do not show script output, file trees or rule lines unless they ask.
-- When something can't be read (a login-only page, a scanned PDF you can't read), say which item and why in one line, and carry on with the rest.
-- When in doubt, less is more.
-
-## The layout
-
-```
-src/rules/
-  rules.md              the index; written by `rules.mjs index`
-  every-request.md      rules for every request: auth, rate limits, headers, error format
-  background.md         rules for what the API does on its own: renewals, retries, scheduled jobs, webhooks it sends
-  operations/<area>.md  one file per tag of the API definition, one section per operation
-  sources/              the user's originals, unchanged, saved copies of the pages they linked, and what they pasted in the conversation
-```
-
-Every rule is one line in a fixed format. `references/rule-format.md` has the format, the category values, ids, sources and a worked example. Read it before writing the first rule.
+- Tell the user what you are doing in plain words ("Reading the Subscriptions operations", "Checking a sample of the rules"). Do not show script output, records or rule lines unless they ask.
+- When a file can't be read, say which one and why in one line, and carry on.
+- Ask nothing until the report, unless Step 1 says to. Collect your questions and ask them once.
 
 ## Workflow
 
 ### Step 1: Look at the project
 
-1. Find the project root (the directory containing `src/`). If there is no `src/rules/`, create it.
-2. Run `node <skill-dir>/scripts/rules.mjs ops`. It prints every operation of the API definition: the file its rules go in, the section heading to use, and the id prefix. Keep the output; you file every rule by it. If it fails to find a definition, tell the user what it said and stop.
-3. Collect the new material: everything in `src/rules/` that is not part of the layout above, plus whatever the user gave in the conversation (pasted text, links, paths to files elsewhere). If there is none, tell the user `src/rules/` is ready, that they can drop their material there in any form or paste or link it in the conversation, and stop. If the layout files already exist, this is a re-run: see *Adding material later*.
+1. Find the project root (the directory containing `src/`).
+2. Run `node <skill-dir>/scripts/rules.mjs ops`. It prints every operation of the API definition by area: the file its rules go in and the section heading. If it fails, tell the user what it said and stop.
+3. List the docs: every `.md` and `.mdx` file under `src/content/`.
+4. If `rules-work/records/` exists, this is a re-run: go to *Running it again*.
+5. If `src/rules/` already holds files, someone wrote rules another way: `write` would replace them. Ask the user before going on.
 
-### Step 2: Read the material
+### Step 2: Plan the groups
 
-Read `references/reading-inputs.md`, then read every item, whatever its form: text, links (fetch each page and save it under `src/rules/sources/urls/`), code, tables, documents, images, archives. Note for each item what you could not read.
+Split the operations into groups by area, about 20 to 40 operations each: put small areas together; a large area can be a group on its own. Add one group named `general` for the rules no single operation owns: rules for every request (authentication, keys, base URLs and sites, rate and concurrency limits, request and response formats, dates and times, paging in general, duplicate prevention, errors in general) and jobs the API runs on its own (renewals, retries, expiries, webhook delivery, scheduled changes).
 
-### Step 3: Keep the originals in `sources/`
+Give every docs page to a group: a page about one area's operations (a tutorial, a guide to one resource) to that area's group; a page about the API as a whole to `general`. A page can go to more than one group. Write the plan to `rules-work/groups.md`: each group's name, its areas and its pages.
 
-Every item of new material goes into `src/rules/sources/` unchanged. Do this before writing rules, so every rule cites the path the file will keep. Keep each item's name and any subfolders; add `-2`, `-3` before the extension if a name is taken.
+### Step 3: Extract the rules, group by group
 
-- **Items in `src/rules/`:** move them. Use `git mv` when the project is a git repository and the file is tracked.
-- **Files elsewhere** (in the project or outside it): copy them, and leave the originals where they are.
-- **Text pasted in the conversation:** save it, word for word, as `src/rules/sources/chat-<YYYY-MM-DD>.md`.
-- **Links given in the conversation:** the page copies Step 2 saved in `sources/urls/` are enough.
+Each group follows `references/extracting.md` and writes its records to `rules-work/records/<group>.jsonl` in the format of `references/record-format.md`.
 
-### Step 4: Write the rules
+- **If you can start subagents** (in Claude Code, the Agent tool), give each group to its own subagent, up to four at a time. Tell it the project root, the full paths of `<skill-dir>/references/extracting.md`, `<skill-dir>/references/record-format.md` and `<skill-dir>/scripts/rules.mjs`, its group's name, areas and pages, and that it must read both references first.
+- **Otherwise** do the groups yourself, one after another, reading `references/extracting.md` and `references/record-format.md` first.
 
-1. Go through the material and write one rule per condition and outcome, in the format of `references/rule-format.md`. Split a sentence that states two rules; merge the same rule stated in two places into one rule with both sources.
-2. File each rule:
-   - it applies to every request → `every-request.md`;
-   - it is about something the API does on its own → `background.md`, under a `## <job>` section (`renewal`, `dunning`, `webhook-delivery`, ...);
-   - otherwise → under each operation it governs, in the file and section `rules.mjs ops` gave. A rule on several operations is written under each one, with the same id, and names the others in `Also:`.
-3. A rule you cannot place (the material names no operation you can match, or an endpoint the definition does not have) is not written: list it for the user in Step 6.
-4. When two sources disagree, write the rule as the user's material states it and add a `**Conflict:**` note naming the other source. When it matters which is right, add it to your questions.
-5. Write the files area by area as you finish each, so nothing is lost if the work stops. Create `every-request.md` and `background.md` with their titles even when they hold no rules.
+### Step 4: Check the quotes, then write
 
-### Step 5: Index and check
+1. Run `node <skill-dir>/scripts/rules.mjs quotes`. Fix every error: copy the quote again, exactly, from the file, or drop the record if the file does not state the rule. Then run it again until it prints `OK`.
+2. Read each "no record cites" warning. It is fine when that page states no business rule; otherwise read the page and record its rules.
+3. Run `node <skill-dir>/scripts/rules.mjs write`. It gives every new record its id and writes `src/rules/`.
 
-1. Run `node <skill-dir>/scripts/rules.mjs index` to write `rules.md`.
-2. Run `node <skill-dir>/scripts/rules.mjs check`. Fix every **error** and run `index` and `check` again until it prints `OK`.
-3. Read each **warning**. "No rule cites" a file is fine when that file states no rule (an overview, a page about something else): say so in your report.
+### Step 5: Merge duplicates
 
-### Step 6: Report
+A rule stated where two groups read it (a shared parameter, a reused schema, a general page) gets recorded twice.
+
+1. Run `node <skill-dir>/scripts/rules.mjs merge`. It lists pairs of records from different groups that may be one rule: the same quote, or nearly the same condition and outcome.
+2. For each pair that is one rule, run `node <skill-dir>/scripts/rules.mjs merge <keep-id> <drop-id>`. The first keeps its id and takes the other's operations and sources; the other is marked removed. A pair that is two rules (one sentence that states two things) stays as it is.
+3. Run `write` again.
+
+### Step 6: The second pass
+
+1. Run `node <skill-dir>/scripts/rules.mjs sample`. It picks 10% of each group's records into `rules-work/sample.jsonl`.
+2. Check each one against its sources, as *The second pass* in `references/extracting.md` says, and write the verdicts to `rules-work/review.jsonl`. If you can start subagents, give this to one that wrote none of the records.
+3. Run `node <skill-dir>/scripts/rules.mjs review` to apply the verdicts, then `quotes` and `write`.
+4. If more than a quarter of one group's sample was corrected or rejected, go through all of that group's records again the same way before you finish.
+
+### Step 7: Check
+
+Run `node <skill-dir>/scripts/rules.mjs check` and fix every error until it prints `OK`. It checks the rule files against the format, the API definition and the records, every quote, and that codegen will add `business-rules/` to the Context Plugin: it does so only when `rules.md`, `every-request.md` and at least one `operations/<area>.md` exist. If no rule governs any operation, tell the user the plugin will not get the folder.
+
+### Step 8: Report
 
 Tell the user, briefly:
 
-- how many rules you wrote, from how many items, and which files they are in (loud and silent counts come from the first line of `rules.md`);
-- anything you could not read, and why;
-- rules you could not place, and conflicts you noted;
+- how many rules, loud and silent (the first line of `src/rules/rules.md`), how many operations have rules, and how many rules are for every request and for background jobs;
+- the second pass: how many records were checked, and how many were confirmed, corrected and rejected;
+- docs pages that state no business rule, and anything you could not read;
+- statements you could not place (about an endpoint the definition does not have), and conflicts between the definition and the docs;
 - your questions, all together;
-- in one line, that the rules come from their material and were not tested against the API: they assume the material is up to date with the live API (its sandbox).
+- in one line: the rules come only from the API definition and the docs and were not tested against the API; they assume both are accurate and up to date with the live API (its sandbox);
+- next: generate the Context Plugin (`apimatic plugin generate`, see the `apimatic-portal` skill) to include them; keep `rules-work/` for the next run.
 
-When the user answers, save the answer like pasted text (Step 3) so the rules can cite it, update the rule files, then run `index` and `check` again.
+## Running it again
 
-## Adding material later
+When the API definition or the docs change, or the user asks to update the rules:
 
-When `src/rules/` already holds rule files and the user adds more:
-
-1. Treat only the new items (anything outside the layout, and whatever the user gives in the conversation) as new material; the files in `sources/` are already done.
-2. Read the existing rule files for the areas the new material touches before writing, so you don't write a rule twice. If the new material restates an existing rule, add the new source to that rule. If it changes one, update the rule in place, keep its id, and add the source.
-3. New rules take the next free number for their id prefix; never renumber.
-4. Then Steps 3, 5 and 6 as above.
+1. Run `quotes`. Each error names a record whose quote is no longer in its file. Read the file again and either fix the record (its id stays) or remove it: replace the record's line with `{"id": "<its id>", "removed": "<why>"}`.
+2. Find the operations and pages that are new or changed: compare `ops` and the files under `src/content/` with `rules-work/groups.md`, and use the files' dates or the project's git history. Extract their rules as in Step 3, adding records to the groups' files. Update `groups.md`.
+3. Then Steps 4 to 8. New records take the next free number; ids never change.
 
 ## References
 
-- `references/rule-format.md`: the rule line format, category values, ids, sources and an example
-- `references/reading-inputs.md`: what counts as a business rule, and how to read each kind of material
-- `scripts/rules.mjs`: `ops`, `index` and `check`
+- `references/extracting.md`: what a business rule is, how a group reads the API definition and the docs, and the second pass
+- `references/record-format.md`: the record, the rule line it becomes, the categories, ids and an example
+- `scripts/rules.mjs`: `ops`, `spec`, `quotes`, `write`, `merge`, `sample`, `review` and `check`
