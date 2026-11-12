@@ -20,7 +20,7 @@ One JSON object per line in `rules-work/records/<group>.jsonl`, one record per r
 | `condition` | When the rule applies: one sentence, one line |
 | `provider_outcome` | `{"status": <HTTP status or null>, "error": <the documented error code or message, exactly, or null>, "effect": <the silent effect, one line, or null>}`. Only what the source states: `null` where it says nothing. All three `null` reads "outcome not stated" |
 | `app_must` | What an app calling the API must do: one imperative sentence |
-| `sources` | One or more `{"kind", "path", "line", "quote"}`, or for a linked page `{"kind": "link", "url", "line", "quote"}`; see below |
+| `sources` | One or more `{"kind", "path", "line", "quote"}`; see below |
 | `conflict` | `null`, or one line when two sources disagree: which ones, and which the record follows |
 | `removed` | Only on a removed rule, which keeps just `id` and this: why it was removed. `merge` and `review` set it; to remove a rule yourself, replace its line with `{"id": "<its id>", "removed": "<why>"}` |
 
@@ -56,10 +56,10 @@ No text field may hold `→`, `**Do:**`, `**Conflict:**`, `*(` or `)*`: the rule
 
 | Field | What it holds |
 |---|---|
-| `kind` | `spec` for a file under `spec/`; `docs` for a page under `content/`; `announcement` for a dated changelog, release-note or announcement page under `content/`; `link` for a page a file in `spec/` or `content/` links to, saved with `rules.mjs link` |
-| `path` | The file, relative to `src/`: `spec/openapi.yaml`, `content/guides/billing.md`. A `link` source has `url` instead: the link exactly as the file in `spec/` or `content/` gives it |
+| `kind` | `spec` for a file under `spec/`; `docs` for a page under `content/`; `announcement` for a dated changelog, release-note or announcement page under `content/` |
+| `path` | The file, relative to `src/`: `spec/openapi.yaml`, `content/guides/billing.md` |
 | `line` | The line the quote starts on, or `null` (always `null` for a JSON definition) |
-| `quote` | The words that state the rule, copied exactly from the file, at most 300 characters. For a JSON definition, copy them as `rules.mjs spec` prints them; for a linked page, from its saved copy in `rules-work/links/`. `...` skips words inside a quote. Markdown and HTML marks, spacing and capitals do not matter when `quotes` compares |
+| `quote` | The words that state the rule, copied exactly from the file, at most 300 characters. For a JSON definition, copy them as `rules.mjs spec` prints them. `...` skips words inside a quote. Markdown and HTML marks, spacing and capitals do not matter when `quotes` compares |
 
 Give every source that states the rule, not only the first you found.
 
@@ -77,7 +77,7 @@ Within a section, loud rules come first, then silent ones. A record filed in sev
 Each record becomes one line:
 
 ```
-- **<loudness>**, <on>/<does>: <condition> → <outcome>. **Do:** <app_must>[ Also: `<place>`, ...][ **Conflict:** <conflict>] *(<kind> `<path or url>`; ...; `<id>`)*
+- **<loudness>**, <on>/<does>: <condition> → <outcome>. **Do:** <app_must>[ Also: `<place>`, ...][ **Conflict:** <conflict>] *(<kind> `<path>`; ...; `<id>`)*
 ```
 
 The record above becomes, in `operations/subscriptions.md`:
@@ -88,7 +88,7 @@ The record above becomes, in `operations/subscriptions.md`:
 - **loud**, state/errors: The customer already has an active subscription to the same plan → 409 "subscription_exists". **Do:** Look up the customer's subscriptions first, and change the existing one instead of creating a second. *(spec `spec/openapi.yaml`; `createSubscription.1`)*
 ```
 
-Quotes stay in the records: the published lines carry each source's file or link, not its words.
+Quotes stay in the records: the published lines carry each source's file, not its words.
 
 ## Ids
 

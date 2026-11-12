@@ -18,8 +18,7 @@ fail() { echo "  FAIL  $1"; FAIL=$((FAIL + 1)); }
 separator() { echo ""; echo "--- $1 ---"; }
 
 TMP="$(mktemp -d)"
-SERVER=""
-trap '[ -n "$SERVER" ] && kill "$SERVER" 2> /dev/null; rm -rf "$TMP"' EXIT
+trap 'rm -rf "$TMP"' EXIT
 
 # A fresh copy of the example project at $TMP/p.
 copy_example() { rm -rf "$TMP/p" && cp -R "$EXAMPLE" "$TMP/p"; }
@@ -184,74 +183,6 @@ if (cd "$TMP/json" && node "$RULES" quotes > "$TMP/out.txt" 2>&1); then
   fail "quotes accepts a quote that is not in the JSON definition"
 else
   pass "quotes rejects a quote that is not in the JSON definition"
-fi
-
-# ─────────────────────────────────────────────
-separator "pages the docs link to"
-
-# A web server on this machine, so the checks need no network: /limits has text, /app renders only in a browser.
-cat > "$TMP/server.mjs" <<'EOF'
-import http from 'node:http';
-import fs from 'node:fs';
-const pad = '<p>' + 'The limits apply to every key on the account. '.repeat(6) + '</p>';
-const pages = {
-  '/limits': '<html><head><title>x</title><script>track()</script></head><body><h1>Limits</h1><p>An account may make at most <b>100 requests</b> a minute; more are refused with 429.</p>' + pad + '</body></html>',
-  '/app': '<html><body><div id="root"></div><script src="app.js"></script></body></html>',
-};
-const server = http.createServer((req, res) => {
-  const page = pages[req.url];
-  res.writeHead(page ? 200 : 404, { 'content-type': 'text/html' });
-  res.end(page ?? '');
-});
-server.listen(0, '127.0.0.1', () => fs.writeFileSync(process.argv[2], String(server.address().port)));
-EOF
-node "$TMP/server.mjs" "$TMP/port" &
-SERVER=$!
-for _ in $(seq 50); do [ -s "$TMP/port" ] && break; sleep 0.1; done
-BASE="http://127.0.0.1:$(cat "$TMP/port")"
-
-copy_example
-if (cd "$TMP/p" && node "$RULES" link "$BASE/limits" > /dev/null 2>&1); then
-  fail "link fetches a page no file in spec/ or content/ links to"
-else
-  pass "link refuses a page no file in spec/ or content/ links to"
-fi
-
-printf '\nThe [limits page](%s/limits) and the [app](%s/app) have more.\n' "$BASE" "$BASE" >> "$TMP/p/src/content/guides/billing.md"
-if (cd "$TMP/p" && node "$RULES" link "$BASE/limits" > /dev/null) && grep -qF 'at most 100 requests a minute' "$TMP"/p/rules-work/links/*.md && ! grep -qF 'track()' "$TMP"/p/rules-work/links/*.md; then
-  pass "link saves the text of a page the docs link to, in rules-work/links/"
-else
-  fail "link does not save the text of a page the docs link to"
-fi
-
-if (cd "$TMP/p" && node "$RULES" link "$BASE/app" > /dev/null 2>&1); then
-  fail "link saves a page with no readable text"
-else
-  pass "link refuses a page with no readable text"
-fi
-
-mkdir -p "$TMP/api/src/spec"
-printf 'openapi: 3.0.3\ninfo:\n  title: Api\n  version: "1"\nservers:\n  - url: http://127.0.0.1:%s/api\npaths:\n  /orders:\n    get:\n      operationId: listOrders\n      description: See %s/limits for the limits.\n      responses:\n        "200":\n          description: OK\n' "$(cat "$TMP/port")" "$BASE" > "$TMP/api/src/spec/openapi.yaml"
-(cd "$TMP/api" && node "$RULES" link "$BASE/limits" > "$TMP/out.txt" 2>&1) || true
-if grep -qF 'server of the API itself' "$TMP/out.txt" && [ ! -d "$TMP/api/rules-work/links" ]; then
-  pass "link never calls the API, even where the docs link to it"
-else
-  fail "link would call the API"
-fi
-
-echo "{\"operations\": [\"every-request\"], \"on\": \"limits\", \"does\": \"errors\", \"loudness\": \"loud\", \"condition\": \"An account makes more than 100 requests in a minute\", \"provider_outcome\": {\"status\": 429, \"error\": null, \"effect\": null}, \"app_must\": \"Keep each account under 100 requests a minute.\", \"sources\": [{\"kind\": \"link\", \"url\": \"$BASE/limits\", \"line\": null, \"quote\": \"An account may make at most 100 requests a minute; more are refused with 429.\"}], \"conflict\": null}" >> "$TMP/p/rules-work/records/general.jsonl"
-(cd "$TMP/p" && node "$RULES" write > /dev/null)
-if grep -qF "(link \`$BASE/limits\`; \`every-request.2\`)" "$TMP/p/src/rules/every-request.md" && (cd "$TMP/p" && node "$RULES" check > "$TMP/out.txt" 2>&1); then
-  pass "a rule can cite a linked page, and check finds its quote in the saved copy"
-else
-  fail "a rule cannot cite a linked page:"; cat "$TMP/out.txt"
-fi
-
-sed -i.bak 's#The \[limits page\]([^)]*) and ##' "$TMP/p/src/content/guides/billing.md" && rm "$TMP/p/src/content/guides/billing.md.bak"
-if (cd "$TMP/p" && node "$RULES" check > /dev/null 2>&1); then
-  fail "check accepts a rule citing a page the docs no longer link to"
-else
-  pass "check rejects a rule citing a page the docs no longer link to"
 fi
 
 # ─────────────────────────────────────────────

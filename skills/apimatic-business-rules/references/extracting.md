@@ -4,7 +4,7 @@ Read this before you write a record, whether you are doing one group or all of t
 
 ## Your sources, and only these
 
-Everything you may read for rules is in `src/spec/` (the API definition) and `src/content/` (the docs), and the pages those files link to. To read a linked page, run `node <skill-dir>/scripts/rules.mjs link <url>` with the link exactly as the file gives it: it refuses a link no file in `src/spec/` or `src/content/` gives, and one to the API's own servers, saves the page's text in `rules-work/links/`, and prints the file to read. Follow a link when the text sends the reader there for more about a rule ("see the limits page", "for the error codes, read ..."), not every link, and never a link on a linked page. A page it cannot save (one that shows its text only in a browser, or needs a login) is noted for the report, not guessed. Do not search the web or the rest of the disk, do not call the API, and do not use what you remember about this API or one like it. A rule counts only if one of these files or saved pages states it. If you are unsure whether a file states something, it does not.
+Everything you may read for rules is in `src/spec/` (the API definition) and `src/content/` (the docs). Do not search the web or the rest of the disk, do not call the API, and do not use what you remember about this API or one like it. A rule counts only if one of these files states it. If you are unsure whether a file states something, it does not.
 
 ## What a business rule is
 
@@ -38,14 +38,14 @@ A rule belongs to the group that owns the operation whose request it governs. If
 ## How a group works
 
 1. **The API definition.** Read `rules-work/spec-<group>.txt` whole, in parts if it is long. (If it is missing, write it: `node <skill-dir>/scripts/rules.mjs spec <area>... > rules-work/spec-<group>.txt` with your group's areas; for the `general` group, `spec info`.) For each operation it holds the summary, description, parameters and responses, and then every schema they use with each property's description. Most rules are in that prose. For a YAML definition it holds where each operation starts instead: read each one there, and every schema file it refers to.
-2. **The docs.** Read each of your group's pages whole. Then search `src/content/` for each of your operations' paths, names and resources, and read what you find. Follow the links they give as *Your sources, and only these* says.
+2. **The docs.** Read each of your group's pages whole. Then search `src/content/` for each of your operations' paths, names and resources, and read what you find.
 3. **The records.** For each operation, write every rule it has: a write operation often has several. Add each area's records to `rules-work/records/<group>.jsonl` as you finish the area, so nothing is lost if the work stops. Be complete: every operation of the group, not a sample.
 4. **The quotes.** If you can run commands, run `node <skill-dir>/scripts/rules.mjs quotes` and fix every error that names your file, until none does. If you cannot, the agent that started you runs it.
 5. **Report** (as a subagent, to the agent that started you): records per area, loud and silent counts, what you could not read, statements you could not place, and conflicts. Do not repeat the records.
 
 ## Writing a record
 
-- **The quote** is the words that state the rule, copied exactly: from the file itself, for a JSON definition from what `rules.mjs spec` prints, and for a linked page from its saved copy. Give each source that states the rule.
+- **The quote** is the words that state the rule, copied exactly: from the file itself, or for a JSON definition from what `rules.mjs spec` prints. Give each source that states the rule.
 - **The outcome** is only what the source states: a status the text names, the error code or message exactly as written, the silent effect. When it states none, leave all three `null`.
 - **`loud` or `silent`** follows the outcome: an error the API returns is `loud`; a result with no error is `silent`. When the source says the API refuses or rejects but gives no status, it is still `loud`.
 - **`app_must`** is what a careful app does about the rule, one imperative sentence that follows from the source: "Send currency when the subscription must be billed in another currency", not "Handle currencies correctly".
