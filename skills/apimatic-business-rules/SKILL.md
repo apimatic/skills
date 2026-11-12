@@ -9,6 +9,8 @@ Turn whatever the user put in `src/rules/` into Markdown rule files, filed by th
 
 A **business rule** is logic the API applies that the API definition cannot express: a field required only in some case, an action refused in some state, a call that must come first, a setting that must be on, a side effect, a value the server computes, a limit, what an error means. The rule files tell a developer (or an AI coding assistant) what their app must do about each one.
 
+The rules are written from the material as given; nothing here calls the API to test them. The skill assumes the material is up to date with the live API (what its sandbox does), and tells the user so in its report.
+
 ## When to Use
 
 - The user dropped files, links or notes into `src/rules/` and wants them translated, formatted, organized or "turned into rules"
@@ -97,7 +99,8 @@ Tell the user, briefly:
 - how many rules you wrote, from how many items, and which files they are in (loud and silent counts come from the first line of `rules.md`);
 - anything you could not read, and why;
 - rules you could not place, and conflicts you noted;
-- your questions, all together.
+- your questions, all together;
+- in one line, that the rules come from their material and were not tested against the API: they assume the material is up to date with the live API (its sandbox).
 
 When the user answers, update the rule files, then run `index` and `check` again.
 
