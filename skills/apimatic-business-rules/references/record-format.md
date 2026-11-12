@@ -67,7 +67,7 @@ Give every source that states the rule, not only the first you found.
 
 | File | Title | Sections |
 |---|---|---|
-| `rules.md` | `# <API>: business rules` | the counts and a table of every operation that has rules |
+| `rules.md` | `# <API>: business rules` | the counts, what loud, silent and each `<on>` and `<does>` value mean, and a table of every operation that has rules |
 | `every-request.md` | `# Rules for every request` | none: rule lines straight under the title. Always written, because codegen needs it |
 | `background.md` | `# Rules for jobs <API> runs on its own` | `## <job>`, one per job. Written only when there are background rules |
 | `operations/<area>.md` | `# <tag>` | `` ## `METHOD /path` (`operationId`) ``, one per operation that has rules, in the order of `rules.mjs ops` |
