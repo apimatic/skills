@@ -28,7 +28,7 @@ When you are unsure whether a statement is a rule, or what it means, ask; don't 
 
 ## Each kind of material
 
-**Text** (`.txt`, `.md`, emails, chat exports, notes pasted into a file). Read it all. Most sentences that say "must", "only", "cannot", "when", "after", "fails", "returns" or "rejects" hold a rule. Cite the line.
+**Text** (`.txt`, `.md`, emails, chat exports, notes pasted into a file or into the conversation). Read it all. Most sentences that say "must", "only", "cannot", "when", "after", "fails", "returns" or "rejects" hold a rule. Cite the line.
 
 **Links** (a file listing URLs, `.url` or `.webloc` shortcuts, links inside text). Fetch each page's full text: `curl -sL <url>` (then strip the HTML) keeps every sentence, while a web-fetch tool that returns a summary can drop rules. Save the text as Markdown in `src/rules/sources/urls/<host>-<path-with-dashes>.md`, starting with:
 

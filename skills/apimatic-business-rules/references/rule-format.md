@@ -62,7 +62,7 @@ One line per rule:
 | `spec` | the API definition, `spec/...` |
 | `docs` | portal pages, `content/...` |
 | `announcement` | dated changelog or announcement pages |
-| `text` | notes, emails, chat exports, Markdown the user wrote: `rules/sources/...` |
+| `text` | notes, emails, chat exports, Markdown the user wrote, text pasted in the conversation (`rules/sources/chat-<date>.md`): `rules/sources/...` |
 | `code` | source code: `rules/sources/...:<line>` |
 | `table` | spreadsheets, CSV, JSON or YAML tables: `rules/sources/...` |
 | `document` | PDF, Word, slides: `rules/sources/...` |

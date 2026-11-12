@@ -67,6 +67,13 @@ else
   fail "ops does not list the example's operations"
 fi
 
+mkdir -p "$TMP/new/src" && cp -R "$EXAMPLE/src/spec" "$TMP/new/src/"
+if (cd "$TMP/new" && node "$RULES" ops | grep -qF '(`createSubscription`)'); then
+  pass "ops works on a project with no src/rules/ yet"
+else
+  fail "ops needs src/rules/ to exist"
+fi
+
 if (cd "$EXAMPLE" && node "$RULES" check > "$TMP/out.txt" 2>&1); then
   pass "check passes on the example"
 else
