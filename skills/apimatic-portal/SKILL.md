@@ -406,7 +406,7 @@ Each language in the `languages` block (`csharp`, `python`, `typescript`) gets a
 
 A Context Plugin gives AI coding assistants (Claude Code, Cursor, VS Code) accurate context about the API and its SDKs. The portal shows a **Context Plugin** page with install instructions (a tab when `apimatic:plugin` is in `tabs`) when `apimatic.json` has a `plugin` block, or a `portal.pluginUrl` for a plugin hosted elsewhere.
 
-Read `references/context-plugins.md` for the publish → generate → publish flow and the `plugin` block.
+Read `references/context-plugins.md` for the publish → generate → publish flow and the `plugin` block. To give the plugin the API's business rules, run the `apimatic-business-rules` skill before `apimatic plugin generate`: it writes them to `src/rules/`, and the generated plugin includes them.
 
 ### Features not available in CLI v2
 
