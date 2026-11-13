@@ -129,7 +129,7 @@ Tell the user, briefly:
 
 ## Running it again
 
-When the API definition or the docs change, or the user asks to update the rules:
+When the API definition or the docs change, or the user asks to update the rules, do Step 1 first (it sends you here), then:
 
 1. Run `quotes`. Each error names a record whose quote is no longer in its file. Read the file again and either fix the record (its id stays) or remove it: replace the record's line with `{"id": "<its id>", "removed": "<why>"}`.
 2. Find the operations and pages that are new or changed: compare `ops` and the files under `src/content/` with `rules-work/groups.md`, and use the files' dates or the project's git history. Extract their rules as in Step 3, adding records to the groups' files. Update `groups.md`.
