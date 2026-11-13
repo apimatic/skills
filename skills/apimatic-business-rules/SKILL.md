@@ -17,12 +17,13 @@ A **business rule** is logic the API applies that the API definition's schema ca
 - The API definition or the docs changed and the rules need to follow
 - The user asks to check or fix `src/rules/`, or how business rules get into a Context Plugin
 
-**When NOT to use:** changing the API definition or the docs themselves; generating SDKs, portals or the plugin (the `apimatic-sdk` and `apimatic-portal` skills).
+**When NOT to use:** changing the API definition or the docs themselves, beyond the validation fixes the user agrees to in Step 1; generating SDKs, portals or the plugin (the `apimatic-sdk` and `apimatic-portal` skills).
 
 ## Prerequisites
 
 - Node.js 24 or later (for `scripts/rules.mjs`; it has no dependencies)
-- An APIMatic project: a directory that contains `src/`, with the API definition in `src/spec/` (OpenAPI 3 or Swagger 2, JSON or YAML) and the portal docs, if there are any, in `src/content/`. No APIMatic login or CLI is needed.
+- An APIMatic project: a directory that contains `src/`, with the API definition in `src/spec/` (OpenAPI 3 or Swagger 2, JSON or YAML) and the portal docs, if there are any, in `src/content/`.
+- The APIMatic CLI, logged in (`apimatic auth login`), for `apimatic api validate` in Step 1
 
 `<skill-dir>` below is the directory holding this `SKILL.md`. Run every command from the project root (the directory that *contains* `src/`), never from inside `src/`.
 
@@ -70,10 +71,11 @@ The records are the source of `src/rules/`; the next run builds on them. Keep `r
 ### Step 1: Look at the project
 
 1. Find the project root (the directory containing `src/`).
-2. Run `node <skill-dir>/scripts/rules.mjs ops`. It prints every operation of the API definition by area: the file its rules go in and the section heading. If it fails, tell the user what it said and stop.
-3. List the docs: every `.md` and `.mdx` file under `src/content/`.
-4. If `rules-work/records/` exists, this is a re-run: go to *Running it again*.
-5. If `src/rules/` already holds files, someone wrote rules another way: `write` would replace them. Ask the user before going on.
+2. Run `apimatic api validate` there. Three kinds of finding, at any level (Blocking, Error or Warning), get in the way of the rules: a reference it cannot resolve, a duplicate operationId (the rules of either operation are filed under both) and an operationId that does not follow the naming conventions (`rules.mjs` stops on one). If it reports any of them, ask the user whether you may fix them in `src/spec/`; with a yes, make the smallest fix, such as renaming the second of two duplicate operationIds, run it again, and file any record that names a renamed operationId under the operation it is about. Leave its other findings alone. If it cannot run, say why in one line and go on.
+3. Run `node <skill-dir>/scripts/rules.mjs ops`. It prints every operation of the API definition by area: the file its rules go in and the section heading. If it fails, tell the user what it said and stop.
+4. List the docs: every `.md` and `.mdx` file under `src/content/`.
+5. If `rules-work/records/` exists, this is a re-run: go to *Running it again*.
+6. If `src/rules/` already holds files, someone wrote rules another way: `write` would replace them. Ask the user before going on.
 
 ### Step 2: Plan the groups
 

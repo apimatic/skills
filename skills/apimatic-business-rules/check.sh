@@ -185,6 +185,20 @@ else
   pass "quotes rejects a quote that is not in the JSON definition"
 fi
 
+node -e 'const fs=require("fs"), f=process.argv[1], d=JSON.parse(fs.readFileSync(f,"utf8")); d.definitions.Order.description="x".repeat(5000); fs.writeFileSync(f, JSON.stringify(Object.fromEntries(Object.entries(d).sort())))' "$TMP/json/src/spec/api.json"
+if (cd "$TMP/json" && node "$RULES" ops > /dev/null 2>&1); then
+  pass "ops reads a JSON definition whose keys are sorted"
+else
+  fail "ops does not read a JSON definition whose keys are sorted"
+fi
+
+sed -i.bak 's/"CreateOrder"/"create order"/' "$TMP/json/src/spec/api.json" && rm "$TMP/json/src/spec/api.json.bak"
+if (cd "$TMP/json" && node "$RULES" ops > "$TMP/out.txt" 2>&1) || ! grep -qF '`create order`' "$TMP/out.txt"; then
+  fail "ops runs with an operationId that rule ids cannot hold"
+else
+  pass "ops stops on an operationId that rule ids cannot hold"
+fi
+
 # ─────────────────────────────────────────────
 separator "merge, sample and review"
 

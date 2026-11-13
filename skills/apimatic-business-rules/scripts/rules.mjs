@@ -86,9 +86,9 @@ function findSpec(src) {
   for (const name of fs.readdirSync(dir)) {
     if (!/\.(ya?ml|json)$/i.test(name)) continue;
     const text = readText(path.join(dir, name));
-    const isOas = /\.json$/i.test(name)
-      ? /"(openapi|swagger)"\s*:/.test(text.slice(0, 4000))
-      : /^(openapi|swagger)\s*:/m.test(text);
+    let doc = null;
+    if (/\.json$/i.test(name)) try { doc = JSON.parse(text); } catch { /* not JSON, so not a definition */ }
+    const isOas = doc ? Boolean(doc.openapi || doc.swagger) : /^(openapi|swagger)\s*:/m.test(text);
     if (isOas) candidates.push({ file: path.join(dir, name), hasPaths: /^paths\s*:|"paths"\s*:/m.test(text) });
   }
   const main = candidates.filter((c) => c.hasPaths);
@@ -228,6 +228,8 @@ function loadSpec(src) {
     return { ...o, tag, area, key, file: `operations/${area}.md`, heading: `\`${o.method} ${o.path}\`` + (o.operationId ? ` (\`${o.operationId}\`)` : '') };
   });
   if (ops.length === 0) throw new Fail(`${rel(src, file)}: found no operations under paths`);
+  const odd = ops.filter((o) => o.operationId !== null && !/^[A-Za-z0-9_.-]+$/.test(o.operationId));
+  if (odd.length) throw new Fail(`${rel(src, file)}: rule ids are made from operationIds, which may hold only letters, digits, _, . and -; rename ${odd.map((o) => `\`${o.operationId}\` (${o.method} ${o.path})`).join(', ')} in the API definition first (\`apimatic api validate\` warns about them too)`);
   const byRef = new Map();
   for (const o of ops) {
     byRef.set(o.key, o);

@@ -18,7 +18,7 @@ Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that th
 
 - Node.js 24 or later and npm
 - An APIMatic account — [sign up free at app.apimatic.io](https://app.apimatic.io)
-- APIMatic CLI v2 installed globally (not needed for `apimatic-business-rules`, which needs only Node.js):
+- APIMatic CLI v2 installed globally:
 
 ```bash
 npm install -g @apimatic/cli@2
