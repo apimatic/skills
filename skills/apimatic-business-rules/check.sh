@@ -199,6 +199,14 @@ else
   pass "ops stops on an operationId that rule ids cannot hold"
 fi
 
+copy_example
+sed -i.bak 's/operationId: cancelSubscription/operationId: createSubscription/' "$TMP/p/src/spec/openapi.yaml" && sed -i.bak 's/"cancelSubscription"/"createSubscription"/' "$TMP"/p/rules-work/records/*.jsonl && rm "$TMP"/p/src/spec/*.bak "$TMP"/p/rules-work/records/*.bak
+if (cd "$TMP/p" && node "$RULES" write > /dev/null 2>&1 && node "$RULES" check > /dev/null 2>&1); then
+  pass "write and check accept two operations in one area that share an operationId"
+else
+  fail "check fails on two operations in one area that share an operationId"
+fi
+
 # ─────────────────────────────────────────────
 separator "merge, sample and review"
 

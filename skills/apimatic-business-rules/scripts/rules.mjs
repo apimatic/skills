@@ -831,8 +831,8 @@ function readRuleFiles(prj, spec, files) {
         if (!op) { err(name, i, `the API definition has no operation ${m[1]} ${m[2]}`); section = null; return; }
         if ((m[3] ?? null) !== op.operationId) err(name, i, `${m[1]} ${m[2]} is \`${op.operationId}\` in the API definition`);
         if (op.file !== name) err(name, i, `${op.method} ${op.path} belongs in ${op.file} (its tag is "${op.tag}")`);
-        if (headingsHere.has(op.key)) err(name, i, `a second section for ${op.method} ${op.path}`);
-        headingsHere.add(op.key);
+        if (headingsHere.has(`${m[1]} ${m[2]}`)) err(name, i, `a second section for ${op.method} ${op.path}`);
+        headingsHere.add(`${m[1]} ${m[2]}`);
         section = { heading: line.slice(3), op, count: 0, file: name };
         sections.push(section);
         return;
@@ -850,7 +850,7 @@ function readRuleFiles(prj, spec, files) {
           else if (!isFile(path.join(prj.src, s.path))) err(name, i, `cites \`${s.path}\`, which is not a file under src/`);
         }
         if (section?.op) section.count++;
-        rules.push({ ...r, file: name, line: i + 1, section: section?.op?.key ?? section?.heading ?? null });
+        rules.push({ ...r, file: name, line: i + 1, section: section?.heading ?? null });
         return;
       }
       err(name, i, 'only "# " / "## " headings, rule lines and blank lines belong in a rule file');
