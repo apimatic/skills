@@ -1,0 +1,28 @@
+schema_version: "1.1"
+name: portal-preview-status
+description: >-
+  apimatic-portal runs its bundled scripts/serve.mjs from wherever the plugin is installed (the skill names it through
+  {skill_dir}), on a portal project with no preview running. Needs --scaffold --allow-tools Bash, on Linux, macOS or WSL2.
+tags: [shell, portal]
+expected_outcome: The agent runs `node <plugin>/skills/apimatic-portal/scripts/serve.mjs status --input ...` and reports that no preview is running.
+context:
+  scaffold_script: fixture.sh
+execution:
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: >-
+    This directory is my APIMatic portal project. Is its local preview server running? Only check: don't start or
+    stop anything.
+graders:
+  - name: ran-bundled-status
+    type: tool_used
+    tool: Bash
+    input_match: 'apimatic-portal[\/]+scripts[\/]+serve\.mjs"?\s+status'
+  - name: reports-not-running
+    type: llm
+    criteria: |
+      PASS if the response says that no preview server is running for this project.
+
+      FAIL if it says a preview is running, starts or stops a server, or says the status script could not be found
+      or run.

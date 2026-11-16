@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "apimatic",
+  "version": "2.0.0",
+  "description": "Build and publish APIMatic developer portals, generate and publish SDKs, and write an API's business rules for its Context Plugin, with the APIMatic CLI v2.",
+  "author": {
+    "name": "APIMatic",
+    "email": "developer@apimatic.io",
+    "url": "https://www.apimatic.io"
+  },
+  "homepage": "https://github.com/apimatic/skills",
+  "repository": "https://github.com/apimatic/skills",
+  "keywords": ["apimatic", "openapi", "sdk", "developer-portal", "api-docs", "context-plugin", "business-rules"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "APIMatic",
+        "shortDescription": "Portals, SDKs, business rules",
+        "longDescription": "Skills for the APIMatic CLI v2: build, preview and publish a developer portal from an OpenAPI definition; generate, customize and publish C#, Python and TypeScript SDKs; and write the business rules an API's definition and docs state into src/rules/ for its Context Plugin.",
+        "developerName": "APIMatic",
+        "category": "Developer Tools",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://www.apimatic.io",
+        "defaultPrompt": [
+          "Set up an APIMatic developer portal for my OpenAPI definition.",
+          "Generate a TypeScript SDK for my API with the APIMatic CLI.",
+          "Write my API's business rules into src/rules/ for its Context Plugin."
+        ]
+      }
+    }
+  }
+}

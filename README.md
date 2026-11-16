@@ -4,7 +4,7 @@ A curated collection of AI agent skills for working with [APIMatic](https://www.
 
 Agent skills extend AI coding assistants with domain-specific knowledge and step-by-step workflows.  
 
-Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that the agent loads automatically when it detects a matching task.
+Each skill lives in `skills/<name>/` and is defined by a `SKILL.md` file that the agent loads automatically when it detects a matching task. The repository itself is an [agent plugin](https://agent-plugins.org), `apimatic`, that installs all three skills at once in Claude Code, Codex, GitHub Copilot (CLI and VS Code) and Cursor.
 
 ## Available skills
 
@@ -39,6 +39,7 @@ There are two versions of these skills, one for each major version of the APIMat
 | SDK languages           | C#, Python, TypeScript                              | C#, Java, PHP, Python, Ruby, TypeScript, Go                                |
 | SDK customization       | Code edits; change tracking if the installed CLI has it (CLI 2.0.0 does not) | CodeGen settings (`APIMATIC-META.json`) and change tracking                |
 | Documentation           | [docs.apimatic.io/v4](https://docs.apimatic.io/v4)  | [docs.apimatic.io](https://docs.apimatic.io)                               |
+| Install as a plugin     | Yes, the `apimatic` plugin ([Option 1](#option-1--install-the-plugin)) | No, install the skills one by one                     |
 
 **Not sure which one you have?**
 
@@ -52,13 +53,27 @@ npx skills add https://github.com/apimatic/skills/tree/v1/skills/apimatic-portal
 npx skills add https://github.com/apimatic/skills/tree/v1/skills/apimatic-sdk
 ```
 
-Or clone that branch (`git clone --branch v1 https://github.com/apimatic/skills`) and copy the skill folders as described in [Option 3](#option-3--manual-copy). The tag `v1.0.0` marks the last v1 release made from `main`.
+Or clone that branch (`git clone --branch v1 https://github.com/apimatic/skills`) and copy the skill folders as described in [Option 4](#option-4--manual-copy). The tag `v1.0.0` marks the last v1 release made from `main`.
 
 **Fixing the v1 skills.** The v1 skills are maintained on the `v1` branch. Open pull requests against `v1`, not `main`; each fix is released as a `v1.0.x` tag.
 
 ## Installation
 
-### Option 1 — Install via [skills.sh](https://skills.sh)
+### Option 1 — Install the plugin
+
+The repository root is the `apimatic` plugin ([Agent Plugins 1.0](https://agent-plugins.org)) and its own marketplace, `apimatic-skills`. The plugin installs all three skills at once, and updating the plugin updates them all.
+
+| Agent | Install |
+|-------|---------|
+| Claude Code | `/plugin marketplace add apimatic/skills`, then `/plugin install apimatic@apimatic-skills` (in a terminal: `claude plugin marketplace add apimatic/skills` and `claude plugin install apimatic@apimatic-skills`) |
+| Codex | `codex plugin marketplace add apimatic/skills`, then `codex plugin add apimatic@apimatic-skills`, or pick it in `/plugins` |
+| GitHub Copilot CLI | `copilot plugin marketplace add apimatic/skills`, then `copilot plugin install apimatic@apimatic-skills` |
+| VS Code (GitHub Copilot) | With `chat.plugins.enabled` on, run **Chat: Install Plugin from Source** and enter `https://github.com/apimatic/skills`. VS Code also loads the plugin when Copilot CLI installed it. |
+| Cursor | Until it is listed in the Cursor Marketplace, copy the repository into `~/.cursor/plugins/local/apimatic` and run **Developer: Reload Window**, or have a team admin add it with **Import from Repo** under **Dashboard → Plugins & MCPs**. |
+
+If you copied the skills into a skills directory before, delete those copies: a skill installed both ways loads twice.
+
+### Option 2 — Install via [skills.sh](https://skills.sh)
 
 ```bash
 npx skills add apimatic/skills --skill apimatic-portal
@@ -66,7 +81,7 @@ npx skills add apimatic/skills --skill apimatic-sdk
 npx skills add apimatic/skills --skill apimatic-business-rules
 ```
 
-### Option 2 — Prompt your agent to install it
+### Option 3 — Prompt your agent to install it
 
 Paste the following prompt into your AI agent:
 
@@ -81,7 +96,7 @@ Please do the following:
 4. Clean up the temporary directory
 ```
 
-### Option 3 — Manual copy
+### Option 4 — Manual copy
 
 Download or clone this repository, then copy the skill folder(s) you want into the skills directory for your agent:
 
@@ -95,7 +110,7 @@ For example, to install `apimatic-portal`, copy the `skills/apimatic-portal` fol
 
 ## Usage
 
-Once installed, the agent automatically selects the appropriate skill based on what you're working on. No special invocation is needed — just describe your task naturally.
+Once installed, the agent automatically selects the appropriate skill based on what you're working on. No special invocation is needed — just describe your task naturally. To call a skill by name, use `/apimatic-portal`, `/apimatic-sdk` or `/apimatic-business-rules`; in Claude Code a skill that came with the plugin is `/apimatic:apimatic-portal` and so on.
 
 For example:
 
@@ -111,4 +126,4 @@ The agent will invoke the right skill and guide you through the workflow step by
 
 ## Maintaining these skills
 
-See [MAINTAINING.md](MAINTAINING.md) for the v1 maintenance branch and how to keep up with CLI releases.
+See [MAINTAINING.md](MAINTAINING.md) for the v1 maintenance branch, how to keep up with CLI releases, and how to check, test and release the plugin.

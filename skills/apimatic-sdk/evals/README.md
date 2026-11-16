@@ -21,7 +21,7 @@ Results depend on the machine, so record these with every run:
 - **Authentication.** Sign in (`apimatic auth login`) before the run. Eval 0 is the exception: it expects the agent to log in, so run `apimatic auth logout` before that eval.
 - **Commands are executed, not just described.** Let the agent run shell commands (`--allowedTools "Bash,PowerShell"`) so `ran_command` assertions can pass.
 - **Fixtures.** Run each eval in its own empty directory. The project folders that prompts mention don't need to exist; the assertions check what the agent says and runs. Eval 51 is the exception: create the broken `src/spec/openapi.yaml` that its `expected_output` describes in the run directory first.
-- **The skill is installed** where Claude Code finds it from any directory, such as `~/.claude/skills/apimatic-sdk` (see the [repository README](../../../README.md#option-3--manual-copy)).
+- **The skill is installed** where Claude Code finds it from any directory: the `apimatic` plugin, or a copy such as `~/.claude/skills/apimatic-sdk` (see the [repository README](../../../README.md#installation)), not both.
 
 ## Run
 
