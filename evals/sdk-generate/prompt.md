@@ -5,4 +5,4 @@ max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
-Generate a TypeScript SDK for my API with the APIMatic CLI. My project has the OpenAPI definition in src/spec/openapi.yaml.
+How do I generate a TypeScript SDK for my API with the APIMatic CLI? My project keeps its OpenAPI definition in src/spec/openapi.yaml.
