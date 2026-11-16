@@ -57,6 +57,19 @@ else
 fi
 
 # ─────────────────────────────────────────────
+separator "Security scanners on skills.sh"
+
+# Snyk rated apimatic-portal Critical (E004, prompt injection) when it told the agent to keep its own
+# recovery and cleanup from the user, and this skill had the same line. Hiding what the agent does is not allowed.
+CONCEALMENT="silently (attempt|retry|recover|fix|clean|handle)|attempt (them|it) silently|say nothing|never expose|without telling the user|(hide|keep|conceal) [[:alnum:] ]*from the user"
+if grep -niE "$CONCEALMENT" "${FILES[@]}" > /dev/null 2>&1; then
+  fail "A skill file tells the agent to keep what it does from the user"
+  grep -niE "$CONCEALMENT" "${FILES[@]}" || true
+else
+  pass "No skill file tells the agent to keep what it does from the user"
+fi
+
+# ─────────────────────────────────────────────
 echo ""
 echo "════════════════════════════════════"
 echo "  Results: $PASS passed, $FAIL failed"
