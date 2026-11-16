@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "apimatic-skills",
+  "description": "APIMatic skills for AI coding agents, for APIMatic CLI v2.",
+  "owner": {
+    "name": "APIMatic",
+    "email": "developer@apimatic.io"
+  },
+  "plugins": [
+    {
+      "name": "apimatic",
+      "source": "./",
+      "description": "Build and publish APIMatic developer portals, generate and publish SDKs, and write an API's business rules for its Context Plugin, with the APIMatic CLI v2.",
+      "category": "development"
+    }
+  ]
+}

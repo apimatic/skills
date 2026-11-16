@@ -1,0 +1,14 @@
+{
+  "name": "apimatic",
+  "displayName": "APIMatic",
+  "version": "2.0.0",
+  "description": "Build and publish APIMatic developer portals, generate and publish SDKs, and write an API's business rules for its Context Plugin, with the APIMatic CLI v2.",
+  "author": {
+    "name": "APIMatic",
+    "email": "developer@apimatic.io",
+    "url": "https://www.apimatic.io"
+  },
+  "homepage": "https://github.com/apimatic/skills",
+  "repository": "https://github.com/apimatic/skills",
+  "keywords": ["apimatic", "openapi", "sdk", "developer-portal", "api-docs", "context-plugin", "business-rules"]
+}
