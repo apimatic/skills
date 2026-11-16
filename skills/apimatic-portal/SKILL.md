@@ -41,14 +41,14 @@ This skill targets **APIMatic CLI v2** (`@apimatic/cli` 2.x), documented at http
 This skill is used by developers of all experience levels. All messages shown to the user must be clear, non-technical, and action-oriented. Follow these rules in every response:
 
 - **Talk about the portal, not the scripts:** Describe what the portal server, the preview, and the build are doing. Process IDs, exit codes, signal names (SIGTERM, SIGKILL, EPIPE), skill script paths, and the scripts' PID, heartbeat, and log files mean little to most users, so leave them out of routine updates. Give any of them when the user asks, or when the user needs one to fix a problem.
-- **Summarize CLI output:** Rather than pasting terminal output, spinner characters, ANSI escape codes, or build logs, say what happened in plain language, and quote the exact error message when the user needs it to act. Show the full output when the user asks for it.
+- **Summarize CLI output:** Do not paste or quote terminal output, spinner characters, ANSI escape codes, or build logs. Summarize what happened in plain language, and show the output when the user asks for it.
 - **Translate technical states into plain language:**
   - Instead of "Process 56078 is no longer running. Cleaning stale PID file." → "The portal server is not running."
   - Instead of "Server process exited (code 1) before becoming ready" → "The portal server failed to start."
   - Instead of "Port 23513 is already in use" → "The default port was taken, so the portal is using a different one."
 - **Use the verbatim blocks provided:** When this skill provides a specific message to show (like the Server Briefing), output it exactly as written, substituting only the real URL. Do not paraphrase or add technical context around it.
-- **Keep error guidance actionable:** When something fails, tell the user in simple terms what went wrong, what you are doing about it, and what they can do. When you fix or retry something yourself, say so in a sentence with the result, e.g. "A page had no title, so I added one and restarted the preview. It's running now."
-- **Lead with the outcome:** Keep messages short and put the result first. Add technical detail when it helps the user act, or when they ask for it.
+- **Keep error guidance actionable:** When something fails, tell the user what went wrong in simple terms and what they can do about it. Fix what you can first, then report the outcome in one message: what was wrong, what you changed, and whether it worked, e.g. "A page had no title, so I added one and restarted the preview. It's running now."
+- **When in doubt, less is more:** Lead with the outcome and leave out details the user cannot act on. Give more when the user asks.
 
 ---
 
