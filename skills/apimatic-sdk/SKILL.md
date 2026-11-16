@@ -52,8 +52,8 @@ This skill is used by developers of all experience levels. All messages shown to
 
 - **Show CLI output in a code block:** After a command finishes, display the final terminal output to the user wrapped in a fenced code block. Before rendering, strip ANSI escape codes and remove duplicate consecutive lines caused by spinner animation (keep only the last occurrence of each repeated line). Do not summarize or paraphrase — show the cleaned output as-is inside the code block. The one exception is `apimatic publishing profile list`, which is summarized instead (see [Publish Step 2](#step-2-find-the-publishing-profile-id)).
 - **Use the verbatim blocks provided:** When this skill provides a specific message to show, output it exactly as written. Do not paraphrase or add technical context around it.
-- **Keep error guidance actionable:** When something fails, show the cleaned CLI output in a code block, then tell the user what went wrong in simple terms and what they can do about it. Do not describe the internal recovery steps you are attempting — just attempt them silently and report the outcome.
-- **When in doubt, less is more:** If you are unsure whether a detail is useful to the user, leave it out.
+- **Keep error guidance actionable:** When something fails, show the cleaned CLI output in a code block, then tell the user in simple terms what went wrong, what you are doing about it, and what they can do. When you fix or retry something yourself, say so in a sentence with the result.
+- **Lead with the outcome:** Keep messages short and put the result first. Add technical detail when it helps the user act, or when they ask for it.
 
 ## Customize an SDK
 

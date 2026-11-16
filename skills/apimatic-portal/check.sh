@@ -76,6 +76,16 @@ else
   pass "No sudo in skill files"
 fi
 
+# Snyk on skills.sh rated the skill Critical (E004, prompt injection) when it told the agent to keep its
+# own recovery and cleanup from the user. Plain-language summaries are fine; hiding what the agent does is not.
+CONCEALMENT="silently (attempt|retry|recover|fix|clean|handle)|attempt (them|it) silently|say nothing|never expose|without telling the user|(hide|keep|conceal) [[:alnum:] ]*from the user"
+if grep -rniE "$CONCEALMENT" "$SKILL_DIR" --include=*.md --include=*.mjs > /dev/null 2>&1; then
+  fail "A skill file tells the agent to keep what it does from the user"
+  grep -rniE "$CONCEALMENT" "$SKILL_DIR" --include=*.md --include=*.mjs || true
+else
+  pass "No skill file tells the agent to keep what it does from the user"
+fi
+
 # ─────────────────────────────────────────────
 separator "QUAL-02 — CLI v2 flags documented"
 
