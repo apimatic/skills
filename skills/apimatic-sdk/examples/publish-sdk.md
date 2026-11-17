@@ -7,7 +7,7 @@ This example shows how to publish a generated SDK using the APIMatic CLI.
 ## Publish the SDK
 
 ```
-apimatic sdk publish --profile-id=b2c3d4e5f6a1b2c3d4e5f6a1 --language=typescript --version=1.0.0 --publish-type=sourcecode --force
+apimatic sdk publish --profile-id=000000000000000000000001 --language=typescript --version=1.0.0 --publish-type=sourcecode --force
 ```
 
 Output:
