@@ -727,7 +727,7 @@
     },
     {
       "id": 35,
-      "prompt": "Publish my C# SDK version 2.0.0 to the package registry. My profile ID is b2c3d4e5f6a1b2c3d4e5f6a1. My project is at ./csharp-api/ and I'm already authenticated.",
+      "prompt": "Publish my C# SDK version 2.0.0 to the package registry. My profile ID is 000000000000000000000001. My project is at ./csharp-api/ and I'm already authenticated.",
       "expected_output": "The agent runs apimatic sdk publish in non-interactive mode with all four required flags: --profile-id, --language, --version, and --publish-type=package. It does NOT add --publish-type=sourcecode since the user only asked for the package registry.",
       "files": [],
       "assertions": [
@@ -741,7 +741,7 @@
           "id": "uses-profile-id",
           "description": "Response includes the user's profile ID",
           "type": "contains",
-          "value": "--profile-id=b2c3d4e5f6a1b2c3d4e5f6a1"
+          "value": "--profile-id=000000000000000000000001"
         },
         {
           "id": "uses-csharp-language",
@@ -780,7 +780,7 @@
     },
     {
       "id": 36,
-      "prompt": "Publish my TypeScript SDK version 1.0.0 to both npm and GitHub. My profile ID is a1b2c3d4e5f6a1b2c3d4e5f6. My project is at ./ts-api/ and I'm already authenticated.",
+      "prompt": "Publish my TypeScript SDK version 1.0.0 to both npm and GitHub. My profile ID is 000000000000000000000002. My project is at ./ts-api/ and I'm already authenticated.",
       "expected_output": "The agent runs apimatic sdk publish with --publish-type=package and --publish-type=sourcecode both present, targeting both the package registry and the source repository.",
       "files": [],
       "assertions": [
@@ -794,7 +794,7 @@
           "id": "uses-profile-id",
           "description": "Response includes the user's profile ID",
           "type": "contains",
-          "value": "--profile-id=a1b2c3d4e5f6a1b2c3d4e5f6"
+          "value": "--profile-id=000000000000000000000002"
         },
         {
           "id": "uses-typescript-language",
@@ -833,7 +833,7 @@
     },
     {
       "id": 37,
-      "prompt": "I want to test publishing my Python SDK before actually pushing it live. My profile ID is c3d4e5f6a1b2c3d4e5f6a1b2, version is 1.0.0, publish to package registry. I'm authenticated, project at ./py-api/.",
+      "prompt": "I want to test publishing my Python SDK before actually pushing it live. My profile ID is 000000000000000000000003, version is 1.0.0, publish to package registry. I'm authenticated, project at ./py-api/.",
       "expected_output": "The agent uses --dry-run so the SDK is generated locally for review without publishing. All other required flags are still included.",
       "files": [],
       "assertions": [
@@ -853,7 +853,7 @@
           "id": "uses-profile-id",
           "description": "Response includes the user's profile ID",
           "type": "contains",
-          "value": "--profile-id=c3d4e5f6a1b2c3d4e5f6a1b2"
+          "value": "--profile-id=000000000000000000000003"
         },
         {
           "id": "uses-python-language",
@@ -941,7 +941,7 @@
     },
     {
       "id": 40,
-      "prompt": "I want to publish my Python SDK using a CI pipeline. My profile ID is d4e5f6a1b2c3d4e5f6a1b2c3, version is 0.9.0, publish to package registry. Store the API key as an env variable, no browser login.",
+      "prompt": "I want to publish my Python SDK using a CI pipeline. My profile ID is 000000000000000000000004, version is 0.9.0, publish to package registry. Store the API key as an env variable, no browser login.",
       "expected_output": "The agent signs in non-interactively with `apimatic auth login --auth-key=\"$APIMATIC_API_KEY\"` (sdk publish has no --auth-key flag), with no browser login, and runs apimatic sdk publish with all required flags.",
       "files": [],
       "assertions": [
@@ -955,7 +955,7 @@
           "id": "uses-profile-id",
           "description": "Response includes the user's profile ID",
           "type": "contains",
-          "value": "--profile-id=d4e5f6a1b2c3d4e5f6a1b2c3"
+          "value": "--profile-id=000000000000000000000004"
         },
         {
           "id": "uses-python-language",
